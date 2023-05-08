@@ -1,0 +1,79 @@
+[SERVER]
+Class: net.Server
+server = net.createServer().listen(
+  path.join('\\\\?\\pipe', process.cwd(), 'myctl'));
+
+new net.Server([options][, connectionListener])
+Returns: <net.Server>
+
+net.createServer([options][, connectionListener]) #Creates a new TCP or IPC server.
+   options <Object>
+        allowHalfOpen <boolean> Indicates whether half-opened TCP connections are allowed. Default: false.
+        pauseOnConnect <boolean> Indicates whether the socket should be paused on incoming connections. Default: false.
+    connectionListener <Function> Automatically set as a listener for the 'connection' event.
+Returns: <net.Server>
+
+If allowHalfOpen is set to true, when the other end of the socket sends a FIN packet, the server will only send a FIN packet back when socket.end() is explicitly called, until then the connection is half-closed (non-readable but still writable). See 'end' event and RFC 1122 (section 4.2.2.13) for more information.
+If pauseOnConnect is set to true, then the socket associated with each incoming connection will be paused, and no data will be read from its handle. This allows connections to be passed between processes without any data being read by the original process. To begin reading data from a paused socket, call socket.resume().
+
+server.on('close', () => {})
+server.on('connection', (socket) => {}) # Returns <net.Socket> The connection object
+server.on('error', (err) => {}) # the 'close' event will not be emitted directly following this event unless server.close() is manually called.
+server.on('listening'
+
+server.address() #Returns: <Object> | <string> | <null>
+>> #Returns the bound address, the address family name, and port of the server as reported by the operating system if listening on an IP socket 
+
+server.close([callback])
+    callback <Function> Called when the server is closed.
+    Returns: <net.Server>
+>> Stops the server from accepting new connections and keeps existing connections. 
+This function is asynchronous, the server is finally closed when all connections are ended and 
+the server emits a 'close' event. The optional callback will be called once the 'close' event occurs. 
+Unlike that event, it will be called with an Error as its only argument if the server was not open 
+when it was closed.
+
+server.getConnections(callback)
+    callback <Function>
+    Returns: <net.Server>
+>> Asynchronously get the number of concurrent connections on the server. Works when sockets were sent to forks.
+Callback should take two arguments err and count.
+
+server.listen()
+    server.listen(handle[, backlog][, callback])
+    server.listen(options[, callback])
+    server.listen(path[, backlog][, callback]) for IPC servers
+    server.listen([port[, host[, backlog]]][, callback]) for TCP servers
+Returns: <net.Server>
+
+>> This function is asynchronous. When the server starts listening, the 'listening' event will be emitted. The last parameter callback will be added as a listener for the 'listening' event.
+
+server.listening
+server.maxConnections
+
+//util//
+net.isIP(input)
+Tests if input is an IP address. Returns 0 for invalid strings, returns 4 for IP version 4 addresses, and returns 6 for IP version 6 addresses.
+ > net.isIPv4(input)
+ > net.isIPv6(input)
+
+Server can be a TCP server or an IPC server, depending on what it listen() to.
+
+
+const net = require('net');
+const server = net.createServer((c) => {
+  // 'connection' listener.
+  console.log('client connected');
+  c.on('end', () => {
+    console.log('client disconnected');
+  });
+  c.write('hello\r\n');
+  c.pipe(c);
+});
+server.on('error', (err) => {
+  throw err;
+});
+server.listen(8124, () => {
+  console.log('server bound');
+});
+
