@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1,minimal-ui" name="viewport">
+    <link rel="stylesheet" href="themes/default/style.css">
+    <link rel="stylesheet" href="main.css">
+    <style>
+        html, body {
+            height: 640px;
+            width: 480px;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #context-url {
+            margin-top: 32px;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background-color: #333;
+            color: #fff;
+            font-size: 12px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        #context-url a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .context-url-link {
+            margin-right: 5px;
+            color: #fff;
+        }
+
+    </style>
+    <title>Canvas</title>
+</head>
+<body>
+
+<div id="context-url"></div>
+<div id="context-tree"></div>
+
+<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+<script src="jquery-3.6.3.min.js"></script>
+<script src="jstree.min.js"></script>
+<script src="socket.io.min.js"></script>
+<script src="background.js"></script>
+</body>
+<!--
+
+    Simplicty is the ultimate sophistication
+
+-->
+</html>

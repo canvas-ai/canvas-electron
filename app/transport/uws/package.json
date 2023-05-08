@@ -1,0 +1,15 @@
+{
+  "name": "canvas-transport-uws",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "idnc_sk",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.19.0",
+    "uws": "^200.0.0"
+  }
+}

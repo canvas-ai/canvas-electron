@@ -1,0 +1,85 @@
+TODO Check
+https://github.com/meech-ward/net-socket.io
+
+[CLIENT]
+Class: net.Socket
+
+net.createConnection(options[, connectListener])
+ >> Returns: <net.Socket> The newly created socket used to start the connection.
+
+net.createConnection(path[, connectListener])
+ >> Creates a new net.Socket with all options set to default, 
+	immediately initiates connection with socket.connect(port[, host][, connectListener]), 
+	then returns the net.Socket that starts the connection.
+
+socket = net.Socket({
+    fd <number> If specified, wrap around an existing socket with the given file descriptor, otherwise a new socket will be created.
+    allowHalfOpen <boolean> Indicates whether half-opened TCP connections are allowed. See net.createServer() and the 'end' event for details. Default: false.
+    readable <boolean> Allow reads on the socket when an fd is passed, otherwise ignored. Default: false.
+    writable <boolean> Allow writes on the socket when an fd is passed, otherwise ignored. Default: false.
+})
+Returns: <net.Socket>
+
+socket.connect()
+    socket.connect(options[, connectListener])
+    socket.connect(path[, connectListener]) for IPC connections.
+    socket.connect(port[, host][, connectListener]) for TCP connections.
+Returns: <net.Socket> The socket itself.
+
+socket
+.on('close', (hadError <boolean> true if the socket had a transmission error.) => {})
+.on('lookup' (dnsErr, address, family, host) => {}) #Ater resolve before connect
+.on('connect')
+.on('ready') # After connect
+.on('data', (data) => {})
+.on('drain' # Emitted when the write buffer becomes empty. Can be used to throttle uploads.
+.on('error', (e) => {}) # Close will follow error
+.on('end') # Receives FIN packet
+.on('timeout') # 
+
+socket.address() # { port: 12346, family: 'IPv4', address: '127.0.0.1' }
+socket.localAddress
+socket.localPort
+socket.remoteAddress
+socket.remoteFamily
+socket.remotePort
+
+socket.bufferSize 
+socket.bytesRead
+socket.bytesWritten
+
+socket.setKeepAlive([enable][, initialDelay])
+    enable <boolean> Default: false
+    initialDelay <number> Default: 0
+    Returns: <net.Socket> The socket itself.
+
+
+socket.destroy([error])
+ > socket.destroyed
+
+socket.setTimeout(3000);
+socket.on('timeout', () => {
+  console.log('socket timeout');
+  socket.end();
+});
+
+socket.write(data[, encoding][, callback])
+    data <string> | <Buffer> | <Uint8Array>
+    encoding <string> Only used when data is string. Default: utf8.
+    callback <Function>
+    Returns: <boolean>
+
+Sends data on the socket. The second parameter specifies the encoding in the case of a string. It defaults to UTF8 encoding.
+Returns true if the entire data was flushed successfully to the kernel buffer. Returns false if all or part of the data was queued in user memory. 'drain' will be emitted when the buffer is again free.
+The optional callback parameter will be executed when the data is finally written out, which may not be immediately.
+See Writable stream write() method for more information.
+
+socket.end([data[, encoding]][, callback])
+#Added in: v0.1.90
+    data <string> | <Buffer> | <Uint8Array>
+    encoding <string> Only used when data is string. Default: 'utf8'.
+    callback <Function> Optional callback for when the socket is finished.
+    Returns: <net.Socket> The socket itself.
+Half-closes the socket. i.e., it sends a FIN packet. It is possible the server will still send some data.
+
+See writable.end() for further details.

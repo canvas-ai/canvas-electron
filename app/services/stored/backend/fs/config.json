@@ -1,0 +1,7 @@
+{
+
+    "name": "fs",
+    "description": "Default FS module to manipulate local files on a POSIX filesystem",
+    "type": "local",
+    "capabilities":"rwx"
+}

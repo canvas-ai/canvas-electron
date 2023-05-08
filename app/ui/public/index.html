@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1,minimal-ui" name="viewport">
+    <link rel="stylesheet" href="fonts/lato/latofonts.css">
+    <link rel="stylesheet" href="fonts/MaterialIcons/material-icons.css"> 
+    <link rel="stylesheet" href="css/vuetify.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/ui-renderer.min.css">
+    <link rel="stylesheet" href="../../../node_modules/electron-tabs/electron-tabs.css">
+    <link rel="stylesheet" href="../../../node_modules/dragula/dist/dragula.css">
+</head>
+<body>
+
+<div id="workspace">
+</div>
+
+<v-app id="toolbox">
+
+    <v-card class="content elevation-7" v-bind:class="{snapped: isSnapped}">
+        <v-tabs
+        color="orange darken-4"
+        dark
+        grow
+        hide-slider>
+        
+            <v-tabs-slider color="red"></v-tabs-slider>
+        
+            <v-tab href="#tab-1">
+                <v-icon>phone</v-icon>
+            </v-tab>
+        
+            <v-tab href="#tab-2">
+                <v-icon>chat</v-icon>
+            </v-tab>
+        
+            <v-tab href="#tab-3">
+                <v-icon>account_box</v-icon>
+            </v-tab>
+        
+            <v-tab-item
+            v-for="i in 5"
+            :id="'tab-' + i"
+            :key="i">
+                <v-card flat>
+                    <v-card-text>wq</v-card-text>
+                </v-card>
+            </v-tab-item>
+        </v-tabs>
+    </v-card>
+
+    <v-card class="toolbar elevation-7" v-bind:class="{snapped: isSnapped}" dark>
+        <v-container fill-height align-end>
+            <v-layout align-center column>
+
+                <v-btn icon large flat class="button pa-0 ma-0" v-on:click="toggleContent()">
+                    <v-icon large>dashboard</v-icon>
+                </v-btn>
+                <v-btn icon flat class="button pa-0 ma-0" v-on:click="toggleContent()">
+                    <v-icon>folder</v-icon>
+                </v-btn>
+                <v-btn icon flat class="button pa-0 ma-0" v-on:click="toggleContent()">
+                    <v-icon>email</v-icon>
+                </v-btn>   
+                <v-btn icon flat class="button pa-0 ma-0" v-on:click="toggleContent()">
+                    <v-icon>apps</v-icon>
+                </v-btn>                                                                           
+                <v-spacer></v-spacer>         
+                <v-btn icon large flat class="button pa-0 ma-0" v-on:click="isSnapped = !isSnapped">
+                    <v-icon large v-if="isSnapped">chrome_reader_mode</v-icon>
+                    <img v-else src="icons/generic/toolbar-right-white.png" alt="" />
+                </v-btn>
+                <v-btn icon large flat class="button pa-0 ma-0" v-on:click="minimize()">
+                    <img src="icons/generic/window_minimize.svg" alt="" />
+                </v-btn>            
+                <v-btn icon large flat class="button pa-0 ma-0" v-on:click="maximize()">
+                    <img v-if="isMaximized" src="icons/generic/window_restore.svg" alt="" />
+                    <img v-else src="icons/generic/window_maximize.svg" alt="" />
+                </v-btn>    
+                <v-btn icon large flat class="button pa-0 ma-0" v-on:click="fullscreen()">
+                    <v-icon v-if="isFullscreen" style="width: 32px;">fullscreen_exit</v-icon>
+                    <v-icon v-else>fullscreen</v-icon>
+                </v-btn>                  
+                <v-btn icon large flat class="button pa-0 ma-0" v-on:click="quit()">
+                    <img src="icons/generic/power-white.png" alt="" />
+                </v-btn>                  
+            </v-layout>
+        </v-container>
+    </v-card>
+</v-app>
+
+
+<script>window.jQuery = window.$ = require('jquery');</script>
+<script src="js/vue_v2.5.17.js"></script>
+<script src="js/vuetify_v1.3.7.min.js"></script>
+<script src="js/ui-renderer.min.js"></script>
+</body>
+<!-- 
+
+    Simplicty is the ultimate sophistication 
+    
+-->
+</html>

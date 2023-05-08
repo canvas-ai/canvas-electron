@@ -1,0 +1,107 @@
+:root {
+    --phi: 1.61803398;
+    --din476: 0.70710678;
+    --margin-base: 4px;
+    --margin-menu: 12px;
+    --margin-content: 24px;
+
+    --padding-base: 4px;
+    --padding-menu: 12px;
+    --padding-content: 24px;
+
+    --tile-width: 48px;
+    --tile-height: 48px;
+    --tile-margin: 4px;
+}
+
+html {
+    scroll-behavior: smooth; 
+}
+
+body, html {
+    font-family: Lato, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    /* subpixel-antialiased */
+    -webkit-transform:  translate3d(0, 0, 0);
+    transform:          translate3d(0, 0, 0);
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;       
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/*  Tiles                                           */
+/* ------------------------------------------------ */
+.tile {
+    display: flex;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    line-height: 100%;
+    margin: var(--tile-margin) 0 0 0;
+}
+
+/* small 1x1 */
+.tile-small {
+    width: var(--tile-width);
+    height: var(--tile-height);
+    line-height: var(--tile-height);    
+}
+
+/* medium 2x2 */
+.tile-medium {
+    width: calc(var(--tile-width) * 2 + var(--tile-margin));
+    height: calc(var(--tile-height) * 2 + var(--tile-margin));
+    line-height: calc(var(--tile-height) * 2  + var(--tile-margin));
+}
+
+/* wide 4x2 */
+.tile-wide {
+    width: calc(var(--tile-width) * 4 + var(--tile-margin) * 3);
+    height: calc(var(--tile-height) * 2 + var(--tile-margin));
+    line-height: calc(var(--tile-height) * 2  + var(--tile-margin));    
+}
+
+/* large 4x4 */
+.tile-large {
+    width: calc(var(--tile-width) * 4 + var(--tile-margin) * 3);
+    height: calc(var(--tile-height) * 4 + var(--tile-margin) * 3);
+    line-height: calc(var(--tile-height) * 4 + var(--tile-margin) * 3);    
+}
+
+/*  XY | 1x {N} */
+.tile1x1 {
+    width: var(--tile-width);
+    height: var(--tile-height);
+    line-height: var(--tile-height);
+}
+
+/*  XY | 2x {N} */
+.tile2x1 {
+    width: calc(var(--tile-width) * 2 + var(--tile-margin));
+    height: var(--tile-height);
+    line-height: var(--tile-height);    
+}
+.tile2x2 {
+    width: calc(var(--tile-width) * 2 + var(--tile-margin));
+    height: calc(var(--tile-height) * 2 + var(--tile-margin));
+    line-height: calc(var(--tile-height) * 2  + var(--tile-margin));
+}
+
+/*  XY | 4x {N} */
+.tile4x2 {
+    width: calc(var(--tile-width) * 4 + var(--tile-margin) * 3);
+    height: calc(var(--tile-height) * 2 + var(--tile-margin));
+    line-height: calc(var(--tile-height) * 2  + var(--tile-margin));
+}
+.tile4x4 {
+    width: calc(var(--tile-width) * 4 + var(--tile-margin) * 3);
+    height: calc(var(--tile-height) * 4 + var(--tile-margin) * 3);
+    line-height: calc(var(--tile-height) * 4 + var(--tile-margin) * 3);
+}

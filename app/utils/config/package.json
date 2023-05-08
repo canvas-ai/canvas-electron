@@ -1,0 +1,11 @@
+{
+  "name": "canvas-utils-config",
+  "version": "0.1.0",
+  "main": "index.js",
+  "author": "idnc_sk",
+  "license": "AGPL-3.0-or-later",
+  "description": "Canvas UI Config",
+  "dependencies": {
+    "conf": "^10.1.1"
+  }
+}

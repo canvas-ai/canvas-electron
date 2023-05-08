@@ -1,0 +1,17 @@
+{
+  "name": "canvas-svc-stored",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "idnc_sk",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "ajv": "^8.11.0",
+    "cacache": "^17.0.2",
+    "mmmagic": "^0.5.3",
+    "tinybox": "0.0.0"
+  }
+}
