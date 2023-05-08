@@ -29,7 +29,6 @@ const Index = require('./engine/index')
 /**
  * Main app entry point
  */
-
 class Canvas {
 
 

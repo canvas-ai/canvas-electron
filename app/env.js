@@ -8,7 +8,6 @@ const fs= require('fs')
 const isElectron = require('is-electron')()
 const pkg = require('./package.json')
 
-
 // Most of the below code is not really needed, to-be-removed!
 // App env
 const APP_ROOT = path.dirname(path.resolve(__dirname))
@@ -26,7 +25,6 @@ const USER_CONFIG = path.join(USER_HOME, 'config')
  */
 
 const app = {
-
     // App package info
     name: (pkg.productName) ? pkg.productName : pkg.name,
     version: pkg.version,
@@ -37,7 +35,6 @@ const app = {
     root: APP_ROOT,
     config: APP_CONFIG,
     var: APP_VAR
-
 }
 
 const user = {
@@ -53,10 +50,10 @@ const ipc = (process.platform === 'win32') ?
         path.join('\\\\?\\pipe', process.cwd(), pkg.name) :
         path.join(app.var, 'run', `${pkg.name}-ipc.sock`)
 
+
 /**
  * Process environment setup
  */
-
 
 // Update process env vars
 Object.assign(process.env, {
@@ -79,11 +76,7 @@ Object.assign(process.env, {
 
 });
 
-module.exports.test = 'test'
-
-
 module.exports = {
-
     app,
     user,
     device,
