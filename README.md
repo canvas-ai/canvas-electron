@@ -90,9 +90,9 @@ universe://
         /Music
         /..
 ```
-Every path in this tree represents a context url 
-``universe://home/ournewhouse/heating``  
-``universe://billing/llca/contracts``
+Every path in this tree represents a context url  
+- ``universe://home/ournewhouse/heating``  
+- ``universe://billing/llca/contracts``
 
 Every context *url part* represents a layer. Layers are of 4(5) types:
 
