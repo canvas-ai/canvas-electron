@@ -91,14 +91,14 @@ universe://
         /..
 ```
 Every path in this tree represents a context url 
-``universe://home/ournewhouse/heating``
+``universe://home/ournewhouse/heating``  
 ``universe://billing/llca/contracts``
 
 Every context *url part* represents a layer. Layers are of 4(5) types:
 
 - **Workspace**: Exportable, shareable collection of layers and data sources. By default, this is your "universe".  
 
-- **Canvas**: A multi-context layer that links to feature and filter bitmaps and (optionally) stores Canvas UI layout and UI applet data. A good example would be ``universe://project_a/sec_cmpl/customer_c/dash``, which, besides inherently filtering the customer_c data could also link to
+- **Canvas**: A multi-context layer that links to feature and filter bitmaps and (optionally) stores Canvas UI layout and UI applet data. A good example would be ``universe://project_a/sec_cmpl/customer_a/dash``, which, besides inherently filtering the customer_a data could also link to
   - data/abstraction/tab OR data/abstraction/email OR data/abstraction/file OR data/abstraction/todo AND
   - filter/email/from/itsec-guy1@customer_a OR
   - filter/email/from/itsec@customer_a OR
@@ -109,7 +109,7 @@ Every context *url part* represents a layer. Layers are of 4(5) types:
    
 - **Context**: The **default layer type** that links a context url part to one and only one context bitmap. As an example, moving a layer called "reports" to the root "/" ("universe:///") would - in a standard bitmap-y fashion - show all data linked to the "reports" bitmap for the entire universe; moving/copying the same layer under universe://customer_a/reports would filter out only a subset related to customer_a. Ideally, you want to prevent having multiple layers representing the same data. Reports, reports_new, reports2, customera_reports should be represented by one layer called "reports", leaving the larger context handle the rest for you
   
-- **Filter**: Represents a single filter or feature bitmap, example: ``universe://customera/:emails/:today``, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/timeline/today" filter.
+- **Filter**: Represents a single filter or feature bitmap, example: ``universe://customer_a/:emails/:today``, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/timeline/today" filter.
 
 - **Label**: A noop layer with no context or feature bitmap links
 

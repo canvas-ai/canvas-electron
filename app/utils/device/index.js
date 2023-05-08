@@ -1,8 +1,8 @@
 "use strict";
 
-const { machineId, machineIdSync } = require("node-machine-id");
 
 // Utils
+const { machineId, machineIdSync } = require("node-machine-id");
 const os = require("os");
 const ip = require("ip");
 
