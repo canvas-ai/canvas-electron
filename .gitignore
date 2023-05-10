@@ -1,5 +1,8 @@
 ## App config
 /config/**
+!/config/aliases.json
+!/config/colors.json
+!/config/jsonapi-server.json
 !/config/.keep
 
 ## Var directories
