@@ -48,6 +48,8 @@ const user = {
     data: USER_DATA
 }
 
+console.log(user)
+
 const device = {}
 
 // TODO: Move to config
@@ -108,19 +110,20 @@ module.exports = {
  * Common utilities
  */
 
+// Default use-case is portable mode
+// TODO: Rework, ugly
 function getUserHome() {
 
-    // If CANVAS_USER_HOME was supplied as a env parm, set it as such
+    // CANVAS_USER_HOME was supplied explicitly
     if (process.env.CANVAS_USER_HOME) return process.env.CANVAS_USER_HOME
 
-    // If CANVAS_PORTABLE was set explicitly, return the app-default
+    // CANVAS_PORTABLE was set explicitly, return the portable user dir
     if (process.env.CANVAS_PORTABLE) return path.join(APP_ROOT, 'user')
 
-    // If no portable setup was defined, check if portable mode is enabled
-    let portable = path.join(APP_ROOT, 'user', '.ignore')
-    if (fs.existsSync(portable)) return path.join(APP_ROOT, 'user')
+    // No portable setup was defined, portable mode is disabled
+    if (!fs.existsSync(path.join(APP_ROOT, 'user', '.ignore'))) return path.join(APP_ROOT, 'user')
 
-    // fallback to the local os home directory
+    // Fallback to the local os home directory
     return path.join(os.homedir(), ".canvas")
 
 }

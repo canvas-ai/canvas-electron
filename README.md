@@ -138,6 +138,9 @@ YT Channel + (Royalty-free) Music playlist
 
 ## Support this project
 
+Any suggestions welcome(like, you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>), as a non-programmer this is really appreciated!
+
+
 - **By contributing to the codebase**
 - **By testing the application and reporting bugs**
 - By subscribing to the YT channel above

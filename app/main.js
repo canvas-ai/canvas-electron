@@ -31,26 +31,23 @@ const Index = require('./engine/index')
  */
 class Canvas {
 
-
     constructor(options) {
 
         // TODO
-        options = {
-            ...options
-        }
-
+        options = { ...options }
         debug('Initializing canvas')
 
         // DB Backend
         this.db = new Db({
-            path: path.join(user.home, 'db'),
+            path: path.join(user.db),
             maxDbs: 32
         })
 
         // Index
         this.index = new Index(this.db.createDataset('index'))
 
-        // Disk-backed Maps, TODO: Extract to a separeate session module supporting the current db backend instead
+        // Disk-backed Maps
+        // TODO: Extract to a separate session module
         this.session = new JsonMap(path.join(user.home, 'session'))
 
         // Global Context (subject to change!)
@@ -105,11 +102,9 @@ class Canvas {
     async setupTransports() {}
 
     async setupServices(context) {
-
         //await webdav.start(context)
         await socketio.start(this.context)
         await restapi.start(this.context, this.index)
-
     }
 
     async setupIpcEventListeners() {
