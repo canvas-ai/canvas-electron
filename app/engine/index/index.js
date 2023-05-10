@@ -20,7 +20,7 @@ class Index {
 
 
     #db
-    #epoch = "e0"   // TODO
+    #epoch = "e0"   // Epoch functionality in the TODO list
 
     constructor(db) {
 
