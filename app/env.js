@@ -15,8 +15,10 @@ const APP_CONFIG = path.join(APP_ROOT, 'config')
 const APP_VAR = path.join(APP_ROOT, 'var')
 
 // User env
-const USER_HOME_PORTABLE = path.join(APP_ROOT, 'user')
 const USER_HOME = getUserHome()
+const USER_DB = path.join(USER_HOME, 'db')
+const USER_INDEX = path.join(USER_HOME, 'index')
+const USER_DATA = path.join(USER_HOME, 'data')
 const USER_CONFIG = path.join(USER_HOME, 'config')
 
 
@@ -40,7 +42,10 @@ const app = {
 const user = {
     // User directories
     home: USER_HOME,
-    config: USER_CONFIG
+    config: USER_CONFIG,
+    db: USER_DB,
+    index: USER_INDEX,
+    data: USER_DATA
 }
 
 const device = {}
@@ -70,6 +75,9 @@ Object.assign(process.env, {
     // User
     CANVAS_USER_HOME: USER_HOME,
     CANVAS_USER_CONFIG: USER_CONFIG,
+    CANVAS_USER_DB: USER_DB,
+    CANVAS_USER_INDEX: USER_INDEX,
+    CANVAS_USER_DATA: USER_DATA,
 
     // Export main IPC socket (server and client)
     CANVAS_SOCK_IPC: ipc
@@ -88,14 +96,11 @@ module.exports = {
     },
 
     runtime: (isElectron) ? 'electron' : 'node',
-    isPortable: (USER_HOME === USER_HOME_PORTABLE),  // TODO: Rework
-
     utils: {
         checkObjectAgainstSchema
     },
 
     ipc
-
 }
 
 
@@ -109,11 +114,14 @@ function getUserHome() {
     if (process.env.CANVAS_USER_HOME) return process.env.CANVAS_USER_HOME
 
     // If CANVAS_PORTABLE was set explicitly, return the app-default
-    if (process.env.CANVAS_PORTABLE) return USER_HOME_PORTABLE
+    if (process.env.CANVAS_PORTABLE) return path.join(APP_ROOT, 'user')
 
-    // If no portable setup was defined, check if the portable data dir exists,
+    // If no portable setup was defined, check if portable mode is enabled
+    let portable = path.join(APP_ROOT, 'user', '.ignore')
+    if (fs.existsSync(portable)) return path.join(APP_ROOT, 'user')
+
     // fallback to the local os home directory
-    return (fs.existsSync(USER_HOME_PORTABLE)) ? USER_HOME_PORTABLE : path.join(os.homedir(), ".canvas")
+    return path.join(os.homedir(), ".canvas")
 
 }
 

@@ -24,7 +24,7 @@
     "file-type": "=16.5.4",
     "forever-monitor": "^3.0.3",
     "fs-extra": "^11.1.0",
-    "is-electron": "^2.2.1",
+    "is-electron": "^2.2.2",
     "lmdb": "^2.7.3",
     "magic-bytes.js": "^1.0.13",
     "mime-types": "^2.1.35",
