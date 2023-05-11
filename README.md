@@ -2,7 +2,8 @@
     <img src="app/ui/public/logo_1024x1024.png" alt="Canvas Logo" width="96px">
 </p>
 
-<h2 align="center">Canvas <br />AI-powered context layer on top of your unstructured universe!</h2>
+<h1 align="center">Canvas</h1>
+<h2 align="center"><br />AI-powered context layer on top of your unstructured universe!</h2>
 
 <br />
 
