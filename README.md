@@ -55,7 +55,7 @@ default user config: ``$HOME/.canvas/config``
 <br />
 
 ## Basic concepts
-You use Canvas to divide your work / workflows and **data**(regardless of their location) into separate "contexts". Contexts are stored as a tree structure resembling a file-system hierarchy:
+You use Canvas to divide your work / workflows and **data**(regardless of its location) into separate "contexts". Contexts are stored as a tree structure resembling a file-system hierarchy:
 
 ```
 universe://
@@ -84,7 +84,7 @@ universe://
             /...
         /My LLC B
     Home
-        /ournewhouse
+        /New House
             /Heating
             /Electricity
             /Kitchen
@@ -137,9 +137,9 @@ Now imagine the same with Canvas:
 <br />
 
 ## Social
-I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions on youtube. Don't watch any of the existing videos _yet_, those are mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless. 
+I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions on youtube (usually ~5AM - 6AM CEST). Don't watch any of the existing videos _yet_, mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless.
 
-YT Channel + (Royalty-free) Music playlist
+YT Channel + (Royalty-free) Music playlist I'm putting together
 - https://www.youtube.com/@idnc.streams 
 - https://soundcloud.com/idnc-sk/sets/idnc-streams-5am-coding
 
