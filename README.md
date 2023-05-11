@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/idncsk/canvas/blob/0de84388ccfb4e5b8bfe19f766c7270d121295c4/app/ui/public/logo_1024x1024.png" alt="Canvas Logo" width="96px">
+    <img src="app/ui/public/logo_1024x1024.png" alt="Canvas Logo" width="96px">
 </p>
 
 <h2 align="center">Canvas <br />AI-powered context layer on top of your unstructured universe!</h2>
