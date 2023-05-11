@@ -14,10 +14,10 @@ class LayerIndex {
         this.#initNameToLayerMap()
     }
 
-    // TODO: Update layer method, on that occcasion
+    // TODO: Update layer method, on that occasion
     // #1 Remove 2 json maps, use only one + index
     // #2 Integrate into #Tree
-    // #3 Eval integratin with the main db backend
+    // #3 Eval integration with the main db backend
     has(id) { return this.hasLayerID(id); }
     hasLayerID(id) { return this.index.has(id); }
     hasLayerName(name) { return this.nameToLayerMap.has(name); }

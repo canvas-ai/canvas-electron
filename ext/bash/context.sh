@@ -8,17 +8,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 CANVAS_ROOT="$(cd "$SCRIPT_DIR/../../.." >/dev/null 2>&1 && pwd)"
 
 # Set the path of the config file
-if [ -f $HOME/.canvas/json-api.json ]; then
-    CANVAS_CONFIG="$HOME/.canvas/jsonapi-client.json";
+if [ -f $HOME/.canvas/config/jsonapi.json ]; then
+    CANVAS_CONFIG="$HOME/.canvas/config/jsonapi-client.json";
 else
     CANVAS_CONFIG="$CANVAS_ROOT/config/jsonapi-client.json"
 fi;
 
-# Define global variables
+# Define global variable defaults
 CANVAS_PROTO="${CANVAS_PROTO:-http}"
 CANVAS_HOST="${CANVAS_HOST:-127.0.0.1}"
 CANVAS_PORT="${CANVAS_PORT:-3000}"
-CANVAS_API_KEY="${CANVAS_API_KEY:-default-api-key}"
+CANVAS_API_KEY="${CANVAS_API_KEY:-canvas-json-api}"
 
 # Read values from JSON file if it exists
 if [[ -f "$CANVAS_CONFIG" ]]; then
