@@ -1,3 +1,6 @@
+<br />
+<br />
+
 <p align="center">
     <img src="app/ui/public/logo_1024x1024.png" alt="Canvas Logo" width="96px">
 </p>
