@@ -59,11 +59,7 @@ class Layer {
     /**
      * Getters
      */
-
-    //get name() { return this.#name; }
-    //get type() { return this.#type; }
-    //get id() { return this.#id; }
-
+    
     get contextBitmapArray() {
         return this.contextBitmaps
     }
