@@ -37,7 +37,7 @@ class CanvasTray extends Tray {
 
     options = {
       title: 'Tray',
-      icon: path.resolve(__dirname, '../../assets/nocoffee.png'),
+      icon: path.resolve(__dirname, '../../public/logo_1024x1024.png'),
       ...options
     }
 

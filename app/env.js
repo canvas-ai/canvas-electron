@@ -48,8 +48,6 @@ const user = {
     data: USER_DATA
 }
 
-console.log(user)
-
 const device = {}
 
 // TODO: Move to config
@@ -70,9 +68,10 @@ Object.assign(process.env, {
     LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
 
     // App
-    CANVAS_ROOT: APP_ROOT,
-    CANVAS_CONFIG: APP_CONFIG,
-    CANVAS_VAR: APP_VAR, // Is this really needed?
+    // Is this really needed?
+    CANVAS_APP_ROOT: APP_ROOT,
+    CANVAS_APP_CONFIG: APP_CONFIG,
+    CANVAS_APP_VAR: APP_VAR, 
 
     // User
     CANVAS_USER_HOME: USER_HOME,

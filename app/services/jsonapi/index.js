@@ -17,14 +17,11 @@ const documentRoutes = require('./routes/document');
 const documentsRoutes = require('./routes/documents');
 //const indexRoutes = require('./routes/index');
 
-
 // Constants, to be moved to config
 const DEFAULT_PROTOCOL = config.protocol || 'http'
-const DEFAULT_HOST = config.host || 'localhost'
+const DEFAULT_HOST = config.host || '127.0.0.1'
 const DEFAULT_PORT = config.port || 3000
-
-// Hard-coded API key for demonstration purposes
-const API_KEY = config.key || 'default-api-key';
+const API_KEY = config.key || 'canvas-json-api';
 
 // Middleware function to validate the API key
 const validateApiKey = (req, res, next) => {

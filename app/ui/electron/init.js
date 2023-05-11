@@ -77,7 +77,7 @@ app.setAboutPanelOptions({
     copyright: 'iostream s.r.o. ©2022 | All rights reserved',
     authors: 'idnc_sk',
     website: 'https://getcanvas.org/',
-    iconPath: path.join(__dirname, '../assets/nocoffee.png')
+    iconPath: path.join(__dirname, '../public/logo_1024x1024.png')
 })
 
 
