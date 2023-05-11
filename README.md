@@ -1,6 +1,9 @@
-# Canvas
+<h1 align="center">Canvas</h1>
 
-AI-powered context layer on top of your unstructured universe!
+<p align="center">    
+    <img src="canvas/app/ui/public/logo_1024x1023.png" alt="Project Logo">
+    <h2 align="center">AI-powered context layer on top of your unstructured universe!</h2>
+</p>
 
 <br />
 
