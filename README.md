@@ -1,8 +1,17 @@
-# Canvas
+<br />
+<br />
 
-AI-powered context layer on top of your unstructured universe!
+<p align="center">
+    <img src="app/ui/public/logo_1024x1024.png" alt="Canvas Logo" width="96px">
+</p>
 
 <br />
+
+<h1 align="center">Canvas</h1>
+<h2 align="center">AI-powered context layer on top of your unstructured universe!</h2>
+
+<br />
+
 
 ---
 **Codebase cleanup/migration in-progress! Warning! Might hurt your eyes :)**  
@@ -46,7 +55,7 @@ default user config: ``$HOME/.canvas/config``
 <br />
 
 ## Basic concepts
-You use Canvas to divide your work / workflows and **data**(regardless of their location) into separate "contexts". Contexts are stored as a tree structure resembling a file-system hierarchy:
+You use Canvas to divide your work / workflows and **data**(regardless of its location) into separate "contexts". Contexts are stored as a tree structure resembling a file-system hierarchy:
 
 ```
 universe://
@@ -75,7 +84,7 @@ universe://
             /...
         /My LLC B
     Home
-        /ournewhouse
+        /New House
             /Heating
             /Electricity
             /Kitchen
@@ -128,11 +137,12 @@ Now imagine the same with Canvas:
 <br />
 
 ## Social
-I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions on youtube. Don't watch any of the existing videos _yet_, those are mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless. 
+I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions (usually ~5AM - 6AM CEST). Don't watch any of the existing videos _yet_, mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless.
 
-YT Channel + (Royalty-free) Music playlist
+YT Channel + Some (royalty-free) muzzick
 - https://www.youtube.com/@idnc.streams 
-- https://soundcloud.com/idnc-sk/sets/idnc-streams-5am-coding
+- https://soundcloud.com/idnc-sk/sets
+
 
 <br />
 
