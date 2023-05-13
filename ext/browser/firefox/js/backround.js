@@ -1,3 +1,5 @@
+//if (typeof module === 'object') {window.module = module; module = undefined;}
+
 (function() {
     jQuery.noConflict();
     $ = function(selector,context) { 
@@ -58,6 +60,9 @@ function updateContextBreadcrums(url) {
         }
     }
 }
+
+alert('test')
+console.log('test')
 
 $('#context-tree').jstree({
     "core" : {

@@ -49,8 +49,8 @@ To install the bashrc wrapper:
 ## Configuration paths
 
 Global app config: ``canvas/config``  
-Default user config for portable use: ``canvas/user``  
-default user config: ``$HOME/.canvas/config``
+Default user home for portable use: ``canvas/user``  
+default user home: ``$HOME/.canvas``
 
 <br />
 
@@ -126,18 +126,18 @@ Every context *url part* represents a layer. Layers are of 4(5) types:
 
 ## Use cases
 **To-be replaced by a video**  
-In short, you start working on a random DevOps task "A". You start by opening your browser, doing some research, maybe downloading and extracting some files, making some notes. Then, some priority task "B" comes along! Oook, you open some additional tabs, maybe move the old ones to your growing 2k+ entries OneTab list, do some more research, maybe write some code snippets or configuration files, run some qemu and/or docker magic. Then! your carpenter calls! asking some unpleasant questions about - lets say, your kitchen - that you were to answer during the last weekend. You put all the above aside and quickly start looking through your bookmarks and your trashed downloads folder ..for that one visualization you wanted to send him.
+TL;DR Version: You start working on a random DevOps task "A". You may start by opening your browser, doing some research, maybe downloading and extracting some files, making some notes. Then, another high-priority(tm) task "B" comes along! Oook, n x (Ctrl+T), maybe move your previous tabs to your growing 2k+ entries OneTab list, do some more research, write some code snippets or configuration files, run some qemu and/or docker magic. Then! your carpenter calls! asking a few unpleasant questions about - lets say, your kitchen - that you were to answer during the last weekend. You put all the above aside and quickly start looking through your bookmarks and your by now severely trashed downloads folder ..for that one visualization you wanted to send him.
 
 Now imagine the same with Canvas:
 
 - You start your work by creating a context called **customer/dev/taskA**(replace with jira-1234 or INC1234 if you like). This will store and close your current browser tabs, cleanup your desktop and downloads folders, todo, calendar and notes - so that you can start working on a clean "table", or "desk-top" :)
 - Once task "B" comes along, knowing you have all your work stored and indexed, you create another context **customer/dev/taskB**  and start working on that one
-- When your carpenter calls, you just switch to **ournewhouse/kitchen** which will load all of our related tabs, populate a webdav-based desktop folder showing you (aot) that visualization you would be searching for otherwise, displaying a font 22 note on your sidebar "Send till Monday!" and all the reminder emails you missed from the carpenter.
+- When your carpenter calls, you just switch to **New House/Kitchen** which will load all related tabs, populate a webdav-based desktop folder showing you (aot) that pdf you would be searching for otherwise, displaying a font 22 note on your sidebar "Send till Monday!" and all the reminder emails you missed from the carpenter.
 
 <br />
 
 ## Social
-I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions (usually ~5AM - 6AM CEST). Don't watch any of the existing videos _yet_, mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless.
+I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions (usually ~5AM - 6AM CEST). Wouldn't watch any of the existing videos _yet_, mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless.
 
 YT Channel + Some (royalty-free) muzzick
 - https://www.youtube.com/@idnc.streams 
@@ -148,17 +148,16 @@ YT Channel + Some (royalty-free) muzzick
 
 ## Support this project
 
-Any suggestions welcome(like, you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>), as a non-programmer this is really appreciated!
-
-
 - **By contributing to the codebase**
 - **By testing the application and reporting bugs**
 - By subscribing to the YT channel above
 
   **or**, by sponsoring some quality coffee via
-
 - <https://opencollective.com/idncsk>
 - <https://www.buymeacoffee.com/idncsk>
 - A monthly recurring payment of 1EUR (I tolerate some margin of error:) to IBAN SK95 8330 0000 0023 0250 2806
+
+Any suggestions welcome ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a non-programmer this is really appreciated!
+
 
 Thank you!

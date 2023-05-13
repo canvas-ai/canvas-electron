@@ -1,8 +1,7 @@
 {
-
-  "description": "Canvas browser extension",
-  "manifest_version": 2,
+  "manifest_version": 2,  
   "name": "CanvasUI Sync",
+  "description": "Canvas browser extension for the CanvasUI desktop app.",
   "version": "1.0",
   "icons": {
     "16": "icons/message.svg",
@@ -19,7 +18,10 @@
   },
 
   "background": {
-    "scripts": ["socket.io.min.js", "backround.js"]
+    "scripts": [
+      "js/socket.io.min.js", 
+      "js/background.js"
+    ]
   },
 
   "browser_action": {
