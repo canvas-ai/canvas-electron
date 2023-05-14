@@ -20,7 +20,7 @@ function getContextUrl() {
     })
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function() {
   var elems = document.querySelectorAll(".collapsible");
   var instances = M.Collapsible.init(elems, {
     accordion: false,
@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log('DOM loaded');
   getContextUrl()
+  updateTabCount()
 
 });
 
@@ -59,3 +60,22 @@ function updateContextBreadcrumbs(url) {
         });
     }
 }
+
+
+async function updateTabCount() {
+
+    console.log('Updating tab count')
+    let tabs = await browser.tabs.query({});
+    let count = 0;
+
+    for (let i = 0; i < tabs.length; i++) {
+        if (tabs[i].url !== 'about:blank' && tabs[i].url !== 'about:newtab') {
+            count++;
+        }
+    }
+
+    console.log(`Number of open tabs (excluding empty/new tabs): ${count}`);
+    document.getElementById('tab-count').textContent = count;
+}
+
+document.addEventListener("DOMContentLoaded", updateTabCount);
