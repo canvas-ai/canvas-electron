@@ -13,66 +13,123 @@ const {
 const path = require('path')
 const debug = require('debug')('canvas-main')
 const JsonMap = require('./utils/JsonMap')
+//const Config = require('./utils/config')
+//const Log = require('./utils/log')
 
-// Services
+// Core Services
 const Db = require('./services/db')
 //const StoreD = require('./services/stored')
-//const webdav = require('./services/webdavd')
+
+// Engine
+const Index = require('./engine/index')
+const Context = require('./engine/context')
+//const Synapse = require('./engine/synapse')
+
+// Transport
 const socketio = require('./services/socketio')
 const restapi = require('./services/jsonapi')
 
-// Core components
-const Context = require('./engine/context')
-const Index = require('./engine/index')
-
 
 /**
- * Main app entry point
+ * Main application
  */
+
 class Canvas {
 
     constructor(options) {
 
         // TODO
-        options = { ...options }
-        debug('Initializing canvas')
+        options = {
+            logLevel: 'debug',
+            transport: {
+                socketio: {
+                    enabled: true,
+                    protocol: 'http'
+                },
+                restapi: {
+                    enabled: true,
+                    protocol: 'http'
+                }
+            },
+            ...options
+        }
 
-        // DB Backend
+        debug('Initializing canvas')
+        // Initialize the config
+        // TODO: Extract to a separate config module
+        // Initialize logging
+        // TODO: Extract to a separate logging module
+
+        // Initialize the DB Backend
         this.db = new Db({
             path: path.join(user.db),
             maxDbs: 32
         })
 
-        // Index
+        // Initialize Index
         this.index = new Index(this.db.createDataset('index'))
 
-        // Disk-backed Maps
+        // Initialize data store
+        /*this.data = new StoreD({
+            dataPath: user.data,
+            cachePath: user.cache
+        })*/
+
+        // Session
         // TODO: Extract to a separate session module
         this.session = new JsonMap(path.join(user.home, 'session'))
 
-        // Global Context (subject to change!)
-        this.context = null
+        /*
+        // Canvas Services
+        this.services = new ServiceManager({
+            path: path.join(user.config, 'services')
+        })
+
+        // Canvas Roles
+        this.roles = new RoleManager({
+            path: path.join(user.config, 'roles')
+        })
+
+        // Canvas Apps
+        this.apps = new AppManager({
+            path: path.join(user.config, 'apps')
+        })
+
+        */
+
+        // Contexts
+        this.contexts = new Map()
+
+        // App State
+        this.isInitialized = false
+        this.isMaster = true
 
     }
 
-    async start(services = true) {
+    async start(contextID = 0, options = {
+        loadRoles: true,
+        loadApps: true,
+    }) {
 
         debug('Starting application services')
-        // TODO: Return an IPC/RPC connection instead
-        if (Canvas.isRunning()) throw new Error('Application already running')
 
-        // Initialize global Context (subject to change!)
-        this.context = this.createContext()
+        // TODO: Return an IPC/RPC connection instead
+        if (this.isInitialized) throw new Error('Application already running')
+
+        let context = (this.contexts.has(contextID)) ?
+            this.contexts.get(contextID) :
+            this.createContext()
+
+        this.contexts.set(contextID, context)
 
         // Core components
-        await this.setupContextEventListeners()
         await this.setupProcessEventListeners()
 
-        // Optional services
-        if (services) await this.setupServices()
+        // Services
+        await this.setupServices()
     }
 
-    getContext() { return this.context; }
+    getContext(id) { return this.contexts.get(id); }
 
     createContext(url = this.session.get('url')) {
         if (!url && this.context) {

@@ -61,6 +61,7 @@ class Index extends EE {
         this.context = new Map()
 
         // In-memory bitmap cache
+        // Implemented
         this.bitmapCache = new Map()
 
         // Bitmap managers
@@ -133,6 +134,10 @@ class Index extends EE {
         }
 
         // Load context bitmaps
+        contextArray.forEach(context => {
+            let bitmap = this.bitmapCache.get(context) || this.contextBitmaps.load(context)
+
+        })
         // Load feature bitmaps
         // Get doc ID vect
         // Get IDs from Universe

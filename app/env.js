@@ -19,6 +19,7 @@ const USER_HOME = getUserHome()
 const USER_DB = path.join(USER_HOME, 'db')
 const USER_INDEX = path.join(USER_HOME, 'index')
 const USER_DATA = path.join(USER_HOME, 'data')
+const USER_CACHE = path.join(USER_HOME, 'cache')
 const USER_CONFIG = path.join(USER_HOME, 'config')
 
 
@@ -40,11 +41,14 @@ const app = {
 }
 
 const user = {
+    // Identities
+
     // User directories
     home: USER_HOME,
     config: USER_CONFIG,
     db: USER_DB,
     index: USER_INDEX,
+    cache: USER_CACHE,
     data: USER_DATA
 }
 
@@ -71,7 +75,7 @@ Object.assign(process.env, {
     // Is this really needed?
     CANVAS_APP_ROOT: APP_ROOT,
     CANVAS_APP_CONFIG: APP_CONFIG,
-    CANVAS_APP_VAR: APP_VAR, 
+    CANVAS_APP_VAR: APP_VAR,
 
     // User
     CANVAS_USER_HOME: USER_HOME,

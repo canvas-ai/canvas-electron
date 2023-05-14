@@ -22,14 +22,11 @@ const LayerIndex = require('./lib/LayerIndex')
 const Tree = require('./lib/Tree')
 const TreeIndex = require('./lib/TreeIndex')
 
-
 // Constants
 const CONTEXT_AUTOCREATE_LAYERS = true
 const CONTEXT_URL_PROTO = 'universe'
 const CONTEXT_URL_BASE = "/"
 const CONTEXT_URL_HISTORY_SIZE = 512
-const CONTEXT_SESSION_ENABLED = true
-
 
 /**
  * Canvas Context
@@ -37,7 +34,7 @@ const CONTEXT_SESSION_ENABLED = true
 
 class Context extends EE {
 
-    #uuid;
+    #id;
     #url = CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE;
     #path = CONTEXT_URL_BASE;
     #array;
@@ -49,7 +46,7 @@ class Context extends EE {
     #featureArray = [];
     #filterArray = [];
 
-    constructor(url, options = {}, session) {
+    constructor(url, options = {}) {
 
         // Initialize event emitter
         super({
@@ -65,12 +62,8 @@ class Context extends EE {
         debug('Initializing new context')
 
         // Generate a runtime uuid
-        this.#uuid = options?.uuid || uuid12()
-
-        // Session support
-        this.sessionEnabled = options?.sessionEnabled || CONTEXT_SESSION_ENABLED
-        // TODO: use a session module
-        this.session = session
+        this.#id = options?.id || uuid12()
+        this.url = url || options?.url || CONTEXT_URL_BASE
 
         // Initialize indexes
         this.#layerIndex = new LayerIndex(path.join(user.home, 'layerIndex.json'))
@@ -81,14 +74,8 @@ class Context extends EE {
         this.#initializeTreeEventListeners()
 
         // Sets the context url
-        this.set(url ||
-            options?.url ||
-            (this.sessionEnabled ?
-                this.session.get('url') :
-                CONTEXT_URL_BASE))
-
-        debug(`Context with url "${this.#url}", runtime uuid: "${this.uuid}" initialized`)
-        debug(`Context session enabled: ${this.sessionEnabled}`)
+        this.set(this.url)
+        debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`)
 
     }
 
@@ -97,7 +84,7 @@ class Context extends EE {
      * Getters
      */
 
-    get uuid() { return this.#uuid }
+    get id() { return this.#id }
     get url() { return this.#url }
     get path() { return this.#path }
     get array() { return this.#array }
@@ -108,11 +95,6 @@ class Context extends EE {
     get filterArray() { return this.#filterArray; }
 
     get userDataHome() { return user.home; }
-
-    // Internal getters (subject to change!)
-    //get tree() { return this.#tree; }
-    //get layerIndex() { return this.#layerIndex; }
-    //get treeIndex() { return this.#treeIndex; }
 
 
     /**
@@ -136,11 +118,6 @@ class Context extends EE {
         this.#url = parsed.url
         this.#path = parsed.path
         this.#array = parsed.array
-
-        if (this.sessionEnabled) {
-            debug('Saving context url to session')
-            this.session.set('url', this.#url);
-        }
 
         this.emit('url', this.#url)
         return this.#url
@@ -235,7 +212,7 @@ class Context extends EE {
 
     stats() {
         return {
-            uuid: this.#uuid,
+            id: this.#id,
             url: this.#url,
             path: this.#path,
             array: this.#array,
