@@ -26,6 +26,7 @@
             max-width: 580px;
             height: auto;
             font-family: 'Roboto', sans-serif;
+            overflow: hidden;
         }
 
         .context-url {
@@ -42,6 +43,7 @@
 
 <nav>
     <div class="context-url nav-wrapper white">
+        <img src="icons/logo_256x256.png" class="brand-logo right" width="40px" style="margin-top:8px;"/>
         <div id="breadcrumb-container" class="col s12 black-text">
             <a href="#!" class="breadcrumb black-text">Universe</a>
             <!-- Breadcrumbs -->
@@ -50,73 +52,60 @@
 </nav>
 
 <div class="container">
+
+<h4>Canvas browser sync</h4>
+<div class="collection">
+    <a href="#!" class="collection-item black-text"><span id="tab-count" class="green black-text badge">0</span>Number of tabs in the current context</a>
+    <a href="#!" class="collection-item black-text"><span class="red black-text badge">0</span>Number of unsynced tabs</a>
+    <div class="row collection-item">
+        <button class="col s6 btn green waves-effect waves-medium" name="action">
+            Save current tabs
+            <i class="material-icons right">save</i>
+        </button>
+        <button class="col s6 btn red waves-effect waves-medium" name="action">
+            Load tabs from Canvas
+            <i class="material-icons right">upload</i>
+        </button>
+    </div>
+</div>
+
 <ul class="collapsible">
-    <li class="active">
-        <div class="collapsible-header"><i class="material-icons">cloud_sync</i>Canvas Sync</div>
+    <li>
+        <div class="collapsible-header"><i class="material-icons">settings</i>Extension Settings</div>
         <div class="collapsible-body">
             <div class="row">
-                <div class="col s11">
-                    Number of tabs in the current context
-                </div>
-                <div class="col s1">
-                    10
+                <div class="col s10">Auto-sync browser tabs to Canvas</div>
+                <div class="col s2">
+                    <div class="switch">
+                        <label>
+                            <input type="checkbox">
+                            <span class="lever"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col s11">
-                    Number of unsynced tabs
+                <div class="col s10">Automatically switch tab-sets on context change</div>
+                <div class="col s2">
+                    <div class="switch">
+                        <label>
+                            <input type="checkbox">
+                            <span class="lever"></span>
+                        </label>
+                    </div>
                 </div>
-                <div class="col s1 red-text darken-3">1</div>
-            </div>
-
-
-            <div class="row">
-            <button class="col s12 btn green waves-effect waves-medium" type="submit" name="action">
-                Save current tabs to Canvas
-                <i class="material-icons right">save</i>
-            </button>
-            </div>
-            <div class="row">
-            <button class="col s12 btn red waves-effect waves-medium" type="submit" name="action">
-                Load tabs from Canvas
-                <i class="material-icons right">upload</i>
-            </button>
             </div>
         </div>
+
     </li>
 
-    <li>
-      <div class="collapsible-header"><i class="material-icons">settings</i>Extension Settings</div>
-      <div class="collapsible-body">
-        <div class="row">
-            <div class="col s10">Auto-sync browser tabs to Canvas</div>
-            <div class="col s2">
-                <div class="switch">
-                    <label>
-                        <input type="checkbox">
-                        <span class="lever"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col s10">Automatically switch tab-sets on context change</div>
-            <div class="col s2">
-                <div class="switch">
-                    <label>
-                        <input type="checkbox">
-                        <span class="lever"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-      </div>
+    <li class="disabled">
+        <div class="collapsible-header"><i class="material-icons">cloud_sync</i>Canvas Settings</div>
+        <div class="collapsible-body"></div>
     </li>
+
 </ul>
-
-</div>
 
 <script src="js/jquery-3.6.4.min.js"></script>
 <script src="js/jstree.min.js"></script>
