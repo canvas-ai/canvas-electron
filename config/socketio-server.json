@@ -1,0 +1,9 @@
+{
+    "name": "Canvas socket.io",
+    "description": "Canvas socket.io server",
+    "version": "1.0.0",
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": "3001",
+    "key": "canvas-socket.io"
+}
