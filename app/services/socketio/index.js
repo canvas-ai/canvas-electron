@@ -18,34 +18,30 @@ const debug = require('debug')('canvas-service-socketio')
 const io = require('socket.io')
 
 // Constants
-const PORT=8001
-
+const PORT = 8001
 let server = null
 
 exports.start = (context) => {
 
+    // Create a socket.io server
     server = io()
 
+    // Start listening on the specified port
     server.listen(PORT, (err) => {
         if (err) console.log("Error in server setup")
         console.log("Canvas Socket.IO Server listening on Port", PORT);
     })
 
+    // Setup event listeners
     server.on('connection', (socket) => {
 
         debug(`Client connected: ${socket.id}`);
-
-        //setupContextGetListeners() {}
-        //setupContextSetListeners() {}
+        setupSocketEventListeners(socket, context)
         setupContextEventListeners(socket, context)
-
-        //setupIndexGetListeners() {}
-        //setupIndexSetListeners() {}
 
         socket.on('disconnect', () => {
             debug(`Client disconnected: ${socket.id}`);
         });
-
 
     })
 
@@ -84,28 +80,23 @@ function genDocument(data) {
 }
 
 
-function setupContextEventListeners(socket, context) {
-
+function setupSocketEventListeners(socket, context) {
     socket.on('context:get', (query, callback) => {
 
         debug('Request received:', query);
         let response = null
 
         switch (query) {
-
             case 'url':
                 response = context.url
                 break;
-
             case 'tree':
                 response = context.tree
                 console.log('context.tree')
                 console.log(context.tree)
                 break;
-
             default:
                 debug(`Unsupported query "${query}"`)
-
         }
 
         // Call the callback if it's a valid function
@@ -123,7 +114,7 @@ function setupContextEventListeners(socket, context) {
     })
 
     socket.on('context:insert', (path) => {
-        console.log(`Context inser event with path "${path}"`)
+        console.log(`Context insert event with path "${path}"`)
         console.log('-------------------')
         console.log(path)
         console.log('-------------------')
@@ -134,10 +125,13 @@ function setupContextEventListeners(socket, context) {
         console.log(`Context tree update event`)
         context.updateTreeFromJson(tree)
     })
+}
+
+function setupContextEventListeners(socket, context) {
 
     context.on('url', (url) => {
-        console.log('context:url event')
-        server.emit('context:url', url);
+        debug('context:url event')
+        socket.emit('context:url', url);
     })
 
     /*
