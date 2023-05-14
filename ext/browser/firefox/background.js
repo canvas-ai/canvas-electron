@@ -3,7 +3,6 @@
  */
 
 let context = {};
-let tabUrls = {};   // Workaround for the missing tab info on onRemoved() and onMove()
 let settings = {
     autoUpdateTabs: true
 };  // TODO: Load from localStorage/Canvas
@@ -45,18 +44,63 @@ socket.on('data/abstraction/tab', (tabArray) => {
  * Browser event listeners
  */
 
+let tabUrls = {};   // Workaround for the missing tab info on onRemoved() and onMove()
+let watchTabProperties = {
+    properties: [
+        "url",
+        "hidden",
+        "pinned",
+        "mutedInfo"
+    ]
+}
+
 // Initialize tabUrls
 browser.tabs.query({}).then((tabs) => {
     for (const tab of tabs) { tabUrls[tab.id] = tab.url; }
 })
 
 browser.tabs.onCreated.addListener((tab) => {
-    if (tab.url !== "about:newtab") {
-        return    // Noop, covered by onUpdated event handler
-    }
-
+    // noop, we need to wait for the onUpdated event to get the url
     console.log(`Tab created: ${tab.id}`);
 })
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    // Only trigger if url is set and is different from what we already have cached
+    // Assuming we already have the current session stored
+    if (changeInfo.url && tabUrls[tabId] !== tab.url) {
+
+        // Ignore empty tabs
+        if (tab.url == "about:newtab" || tab.url == "about:blank") return
+
+        console.log(`Tab ID ${tabId} changed, sending update to backend`)
+        tabUrls[tabId] = tab.url;
+        socket.emit('data/abstraction/tab', 'update', stripTabProperties(tab));
+    }
+}, watchTabProperties)
+
+browser.tabs.onMoved.addListener((tabId, moveInfo) => {
+    let url = tabUrls[tabId];
+    let tab = {
+        id: tabId,
+        url: url,
+        index: moveInfo.toIndex
+    };
+    console.log(`Tab ID ${tabId} moved from ${moveInfo.fromIndex} to ${moveInfo.toIndex}, sending update to backend`);
+    socket.emit('data/abstraction/tab', 'update', tab);
+});
+
+browser.browserAction.onClicked.addListener((tab, OnClickData) => {
+
+    // Ignore empty tabs
+    if (!tab.url || tab.url == "about:newtab" || tab.url == "about:blank") return
+
+    // Update backend
+    console.log(`Sending update to backend for tab ${tab.id}`);
+    tabUrls[tab.id] = tab.url;
+
+    console.log(stripTabProperties(tab))
+    socket.emit('data/abstraction/tab', 'update', stripTabProperties(tab));
+});
 
 browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
     let url = tabUrls[tabId];
@@ -65,58 +109,14 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
         url: url
     };
 
-    if (!tab.url) {
-        console.log(`Tab removed, tab url not cached, no update sent to backend`)
-        return
-    }
+    // Ignore empty tabs
+    if (!tab.url || tab.url == "about:newtab" || tab.url == "about:blank") return
 
+    // Update backend
     console.log(`Tab ID ${tabId} removed, updating backend`);
     socket.emit('data/abstraction/tab', 'remove', tab);
     delete tabUrls[tabId]
 });
-
-browser.browserAction.onClicked.addListener((tab, OnClickData) => {
-    console.log(`Sending update to backend for tab ${tab.id}`);
-    tabUrls[tab.id] = tab.url;
-
-    console.log(stripTabProperties(tab))
-    socket.emit('data/abstraction/tab', 'update', stripTabProperties(tab));
-});
-
-if (settings.autoUpdateTabs) {
-
-    let tabProperties = {
-        properties: [
-            "url",
-            "hidden",
-            "pinned",
-            "mutedInfo"
-        ]
-    }
-
-    browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-        // Only trigger if url is set and is different from what we already have cached
-        // Assuming we already have the current session stored
-        if (changeInfo.url && tabUrls[tabId] !== tab.url) {
-            console.log(`Tab ID ${tabId} changed, sending update to backend`)
-
-            tabUrls[tabId] = tab.url;
-            socket.emit('data/abstraction/tab', 'update', stripTabProperties(tab));
-        }
-    }, tabProperties)
-
-    browser.tabs.onMoved.addListener((tabId, moveInfo) => {
-        let url = tabUrls[tabId];
-        let tab = {
-            id: tabId,
-            url: url,
-            index: moveInfo.toIndex
-        };
-        console.log(`Tab ID ${tabId} moved from ${moveInfo.fromIndex} to ${moveInfo.toIndex}, sending update to backend`);
-        socket.emit('data/abstraction/tab', 'update', tab);
-    });
-
-}
 
 
 /**

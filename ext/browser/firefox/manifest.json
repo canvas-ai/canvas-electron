@@ -27,7 +27,7 @@
   },
 
   "browser_action": {
-    "default_icon": "icons/message.svg",
+    "default_icon": "icons/logo_128x128.png",
     "browser_style": false,
     "default_popup": "/menu.html"
   },
