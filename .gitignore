@@ -2,6 +2,7 @@
 /config/**
 !/config/aliases.json
 !/config/colors.json
+!/config/socketio-server.json
 !/config/jsonapi-server.json
 !/config/.keep
 

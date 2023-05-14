@@ -6,30 +6,39 @@
  */
 
 // Load environment variables
-const {
-    app,
-    user,
-    transport,
-} = require('../../env')
-
+const { app, user, transport } = require('../../env')
 
 // Utils
 const debug = require('debug')('canvas-service-socketio')
 const io = require('socket.io')
 
-// Constants
-const PORT = 8001
-let server = null
+// Config
+const config = require('../../../config/socketio-server.json')
 
-exports.start = (context) => {
+// Constants, to be moved to config
+const DEFAULT_PROTOCOL = config.protocol || 'http'
+const DEFAULT_HOST = config.host || '127.0.0.1'
+const DEFAULT_PORT = config.port || 3001
+const API_KEY = config.key || 'canvas-socket.io';
+
+let server = null;
+let currentOptions = null;
+
+// Initialize the socket.io server
+exports.start = (context, index, options = {
+    protocol: DEFAULT_PROTOCOL,
+    host: DEFAULT_HOST,
+    port: DEFAULT_PORT
+}) => {
 
     // Create a socket.io server
+    currentOptions = options;
     server = io()
 
     // Start listening on the specified port
-    server.listen(PORT, (err) => {
-        if (err) console.log("Error in server setup")
-        console.log("Canvas Socket.IO Server listening on Port", PORT);
+    server.listen(options.port, (err) => {
+        if (err) debug("Error in server setup")
+        debug("Canvas socket.io Server listening on Port", options.port);
     })
 
     // Setup event listeners
@@ -38,6 +47,7 @@ exports.start = (context) => {
         debug(`Client connected: ${socket.id}`);
         setupSocketEventListeners(socket, context)
         setupContextEventListeners(socket, context)
+        setupIndexEventListeners(socket, index)
 
         socket.on('disconnect', () => {
             debug(`Client disconnected: ${socket.id}`);
@@ -48,83 +58,106 @@ exports.start = (context) => {
 }
 
 exports.stop = () => {
-    server.close()
+    if(server) {
+        server.close()
+        server = null;
+    }
 }
 
-exports.restart = () => {
-    return true
+exports.restart = (context, index) => {
+    if (server) { exports.stop(); }
+    // TODO: Fix me
+    exports.start(context, index, currentOptions);
 }
 
 exports.status = () => {
-    return true
-}
+    if (!server) { return { listening: false }; }
 
+    let clientsCount = 0;
+    for (const [id, socket] of server.sockets.sockets) {
+        if (socket.connected) {
+            clientsCount++;
+        }
+    }
+
+    return {
+        protocol: currentOptions.protocol,
+        host: currentOptions.host,
+        port: currentOptions.port,
+        listening: true,
+        connectedClients: clientsCount
+    }
+}
 
 /**
  * Functions
  */
 
-const Document = require('../../engine/index/schemas/Document')
-
-function genDocument(data) {
-
-    let doc = new Document({
-        type: 'data/abstr/tab',
-        data: data.url,
-        meta: data
-    })
-
-    debug(doc)
-    return doc
-
-}
-
-
 function setupSocketEventListeners(socket, context) {
-    socket.on('context:get', (query, callback) => {
 
-        debug('Request received:', query);
-        let response = null
-
-        switch (query) {
-            case 'url':
-                response = context.url
-                break;
-            case 'tree':
-                response = context.tree
-                console.log('context.tree')
-                console.log(context.tree)
-                break;
-            default:
-                debug(`Unsupported query "${query}"`)
-        }
-
-        // Call the callback if it's a valid function
-        if (typeof callback === 'function') {
-            callback(response);
-        } else {
-            socket.emit('response', response);
-        }
-
+    // Setters
+    socket.on('context:set:url', (data) => {
+        debug('Context:set:url event')
+        context.url = data.url;
     });
 
-    socket.on('context:set', (url) => {
-        console.log(`Context set event with url ${url}`)
-        context.set(url, true)
-    })
-
-    socket.on('context:insert', (path) => {
-        console.log(`Context insert event with path "${path}"`)
-        console.log('-------------------')
-        console.log(path)
-        console.log('-------------------')
+    socket.on('context:insert:path', (path) => {
+        debug(`context:insert:path event with path "${path}"`)
         context.insertPath(path, true)
     })
 
-    socket.on('context:tree', (tree) => {
-        console.log(`Context tree update event`)
-        context.updateTreeFromJson(tree)
+    socket.on('context:remove:path', (path) => {
+        debug(`context:remove:path event with path "${path}"`)
+        context.removePath(path)
     })
+
+    socket.on('context:move:path', (pathFrom, pathTo, recursive) => {
+        debug(`context:move:path event with parms "${pathFrom}" -> "${pathTo}", recursive: ${recursive}`)
+        context.movePath(pathFrom, pathTo, recursive)
+    })
+
+
+    // Getters
+    socket.on('context:get:stats', (data, callback) => {
+        debug('Context:get:stats event')
+        callback(context.stats());
+    });
+
+    socket.on('context:get:url', (data, callback) => {
+        debug('Context:get:url event')
+        callback(context.url);
+    });
+
+    socket.on('context:get:path', (data, callback) => {
+        debug('Context:get:path event')
+        callback(context.path);
+    });
+
+    socket.on('context:get:array', (data, callback) => {
+        debug('Context:get:array event')
+        callback(context.array);
+    });
+
+    socket.on('context:get:tree', (data, callback) => {
+        debug('Context:get:tree event')
+        callback(context.tree);
+    });
+
+    socket.on('context:get:contextArray', (data, callback) => {
+        debug('Context:get:contextArray event')
+        callback(context.contextArray);
+    });
+
+    socket.on('context:get:featureArray', (data, callback) => {
+        debug('Context:get:featureArray event')
+        callback(context.featureArray);
+    });
+
+    socket.on('context:get:filterArray', (data, callback) => {
+        debug('Context:get:filterArray event')
+        callback(context.filterArray);
+    });
+
 }
 
 function setupContextEventListeners(socket, context) {
@@ -134,27 +167,8 @@ function setupContextEventListeners(socket, context) {
         socket.emit('context:url', url);
     })
 
-    /*
-    socket.onAny((event, ...args) => {
-        console.log(`got ${event}`);
-    });
+}
 
-    socket.on('context:*', (eventName, ...args) => {
-        console.log('Context event')
-        const [prefix, methodName] = eventName.split(':');
-        if (prefix === 'context' && methodName) {
-          //const result = context[methodName](...args);
-          callback(result);
-        }
-    });
-
-    /*
-    socket.on('context', async (query, callback) => {
-
-    })
-
-    socket.on('data', async (query, callback) => {
-
-    })
-    */
+function setupIndexEventListeners(socket, index) {
+    index.on('')
 }

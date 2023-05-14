@@ -1,6 +1,13 @@
 'use strict'
 
 
+/**
+ * Simple express.js JSON Rest API server
+ */
+
+// Load environment variables
+const { app, user, transport } = require('../../env')
+
 // Utils
 const debug = require('debug')('canvas-svc-restapi')
 
@@ -35,7 +42,8 @@ const validateApiKey = (req, res, next) => {
 };
 
 
-let app = null
+let server = null
+let currentOptions = null;
 
 exports.start = (context, index, options = {
     protocol: DEFAULT_PROTOCOL,
@@ -43,48 +51,59 @@ exports.start = (context, index, options = {
     port: DEFAULT_PORT
 }) => {
 
-    app = express();
+    // Create an express.js server
+    currentOptions = options;
+    server = express();
 
     // Use body-parser middleware to parse JSON request bodies
-    app.use(bodyParser.json());
+    server.use(bodyParser.json());
 
     // Use the validateApiKey middleware for all routes
-    app.use(validateApiKey);
+    server.use(validateApiKey);
 
     // Use the imported route files as middleware
-    app.use('/context', (req, res, next) => {
+    server.use('/context', (req, res, next) => {
         req.context = context;
         next();
     }, contextRoutes);
-    
 
-    app.use('/document', (req, res, next) => {
+    server.use('/document', (req, res, next) => {
         req.context = context;
         req.index = index;
         next();
-    }, documentRoutes);    
+    }, documentRoutes);
 
-    app.use('/documents', (req, res, next) => {
+    server.use('/documents', (req, res, next) => {
         req.context = context;
         req.index = index;
         next();
     }, documentsRoutes);
 
     // Start the server
-    app.listen(options.port, () => {
+    server.listen(options.port, () => {
         console.log(`JSON API listening at ${options.protocol}://${options.host}:${options.port}`);
     });
 
 }
 
 exports.stop = () => {
-    app.close()
+    if (server) {
+        server.close();
+        server = null;
+    }
 }
 
 exports.restart = () => {
-    return true
+    if (server) { exports.stop(); }
+    // TODO: Fix me
+    exports.start(currentContext, currentIndex, currentOptions);
 }
 
 exports.status = () => {
-    return true
+    return {
+        protocol: currentOptions.protocol,
+        host: currentOptions.host,
+        port: currentOptions.port,
+        listening: server ? true : false
+    }
 }
