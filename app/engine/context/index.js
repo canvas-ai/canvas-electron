@@ -59,11 +59,11 @@ class Context extends EE {
             ignoreErrors: false         // disable throwing uncaughtException if an error event is emitted and it has no listeners
         })
 
-        debug('Initializing new context')
-
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
-        this.url = url || options?.url || CONTEXT_URL_BASE
+
+        if (url) this.#url = url
+        debug(`Initializing context with url "${this.#url}"`)
 
         // Initialize indexes
         this.#layerIndex = new LayerIndex(path.join(user.home, 'layerIndex.json'))
@@ -74,7 +74,7 @@ class Context extends EE {
         this.#initializeTreeEventListeners()
 
         // Sets the context url
-        this.set(this.url)
+        this.set(this.#url, CONTEXT_AUTOCREATE_LAYERS)
         debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`)
 
     }
@@ -111,6 +111,7 @@ class Context extends EE {
         if (this.#url === parsed.url) return this.#url
 
         debug(`Setting context to "${parsed.url}"`)
+        console.log(this.#tree)
         this.#tree.insert(parsed.path)
         this.#initializeLayers(parsed.array)
 

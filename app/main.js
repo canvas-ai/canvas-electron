@@ -97,8 +97,8 @@ class Canvas {
 
         */
 
-        // Contexts
-        this.contexts = new Map()
+        // Global Context (subject to change!)
+        this.context = null        
 
         // App State
         this.isInitialized = false
@@ -114,13 +114,10 @@ class Canvas {
         debug('Starting application services')
 
         // TODO: Return an IPC/RPC connection instead
-        if (this.isInitialized) throw new Error('Application already running')
+        if (this.isInitialized && this.isMaster) throw new Error('Application already running')
 
-        let context = (this.contexts.has(contextID)) ?
-            this.contexts.get(contextID) :
-            this.createContext()
-
-        this.contexts.set(contextID, context)
+        // Initialize global Context (subject to change!)
+        this.context = this.createContext()
 
         // Core components
         await this.setupProcessEventListeners()
@@ -129,24 +126,24 @@ class Canvas {
         await this.setupServices()
     }
 
-    getContext(id) { return this.contexts.get(id); }
+    getContext() { return this.context; }
 
     createContext(url = this.session.get('url')) {
         if (!url && this.context) {
-            debug("Default context session already initialized, returning current context")
+            debug("Global context session already initialized, returning current context")
             return this.context
         }
 
-        if (this.context && this.context.url === url)  {
-            debug("Context URL same as requested URL, returning current context")
-            return this.context
-        }
+        let context = new Context(url)
+        context.on('url', (url) => {
+            debug("Context URL changed, updating session")
+            this.session.set('url', url)
+        })
 
-        let context = new Context(url, null, this.session)
         return context
     }
 
-    removeContext(uuid) {}
+    removeContext(id) {}
 
     async shutdown() {
         //await this.#session.save()
