@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const debug = require('debug')('canvas-svc-jsonapi:context');
+const debug = require('debug')('canvas-service-restapi:context');
 
 
 /**
@@ -13,7 +13,7 @@ router.get('/url', (req, res) => {
 
 router.put('/url', (req, res) => {
     try {
-        debug(`Got context url "${req.body.url}`)
+        debug(`[PUT] Got context url "${req.body.url}`)
         req.context.set(req.body.url, req.body.autoCreateLayers);
         res.sendStatus(200);
     } catch (error) {
@@ -23,8 +23,8 @@ router.put('/url', (req, res) => {
 
 router.post('/url', (req, res) => {
     try {
-        debug(`Got context url "${req.body.url}`)
-        req.context.set(req.body.url, req.body.autoCreateLayers);
+        debug(`[POST] Got context url "${req.body.url}`)
+        debug(req.context.set(req.body.url, req.body.autoCreateLayers));
         res.sendStatus(200);
     } catch (error) {
         res.status(400).send(error.message);

@@ -7,7 +7,7 @@ const debug = require('debug')('canvas-svc-jsonapi:documents');
 router.get('/', async (req, res) => {
 
     let index = req.index;
-    let context = req.context;    
+    let context = req.context;
 
     let documents = await index.listDocuments(context.array);
     if (documents) {
@@ -21,7 +21,7 @@ router.get('/:abstr', (req, res) => {
     const abstr = req.params.abstr;
 
     let index = req.index;
-    let context = req.context;    
+    let context = req.context;
 
     let document = index.listDocuments(context.array, abstr)
     if (document) {

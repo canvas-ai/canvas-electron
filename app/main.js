@@ -1,6 +1,7 @@
 'use strict';
 
 
+// Environment variables
 const {
     app,
     user,
@@ -13,83 +14,145 @@ const {
 const path = require('path')
 const debug = require('debug')('canvas-main')
 const JsonMap = require('./utils/JsonMap')
+//const Config = require('./utils/config')
+//const Log = require('./utils/log')
 
-// Services
-const Db = require('./services/db')
-//const StoreD = require('./services/stored')
-//const webdav = require('./services/webdavd')
-const socketio = require('./services/socketio')
-const restapi = require('./services/jsonapi')
+// Manager classes
+// Not really necessary currently, but will be useful later
+// when we move to a multi-process architecture
+const ServiceManager = require('./managers/ServiceManager')
+const RoleManager = require('./managers/RoleManager')
+const AppManager = require('./managers/AppManager')
 
-// Core components
-const Context = require('./engine/context')
-const Index = require('./engine/index')
+// Transports
+//const SocketIO = require('./transports/socketio')
+//const RestAPI = require('./transports/restapi')
+
+// Core services
+const Db = require('./services/core/db')
+const Index = require('./services/core/indexd')
+const StoreD = require('./services/core/stored')
+
+// Engine
+const Context = require('./engine')
 
 
 /**
- * Main app entry point
+ * Main application
  */
+
 class Canvas {
 
-    constructor(options) {
+    constructor(/* options */) {
 
-        // TODO
-        options = { ...options }
-        debug('Initializing canvas')
+        debug('Initializing Canvas')
 
-        // DB Backend
+        /**
+         * Core Utils
+         */
+
+        // Initialize the global config module
+        // TODO: Extract to a separate config module
+        // Initialize logging
+        // TODO: Extract to a separate logging module
+
+        /**
+         * Core services
+         */
+
+        // Initialize the DB Backend
         this.db = new Db({
             path: path.join(user.db),
             maxDbs: 32
         })
 
-        // Index
+        // Initialize Index
         this.index = new Index(this.db.createDataset('index'))
 
-        // Disk-backed Maps
+        // Initialize data store
+        this.data = new StoreD({
+            dataPath: user.data,
+            cachePath: user.cache
+        })
+
+        /**
+         * Service Managers
+         */
+
+        // Initialize Service Manager
+        this.sm = new ServiceManager({
+            rootPath: path.join(app.home, 'services')
+        })
+
+        // Initialize Role Manager
+        this.rm = new RoleManager({
+            rootPath: path.join(app.home, 'roles')
+        })
+
+        // Initialize App Manager
+        this.am = new AppManager({
+            rootPath: path.join(app.home, 'apps')
+        })
+
+
+        // Session
         // TODO: Extract to a separate session module
         this.session = new JsonMap(path.join(user.home, 'session'))
 
         // Global Context (subject to change!)
         this.context = null
 
+        // App State
+        this.isInitialized = false
+        this.isMaster = true
+
     }
 
-    async start(services = true) {
+    async start(contextId = 0, options = {
+        loadServices: true,
+        loadRoles: false,
+        loadApps: false,
+    }) {
 
         debug('Starting application services')
+
         // TODO: Return an IPC/RPC connection instead
-        if (Canvas.isRunning()) throw new Error('Application already running')
+        if (this.isInitialized && this.isMaster) throw new Error('Application already running')
 
         // Initialize global Context (subject to change!)
         this.context = this.createContext()
 
-        // Core components
-        await this.setupContextEventListeners()
+        // Event listeners
         await this.setupProcessEventListeners()
 
-        // Optional services
-        if (services) await this.setupServices()
+        // Services
+        if (options.loadServices) await this.setupServices([
+            'restapi',
+            'socketio'
+        ])
+
+        // Roles
+        // Apps
     }
 
     getContext() { return this.context; }
 
     createContext(url = this.session.get('url')) {
         if (!url && this.context) {
-            debug("Default context session already initialized, returning current context")
+            debug("Global context session already initialized, returning current context")
             return this.context
         }
 
-        if (this.context && this.context.url === url)  {
-            debug("Context URL same as requested URL, returning current context")
-            return this.context
-        }
+        let context = new Context(url)
+        context.on('url', (url) => {
+            debug("Context URL changed, updating session")
+            this.session.set('url', url)
+        })
 
-        let context = new Context(url, null, this.session)
         return context
     }
 
-    removeContext(uuid) {}
+    removeContext(id) {}
 
     async shutdown() {
         //await this.#session.save()
@@ -101,10 +164,15 @@ class Canvas {
 
     async setupTransports() {}
 
-    async setupServices(context) {
-        //await webdav.start(context)
-        await socketio.start(this.context)
-        await restapi.start(this.context, this.index)
+    async setupServices(services = []) {
+        services.forEach(async (service) => {
+            await this.sm.loadService(service)
+            await this.sm.initializeService(service, {
+                context: this.context,
+                index: this.index
+            })
+            await this.sm.startService(service)
+        })
     }
 
     async setupIpcEventListeners() {

@@ -11,6 +11,7 @@ const pkg = require('./package.json')
 // Most of the below code is not really needed, to-be-removed!
 // App env
 const APP_ROOT = path.dirname(path.resolve(__dirname))
+const APP_HOME = path.join(APP_ROOT, 'app')
 const APP_CONFIG = path.join(APP_ROOT, 'config')
 const APP_VAR = path.join(APP_ROOT, 'var')
 
@@ -19,6 +20,7 @@ const USER_HOME = getUserHome()
 const USER_DB = path.join(USER_HOME, 'db')
 const USER_INDEX = path.join(USER_HOME, 'index')
 const USER_DATA = path.join(USER_HOME, 'data')
+const USER_CACHE = path.join(USER_HOME, 'cache')
 const USER_CONFIG = path.join(USER_HOME, 'config')
 
 
@@ -35,16 +37,20 @@ const app = {
 
     // App directories
     root: APP_ROOT,
+    home: APP_HOME,
     config: APP_CONFIG,
     var: APP_VAR
 }
 
 const user = {
+    // Identities
+
     // User directories
     home: USER_HOME,
     config: USER_CONFIG,
     db: USER_DB,
     index: USER_INDEX,
+    cache: USER_CACHE,
     data: USER_DATA
 }
 
@@ -71,7 +77,7 @@ Object.assign(process.env, {
     // Is this really needed?
     CANVAS_APP_ROOT: APP_ROOT,
     CANVAS_APP_CONFIG: APP_CONFIG,
-    CANVAS_APP_VAR: APP_VAR, 
+    CANVAS_APP_VAR: APP_VAR,
 
     // User
     CANVAS_USER_HOME: USER_HOME,

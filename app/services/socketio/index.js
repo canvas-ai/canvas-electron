@@ -8,6 +8,9 @@
 // Load environment variables
 const { app, user, transport } = require('../../env')
 
+// Canvas service "interface"
+const Service = require('../../models/Service');
+
 // Utils
 const debug = require('debug')('canvas-service-socketio')
 const io = require('socket.io')
@@ -21,6 +24,99 @@ const DEFAULT_HOST = config.host || '127.0.0.1'
 const DEFAULT_PORT = config.port || 3001
 const API_KEY = config.key || 'canvas-socket.io';
 
+
+class SocketIoService extends Service {
+
+    constructor(options = {}) {
+        super(options);
+
+        this.server = null;
+
+        this.context = options.context;
+        this.index = options.index;
+
+        this.options.protocol = options.protocol || DEFAULT_PROTOCOL;
+        this.options.host = options.host || DEFAULT_HOST;
+        this.options.port = options.port || DEFAULT_PORT;
+
+    }
+
+    async start() {
+        // Create a socket.io server
+        this.server = io();
+
+        // Start listening on the specified port
+        this.server.listen(this.options.port, (err) => {
+            if (err) console.error("Error in server setup");
+            console.log("Socket.io Server listening on Port", this.options.port);
+        });
+
+        // Setup event listeners
+        this.server.on('connection', (socket) => {
+            console.log(`Client connected: ${socket.id}`);
+            setupSocketEventListeners(socket, this.context);
+            setupContextEventListeners(socket, this.context);
+            setupIndexEventListeners(socket, this.index);
+
+            socket.on('disconnect', () => {
+                console.log(`Client disconnected: ${socket.id}`);
+            });
+        });
+
+        this.status = 'running';
+    }
+
+    async stop() {
+        if(this.server) {
+            this.server.close();
+            this.server = null;
+        }
+        this.status = 'stopped';
+    }
+
+    async restart(context, index) {
+        await this.stop();
+        await this.start(context, index);
+    }
+
+    status() {
+        if (!this.server) { return { listening: false }; }
+
+        let clientsCount = 0;
+        for (const [id, socket] of this.server.sockets.sockets) {
+            if (socket.connected) {
+                clientsCount++;
+            }
+        }
+
+        return {
+            protocol: this.options.protocol,
+            host: this.options.host,
+            port: this.options.port,
+            listening: true,
+            connectedClients: clientsCount
+        };
+    }
+
+    // You would implement the following methods based on your application needs
+    setupSocketEventListeners(socket, context) {
+        throw new Error("Method 'setupSocketEventListeners' must be implemented.");
+    }
+
+    setupContextEventListeners(socket, context) {
+        throw new Error("Method 'setupContextEventListeners' must be implemented.");
+    }
+
+    setupIndexEventListeners(socket, index) {
+        throw new Error("Method 'setupIndexEventListeners' must be implemented.");
+    }
+}
+
+module.exports = SocketIoService;
+
+
+
+/*
 let server = null;
 let currentOptions = null;
 
@@ -88,6 +184,8 @@ exports.status = () => {
         connectedClients: clientsCount
     }
 }
+
+*/
 
 /**
  * Functions
@@ -170,5 +268,5 @@ function setupContextEventListeners(socket, context) {
 }
 
 function setupIndexEventListeners(socket, index) {
-    index.on('')
+
 }

@@ -145,9 +145,9 @@ class Db {
     async delete(key) {
         try {
             await this.db.del(key)
-        } catch (err) { 
+        } catch (err) {
             console.error(`An error occurred while deleting key ${key}:`, err);
-            throw err; 
+            throw err;
         }
     }
 
