@@ -2,7 +2,7 @@
 
 
 const debug = require('debug')('context-layer-index')
-const JsonMap = require('../../../utils/JsonMap')
+const JsonMap = require('../../utils/JsonMap')
 const Layer = require('./Layer')
 
 class LayerIndex {

@@ -14,7 +14,7 @@ const uuid12 = () => {
 const {
     app,
     user,
-} = require('../../env')
+} = require('../env')
 
 const Url = require('./lib/Url')
 const Layer = require('./lib/Layer')

@@ -1,11 +1,15 @@
 'use strict'
 
 
+// Utils
 const path = require('path')
 const os = require('os')
 const Cache = require('./cache')
 
 
+/**
+ * Canvas StoreD
+ */
 
 class Storage {
 

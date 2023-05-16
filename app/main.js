@@ -1,6 +1,7 @@
 'use strict';
 
 
+// Environment variables
 const {
     app,
     user,
@@ -16,18 +17,24 @@ const JsonMap = require('./utils/JsonMap')
 //const Config = require('./utils/config')
 //const Log = require('./utils/log')
 
-// Core Services
-const Db = require('./services/db')
-//const StoreD = require('./services/stored')
+// Manager classes
+// Not really necessary currently, but will be useful later
+// when we move to a multi-process architecture
+const ServiceManager = require('./managers/ServiceManager')
+const RoleManager = require('./managers/RoleManager')
+const AppManager = require('./managers/AppManager')
+
+// Transports
+//const SocketIO = require('./transports/socketio')
+//const RestAPI = require('./transports/restapi')
+
+// Core services
+const Db = require('./services/core/db')
+const Index = require('./services/core/indexd')
+const StoreD = require('./services/core/stored')
 
 // Engine
-const Index = require('./engine/index')
-const Context = require('./engine/context')
-//const Synapse = require('./engine/synapse')
-
-// Transport
-const socketio = require('./services/socketio')
-const restapi = require('./services/jsonapi')
+const Context = require('./engine')
 
 
 /**
@@ -36,29 +43,22 @@ const restapi = require('./services/jsonapi')
 
 class Canvas {
 
-    constructor(options) {
+    constructor(/* options */) {
 
-        // TODO
-        options = {
-            logLevel: 'debug',
-            transport: {
-                socketio: {
-                    enabled: true,
-                    protocol: 'http'
-                },
-                restapi: {
-                    enabled: true,
-                    protocol: 'http'
-                }
-            },
-            ...options
-        }
+        debug('Initializing Canvas')
 
-        debug('Initializing canvas')
-        // Initialize the config
+        /**
+         * Core Utils
+         */
+
+        // Initialize the global config module
         // TODO: Extract to a separate config module
         // Initialize logging
         // TODO: Extract to a separate logging module
+
+        /**
+         * Core services
+         */
 
         // Initialize the DB Backend
         this.db = new Db({
@@ -70,35 +70,37 @@ class Canvas {
         this.index = new Index(this.db.createDataset('index'))
 
         // Initialize data store
-        /*this.data = new StoreD({
+        this.data = new StoreD({
             dataPath: user.data,
             cachePath: user.cache
-        })*/
+        })
+
+        /**
+         * Service Managers
+         */
+
+        // Initialize Service Manager
+        this.sm = new ServiceManager({
+            rootPath: path.join(app.home, 'services')
+        })
+
+        // Initialize Role Manager
+        this.rm = new RoleManager({
+            rootPath: path.join(app.home, 'roles')
+        })
+
+        // Initialize App Manager
+        this.am = new AppManager({
+            rootPath: path.join(app.home, 'apps')
+        })
+
 
         // Session
         // TODO: Extract to a separate session module
         this.session = new JsonMap(path.join(user.home, 'session'))
 
-        /*
-        // Canvas Services
-        this.services = new ServiceManager({
-            path: path.join(user.config, 'services')
-        })
-
-        // Canvas Roles
-        this.roles = new RoleManager({
-            path: path.join(user.config, 'roles')
-        })
-
-        // Canvas Apps
-        this.apps = new AppManager({
-            path: path.join(user.config, 'apps')
-        })
-
-        */
-
         // Global Context (subject to change!)
-        this.context = null        
+        this.context = null
 
         // App State
         this.isInitialized = false
@@ -106,9 +108,10 @@ class Canvas {
 
     }
 
-    async start(contextID = 0, options = {
-        loadRoles: true,
-        loadApps: true,
+    async start(contextId = 0, options = {
+        loadServices: true,
+        loadRoles: false,
+        loadApps: false,
     }) {
 
         debug('Starting application services')
@@ -119,11 +122,17 @@ class Canvas {
         // Initialize global Context (subject to change!)
         this.context = this.createContext()
 
-        // Core components
+        // Event listeners
         await this.setupProcessEventListeners()
 
         // Services
-        await this.setupServices()
+        if (options.loadServices) await this.setupServices([
+            'restapi',
+            'socketio'
+        ])
+
+        // Roles
+        // Apps
     }
 
     getContext() { return this.context; }
@@ -155,10 +164,15 @@ class Canvas {
 
     async setupTransports() {}
 
-    async setupServices(context) {
-        //await webdav.start(context)
-        await socketio.start(this.context)
-        await restapi.start(this.context, this.index)
+    async setupServices(services = []) {
+        services.forEach(async (service) => {
+            await this.sm.loadService(service)
+            await this.sm.initializeService(service, {
+                context: this.context,
+                index: this.index
+            })
+            await this.sm.startService(service)
+        })
     }
 
     async setupIpcEventListeners() {

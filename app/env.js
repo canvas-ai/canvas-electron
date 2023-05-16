@@ -11,6 +11,7 @@ const pkg = require('./package.json')
 // Most of the below code is not really needed, to-be-removed!
 // App env
 const APP_ROOT = path.dirname(path.resolve(__dirname))
+const APP_HOME = path.join(APP_ROOT, 'app')
 const APP_CONFIG = path.join(APP_ROOT, 'config')
 const APP_VAR = path.join(APP_ROOT, 'var')
 
@@ -36,6 +37,7 @@ const app = {
 
     // App directories
     root: APP_ROOT,
+    home: APP_HOME,
     config: APP_CONFIG,
     var: APP_VAR
 }

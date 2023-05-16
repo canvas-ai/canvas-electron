@@ -1,6 +1,6 @@
 {
-  "name": "canvas-svc-stored",
-  "version": "1.0.0",
+  "name": "canvas-service-stored",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
