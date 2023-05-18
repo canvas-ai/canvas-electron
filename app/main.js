@@ -34,7 +34,8 @@ const Index = require('./services/core/indexd')
 const StoreD = require('./services/core/stored')
 
 // Engine
-const Context = require('./engine')
+const Context = require('./engine');
+const { th } = require('date-fns/locale');
 
 
 /**
@@ -123,13 +124,11 @@ class Canvas {
         // TODO: Return an IPC/RPC connection instead
         if (this.isInitialized && this.isMaster) throw new Error('Application already running')
 
-        // Initialize global Context (subject to change!)
-        if (this.session) {
-            let url = this.session.get('url')
+        // Fetch the context URL from the session
+        let url = (this.session) ? this.session.get('url') : null
 
-        } else {
-            this.context = this.createContext()
-        }
+        // Initialize global Context (subject to change!)
+        this.context = this.createContext(url)
 
         // Event listeners
         await this.setupProcessEventListeners()
@@ -151,7 +150,7 @@ class Canvas {
         let context = new Context(url)
 
         // Setup an event listener for session update if
-        // session support is enabled
+        // session support is enabled, to be moved to a separate method
         if (this.session) {
             context.on('url', (url) => {
                 debug("Context URL changed, updating session")

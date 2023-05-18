@@ -18,7 +18,21 @@ const Service = require('../../models/Service');
 const express = require('express');
 const bodyParser = require('body-parser');
 
-//Routes
+
+/**
+ * Routes
+ */
+
+// Users
+// Services
+// Roles
+// Apps
+
+// Context
+// Documents
+// Bitmaps
+
+
 const contextRoutes = require('./routes/context');
 const documentsRoutes = require('./routes/documents');
 //const indexRoutes = require('./routes/index');
@@ -105,74 +119,4 @@ class ExpressService extends Service {
     }
 }
 
-module.exports = ExpressService;
-
-
-/*
-let server = null
-let currentOptions = null;
-
-exports.start = (context, index, options = {
-    protocol: DEFAULT_PROTOCOL,
-    host: DEFAULT_HOST,
-    port: DEFAULT_PORT
-}) => {
-
-    // Create an express.js server
-    currentOptions = options;
-    server = express();
-
-    // Use body-parser middleware to parse JSON request bodies
-    server.use(bodyParser.json());
-
-    // Use the validateApiKey middleware for all routes
-    server.use(validateApiKey);
-
-    // Use the imported route files as middleware
-    server.use('/context', (req, res, next) => {
-        req.context = context;
-        next();
-    }, contextRoutes);
-
-    server.use('/document', (req, res, next) => {
-        req.context = context;
-        req.index = index;
-        next();
-    }, documentRoutes);
-
-    server.use('/documents', (req, res, next) => {
-        req.context = context;
-        req.index = index;
-        next();
-    }, documentsRoutes);
-
-    // Start the server
-    server.listen(options.port, () => {
-        console.log(`JSON API listening at ${options.protocol}://${options.host}:${options.port}`);
-    });
-
-}
-
-exports.stop = () => {
-    if (server) {
-        server.close();
-        server = null;
-    }
-}
-
-exports.restart = () => {
-    if (server) { exports.stop(); }
-    // TODO: Fix me
-    exports.start(currentContext, currentIndex, currentOptions);
-}
-
-exports.status = () => {
-    return {
-        protocol: currentOptions.protocol,
-        host: currentOptions.host,
-        port: currentOptions.port,
-        listening: server ? true : false
-    }
-}
-
-*/
+module.exports = ExpressService
