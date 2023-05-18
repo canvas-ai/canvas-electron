@@ -15,7 +15,7 @@ router.put('/url', (req, res) => {
     try {
         debug(`[PUT] Got context url "${req.body.url}`)
         req.context.set(req.body.url, req.body.autoCreateLayers);
-        res.sendStatus(200);
+        res.sendStatus(200);conte
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -112,6 +112,10 @@ router.patch('/layers/:name', (req, res) => {
  * Bitmaps
  */
 
+router.get('/bitmaps', (req, res) => {
+    res.json({ contextArray: req.context.bitmaps });
+});
+
 router.get('/bitmaps/context', (req, res) => {
     res.json({ contextArray: req.context.contextArray });
 });
@@ -126,6 +130,10 @@ router.get('/bitmaps/features', (req, res) => {
  */
 
 //router.get('/user', (req, res) => {  });
+
+router.get('/stats', (req, res) => {
+    res.json(req.context.stats());
+});
 
 router.get('/user/home', (req, res) => {
     res.json({ userDataHome: req.context.userDataHome });

@@ -17,6 +17,16 @@ router.get('/', async (req, res) => {
     }
 })
 
+router.get('/:id', async (req, res) => {
+    const id = req.params.id
+    const document = await index.getDocuments(id)
+    if (document) {
+        res.json(document)
+    } else {
+        res.status(404).send('Document not found')
+    }
+})
+
 router.get('/:abstr', (req, res) => {
     const abstr = req.params.abstr;
 

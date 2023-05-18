@@ -20,7 +20,6 @@ const bodyParser = require('body-parser');
 
 //Routes
 const contextRoutes = require('./routes/context');
-const documentRoutes = require('./routes/document');
 const documentsRoutes = require('./routes/documents');
 //const indexRoutes = require('./routes/index');
 
@@ -66,12 +65,6 @@ class ExpressService extends Service {
             req.context = this.context;
             next();
         }, contextRoutes);
-
-        this.server.use('/document', (req, res, next) => {
-            req.context = this.context;
-            req.index = this.index;
-            next();
-        }, documentRoutes);
 
         this.server.use('/documents', (req, res, next) => {
             req.context = this.context;
