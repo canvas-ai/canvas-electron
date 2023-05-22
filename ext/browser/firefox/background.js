@@ -1,34 +1,55 @@
 /**
- * Variables
+ * Config (to-be-moved to config.json / LocalStore)
+ */
+
+const config = {
+    autoUpdateTabs: true,
+    socketio: {
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 3001
+    }
+}
+
+/**
+ * Runtime Variables
  */
 
 let context = {};
-let settings = {
-    autoUpdateTabs: true
-};  // TODO: Load from localStorage/Canvas
+let tabs;
 
 
 /**
  * Socket.io
  */
 
-const socket = io.connect('http://127.0.0.1:8001');
+// TODO: Configure based on config.json
+const socket = io.connect(`${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}`);
 socket.on('connect', () => {
-    console.log('Client connected to server');
+    console.log('[socket.io] Client connected to server');
+});
+
+socket.on('connect_error', function(error) {
+    console.log(`[socket.io] Connection to "${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}" failed`);
+    console.error(error.message); // Error message will give you more detail about the error.
+});
+
+socket.on('connect_timeout', function() {
+    console.log('[socket.io] Connection Timeout');
 });
 
 socket.on('context:url', (res) => {
     context.url = res
-    console.log(`Got context URL: "${context.url}"`)
+    console.log(`[socket.io] Got context URL: "${context.url}"`)
 });
 
 socket.on('disconnect', () => {
-    console.log('Client disconnected from server');
+    console.log('[socket.io] Client disconnected from server');
 });
 
 socket.emit('context:get', 'url', (res) => {
     context.url = res
-    console.log(`Got context URL: "${context.url}"`)
+    console.log(`[socket.io] Got context URL: "${context.url}"`)
 })
 
 // Subscribe to tab updates
@@ -114,7 +135,7 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
 
     // Update backend
     console.log(`Tab ID ${tabId} removed, updating backend`);
-    socket.emit('data/abstraction/tab', 'remove', tab);
+    socket.emit('data/abstraction/tab', 'delete', tab);
     delete tabUrls[tabId]
 });
 
