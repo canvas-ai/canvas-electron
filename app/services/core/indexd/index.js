@@ -12,6 +12,12 @@ const Bitmap = require('./lib/Bitmap')
 // Schemas
 const Document = require('./schemas/Document')//.v1.0
 
+const DOCUMENT_SCHEMAS = {
+    file: require('./schemas/data/abstr/File'),
+    tab: require('./schemas/data/abstr/Tab'),
+    note: require('./schemas/data/abstr/Note')
+}
+
 
 /**
  * Canvas Index

@@ -34,7 +34,8 @@ const Index = require('./services/core/indexd')
 const StoreD = require('./services/core/stored')
 
 // Engine
-const Context = require('./engine')
+const Context = require('./engine');
+const { th } = require('date-fns/locale');
 
 
 /**
@@ -43,7 +44,9 @@ const Context = require('./engine')
 
 class Canvas {
 
-    constructor(/* options */) {
+    constructor(options = {
+        enableSession: true
+    }) {
 
         debug('Initializing Canvas')
 
@@ -97,7 +100,9 @@ class Canvas {
 
         // Session
         // TODO: Extract to a separate session module
-        this.session = new JsonMap(path.join(user.home, 'session'))
+        this.session = (options.enableSession) ?
+            new JsonMap(path.join(user.home, 'session')) :
+            false
 
         // Global Context (subject to change!)
         this.context = null
@@ -114,13 +119,16 @@ class Canvas {
         loadApps: false,
     }) {
 
-        debug('Starting application services')
+        debug('Starting Canvas application services')
 
         // TODO: Return an IPC/RPC connection instead
         if (this.isInitialized && this.isMaster) throw new Error('Application already running')
 
+        // Fetch the context URL from the session
+        let url = (this.session) ? this.session.get('url') : null
+
         // Initialize global Context (subject to change!)
-        this.context = this.createContext()
+        this.context = this.createContext(url)
 
         // Event listeners
         await this.setupProcessEventListeners()
@@ -137,17 +145,18 @@ class Canvas {
 
     getContext() { return this.context; }
 
-    createContext(url = this.session.get('url')) {
-        if (!url && this.context) {
-            debug("Global context session already initialized, returning current context")
-            return this.context
-        }
+    createContext(url) {
 
         let context = new Context(url)
-        context.on('url', (url) => {
-            debug("Context URL changed, updating session")
-            this.session.set('url', url)
-        })
+
+        // Setup an event listener for session update if
+        // session support is enabled, to be moved to a separate method
+        if (this.session) {
+            context.on('url', (url) => {
+                debug("Context URL changed, updating session")
+                this.session.set('url', url)
+            })
+        }
 
         return context
     }

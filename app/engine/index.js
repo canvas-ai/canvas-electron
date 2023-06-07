@@ -84,12 +84,19 @@ class Context extends EE {
      * Getters
      */
 
-    get id() { return this.#id }
-    get url() { return this.#url }
-    get path() { return this.#path }
-    get array() { return this.#array }
+    get id() { return this.#id;}
+    get url() { return this.#url; }
+    get path() { return this.#path; }
+    get array() { return this.#array; }
     get tree() { return this.#tree.getJsonTree(); }
 
+    get bitmaps() {
+        return {
+            context: this.#contextArray,
+            features: this.#featureArray,
+            filters: this.#filterArray
+        }
+    }
     get contextArray() { return this.#contextArray; }
     get featureArray() { return this.#featureArray; }
     get filterArray() { return this.#filterArray; }

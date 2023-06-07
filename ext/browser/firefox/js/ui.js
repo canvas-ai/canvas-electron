@@ -8,27 +8,52 @@
  * I decided to go with socket.io, please fix this! :)
  */
 
-const socket = io.connect('http://127.0.0.1:8001');
+/**
+ * Config (to-be-moved to config.json / LocalStore)
+ */
+
+const config = {
+    autoUpdateTabs: true,
+    socketio: {
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 3001
+    }
+}
+
+// TODO: Configure based on config.json
+const socket = io.connect(`${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}`);
 socket.on('connect', () => {
-    console.log('(UI) Client connected to server');
+    console.log('[socket.io:ui] Client connected to server');
 });
 
+socket.on('connect_error', function(error) {
+    console.log(`[socket.io:ui] Connection to "${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}" failed`);
+    console.error(error.message); // Error message will give you more detail about the error.
+});
+
+socket.on('connect_timeout', function() {
+    console.log('[socket.io:ui] Connection Timeout');
+});
+
+
 function getContextUrl() {
-    socket.emit('context:get', 'url', (res) => {
+    socket.emit('context:get:url', {}, (res) => {
         console.log(`(UI) Got context URL: "${res}"`)
         updateContextBreadcrumbs(sanitizePath(res))
     })
+
 }
 
 document.addEventListener("DOMContentLoaded", async function() {
-  var elems = document.querySelectorAll(".collapsible");
-  var instances = M.Collapsible.init(elems, {
-    accordion: false,
-  });
+    var elems = document.querySelectorAll(".collapsible");
+    var instances = M.Collapsible.init(elems, {
+        accordion: false,
+    });
 
-  console.log('DOM loaded');
-  getContextUrl()
-  updateTabCount()
+    console.log('DOM loaded');
+    getContextUrl()
+    updateTabCount()
 
 });
 
@@ -44,6 +69,7 @@ function sanitizePath(path) {
 }
 
 function updateContextBreadcrumbs(url) {
+    console.log('Updating breadcrumbs')
 
     url = sanitizePath(url)
     const breadcrumbContainer = document.getElementById("breadcrumb-container");

@@ -98,94 +98,10 @@ class SocketIoService extends Service {
         };
     }
 
-    // You would implement the following methods based on your application needs
-    setupSocketEventListeners(socket, context) {
-        throw new Error("Method 'setupSocketEventListeners' must be implemented.");
-    }
-
-    setupContextEventListeners(socket, context) {
-        throw new Error("Method 'setupContextEventListeners' must be implemented.");
-    }
-
-    setupIndexEventListeners(socket, index) {
-        throw new Error("Method 'setupIndexEventListeners' must be implemented.");
-    }
 }
 
 module.exports = SocketIoService;
 
-
-
-/*
-let server = null;
-let currentOptions = null;
-
-// Initialize the socket.io server
-exports.start = (context, index, options = {
-    protocol: DEFAULT_PROTOCOL,
-    host: DEFAULT_HOST,
-    port: DEFAULT_PORT
-}) => {
-
-    // Create a socket.io server
-    currentOptions = options;
-    server = io()
-
-    // Start listening on the specified port
-    server.listen(options.port, (err) => {
-        if (err) debug("Error in server setup")
-        debug("Canvas socket.io Server listening on Port", options.port);
-    })
-
-    // Setup event listeners
-    server.on('connection', (socket) => {
-
-        debug(`Client connected: ${socket.id}`);
-        setupSocketEventListeners(socket, context)
-        setupContextEventListeners(socket, context)
-        setupIndexEventListeners(socket, index)
-
-        socket.on('disconnect', () => {
-            debug(`Client disconnected: ${socket.id}`);
-        });
-
-    })
-
-}
-
-exports.stop = () => {
-    if(server) {
-        server.close()
-        server = null;
-    }
-}
-
-exports.restart = (context, index) => {
-    if (server) { exports.stop(); }
-    // TODO: Fix me
-    exports.start(context, index, currentOptions);
-}
-
-exports.status = () => {
-    if (!server) { return { listening: false }; }
-
-    let clientsCount = 0;
-    for (const [id, socket] of server.sockets.sockets) {
-        if (socket.connected) {
-            clientsCount++;
-        }
-    }
-
-    return {
-        protocol: currentOptions.protocol,
-        host: currentOptions.host,
-        port: currentOptions.port,
-        listening: true,
-        connectedClients: clientsCount
-    }
-}
-
-*/
 
 /**
  * Functions
@@ -193,7 +109,7 @@ exports.status = () => {
 
 function setupSocketEventListeners(socket, context) {
 
-    // Setters
+    // Setters::Context
     socket.on('context:set:url', (data) => {
         debug('Context:set:url event')
         context.url = data.url;
@@ -215,7 +131,7 @@ function setupSocketEventListeners(socket, context) {
     })
 
 
-    // Getters
+    // Getters::Context
     socket.on('context:get:stats', (data, callback) => {
         debug('Context:get:stats event')
         callback(context.stats());
@@ -258,15 +174,22 @@ function setupSocketEventListeners(socket, context) {
 
 }
 
+function setupIndexEventListeners(socket, index) {
+
+    // Setters::Index
+    socket.on('index:set', (dataAbstraction, data) => {
+        debug('index:set event')
+        debug(`Got index:set event with dataAbstraction "${dataAbstraction}" and data "${data}"`)
+        //index.set(dataAbstraction, data);
+    })
+
+}
+
 function setupContextEventListeners(socket, context) {
 
     context.on('url', (url) => {
         debug('context:url event')
         socket.emit('context:url', url);
     })
-
-}
-
-function setupIndexEventListeners(socket, index) {
 
 }
