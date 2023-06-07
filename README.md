@@ -139,7 +139,7 @@ Now imagine the same with Canvas:
 ## Social
 I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions (usually ~5AM - 6AM CEST). Wouldn't watch any of the existing videos _yet_, mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless.
 
-YT Channel + Some (royalty-free) muzzick
+YT Channel + Some (royalty-free) music
 - https://www.youtube.com/@idnc.streams
 - https://soundcloud.com/idnc-sk/sets
 

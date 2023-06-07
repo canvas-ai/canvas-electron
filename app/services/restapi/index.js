@@ -28,14 +28,24 @@ const bodyParser = require('body-parser');
 // Roles
 // Apps
 
+// Schemas
+const schemasRoutes = require('./routes/schemas');
+
 // Context
-// Documents
-// Bitmaps
-
-
 const contextRoutes = require('./routes/context');
+
+// Documents
 const documentsRoutes = require('./routes/documents');
-//const indexRoutes = require('./routes/index');
+
+// Index
+const indexRoutes = require('./routes/index');
+
+// Bitmaps
+const bitmapRoutes = require('./routes/bitmaps');
+
+
+
+
 
 // Constants, to be moved to config
 const DEFAULT_PROTOCOL = config.protocol || 'http'
@@ -85,6 +95,12 @@ class ExpressService extends Service {
             req.index = this.index;
             next();
         }, documentsRoutes);
+
+        this.server.use('/schemas', (req, res, next) => {
+            req.context = this.context;
+            req.index = this.index;
+            next();
+        }, schemasRoutes);
 
         await new Promise((resolve, reject) => {
             this.server.listen(this.options.port, resolve).on('error', reject);

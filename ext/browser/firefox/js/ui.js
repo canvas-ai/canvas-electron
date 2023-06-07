@@ -69,8 +69,6 @@ function sanitizePath(path) {
 }
 
 function updateContextBreadcrumbs(url) {
-
-
     console.log('Updating breadcrumbs')
 
     url = sanitizePath(url)
