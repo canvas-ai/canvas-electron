@@ -13,9 +13,9 @@ const Bitmap = require('./lib/Bitmap')
 const Document = require('./schemas/Document')//.v1.0
 
 const DOCUMENT_SCHEMAS = {
-    file: require('./schemas/data/abstr/File'),
-    tab: require('./schemas/data/abstr/Tab'),
-    note: require('./schemas/data/abstr/Note')
+    file: require('./schemas/data/abstr/File').toJSON(),
+    tab: require('./schemas/data/abstr/Tab').toJSON(),
+    note: require('./schemas/data/abstr/Note').toJSON()
 }
 
 
@@ -109,6 +109,15 @@ class Index extends EE {
         await Promise.all([updateHash2oid, updateUniverse, tickContextArrayBitmaps, tickFeatureArrayBitmaps])
         return parsed
 
+    }
+
+    listDocumentSchemas() {
+        return DOCUMENT_SCHEMAS
+    }
+
+    getDocumentSchema(type) {
+        if (!DOCUMENT_SCHEMAS[type]) return null
+        return DOCUMENT_SCHEMAS[type]
     }
 
     // TODO: Evaluate if a separate method to retrieve multiple documents is needed

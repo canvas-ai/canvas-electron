@@ -177,11 +177,49 @@ function setupSocketEventListeners(socket, context) {
 function setupIndexEventListeners(socket, index) {
 
     // Setters::Index
-    socket.on('index:set', (dataAbstraction, data) => {
-        debug('index:set event')
-        debug(`Got index:set event with dataAbstraction "${dataAbstraction}" and data "${data}"`)
-        //index.set(dataAbstraction, data);
+    socket.on('index:insertDocument', (doc, callback) => {
+        debug('index:insertDocument event')
+        try {
+            index.insertDocument(doc);
+            callback({ status: 'success', message: 'Document inserted successfully.' });
+        } catch (error) {
+            callback({ status: 'error', message: `Error inserting document: ${error.message}` });
+        }
     })
+
+    socket.on('index:updateDocument', (doc, callback) => {
+        debug('index:updateDocument event')
+        try {
+            index.updateDocument(doc);
+            callback({ status: 'success', message: 'Document updated successfully.' });
+        } catch (error) {
+            callback({ status: 'error', message: `Error updating document: ${error.message}` });
+        }
+    })
+
+    socket.on('index:removeDocument', (doc, callback) => {
+        debug('index:removeDocument event')
+        try {
+            index.removeDocument(doc);
+            callback({ status: 'success', message: 'Document removed successfully.' });
+        } catch (error) {
+            callback({ status: 'error', message: `Error removed document: ${error.message}` });
+        }
+    })
+
+    socket.on('index:schema:get', (data, callback) => {
+        debug('index:schema:get event')
+
+        try {
+            const schema = index.getDocumentSchema(data.type, data.version);
+            console.log(`schema: ${JSON.stringify(schema)}`)
+            callback(schema)
+        } catch (err) {
+            callback({ status: 'error', message: error.message });
+        }
+
+    })
+
 
 }
 
