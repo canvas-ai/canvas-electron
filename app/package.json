@@ -14,31 +14,31 @@
   "author": "me@idnc.sk",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "chalk": "=4.1.2",
+    "chalk": "=5.2.0",
     "cli-table3": "^0.6.3",
     "conf": "^10.2.0",
-    "date-fns": "^2.29.3",
+    "date-fns": "^2.30.0",
     "debug": "^4.3.4",
     "eventemitter2": "^6.4.9",
     "express": "^4.18.2",
-    "file-type": "=16.5.4",
+    "file-type": "=18.5.0",
     "forever-monitor": "^3.0.3",
-    "fs-extra": "^11.1.0",
+    "fs-extra": "^11.1.1",
     "is-electron": "^2.2.2",
-    "lmdb": "^2.7.3",
-    "magic-bytes.js": "^1.0.13",
+    "lmdb": "^2.8.1",
+    "magic-bytes.js": "^1.0.14",
     "mime-types": "^2.1.35",
-    "mkdirp": "^1.0.4",
-    "nodemon": "^2.0.20",
+    "mkdirp": "^3.0.1",
+    "nodemon": "^2.0.22",
     "pubsub-js": "^1.9.4",
-    "roaring": "^1.2.0",
-    "socket.io": "^4.5.4",
+    "roaring": "^2.2.0",
+    "socket.io": "^4.6.2",
     "t": "^0.5.1",
     "webdav-server": "^2.6.2"
   },
   "devDependencies": {
-    "electron": "^24.2.0",
+    "electron": "^25.1.1",
     "electron-reload": "^2.0.0-alpha.1",
-    "jsdoc": "^4.0.0"
+    "jsdoc": "^4.0.2"
   }
 }

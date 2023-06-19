@@ -8,9 +8,7 @@ const DOCUMENT_SCHEMA_TYPE = 'file';
 
 class File extends Document {
 
-    constructor() {
-
-    }
+    constructor() {}
 
     static toJSON() {
 

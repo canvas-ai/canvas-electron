@@ -1,6 +1,10 @@
 #!/bin/bash
 
 
+#############################
+# Runtime config            #
+#############################
+
 # Get the path of the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
@@ -13,6 +17,34 @@ if [ -f $HOME/.canvas/config/jsonapi.json ]; then
 else
     CANVAS_CONFIG="$CANVAS_ROOT/config/jsonapi-client.json"
 fi;
+
+echo "Canvas root directory: $CANVAS_ROOT"
+echo "Canvas JSON API config file: $CANVAS_CONFIG"
+
+
+#############################
+# Runtime dependencies      #
+#############################
+
+# Check if jq is available
+if ! command -v jq >/dev/null 2>&1; then
+    echo "ERROR | jq is not installed" >&2
+fi
+
+# Check if nc is available
+if ! command -v nc >/dev/null 2>&1; then
+    echo "ERROR | nc (netcat) is not installed" >&2
+fi
+
+# Check if curl is available
+if ! command -v curl >/dev/null 2>&1; then
+    echo "ERROR | curl is not installed" >&2
+fi
+
+
+#############################
+# Global variables          #
+#############################
 
 # Define global variable defaults
 CANVAS_PROTO="${CANVAS_PROTO:-http}"
@@ -49,13 +81,14 @@ canvas_api_reachable() {
 }
 
 canvas_http_get() {
-    local url="$1"
+    # Remove leading slash from the URL, if present
+    local url="${1#/}"
     local result=$(curl -s \
         -X GET \
         -w "%{http_code}" \
         -H "Content-Type: application/json" \
         -H "API-KEY: $CANVAS_API_KEY" \
-        "$CANVAS_URL$url")
+        "$CANVAS_URL/$url")
 
     # Extract the http_code from the end of the result string
     local http_code=${result: -3}
@@ -70,6 +103,8 @@ canvas_http_get() {
 
     if [[ $http_code -ne 200 ]]; then
         echo "Error: HTTP GET request failed with status code $http_code"
+        echo "Request URL: $CANVAS_URL/$url"
+        echo "Raw result: $result"
         return 1
     fi
 
@@ -78,7 +113,9 @@ canvas_http_get() {
 
 
 canvas_http_post() {
-    local url="$1"
+
+    # Remove leading slash from the URL, if present
+    local url="${1#/}"
     local data="$2"
     local result=$(curl -s \
         -X POST \
@@ -86,7 +123,7 @@ canvas_http_post() {
         -H "Content-Type: application/json" \
         -H "API-KEY: $CANVAS_API_KEY" \
         -d "$data" \
-        "$CANVAS_URL$url")
+        "$CANVAS_URL/$url")
 
     # Extract the http_code from the end of the result string
     local http_code=${result: -3}
@@ -101,6 +138,8 @@ canvas_http_post() {
 
     if [[ $http_code -ne 200 ]]; then
         echo "Error: HTTP POST request failed with status code $http_code"
+        echo "Request URL: $CANVAS_URL/$url"
+        echo "Raw result: $result"
         return 1
     fi
 
@@ -109,7 +148,8 @@ canvas_http_post() {
 
 
 canvas_http_put() {
-    local url="$1"
+    # Remove leading slash from the URL, if present
+    local url="${1#/}"
     local data="$2"
     local result=$(curl -s \
         -X PUT \
@@ -117,7 +157,7 @@ canvas_http_put() {
         -H "Content-Type: application/json" \
         -H "API-KEY: $CANVAS_API_KEY" \
         -d "$data" \
-        "$CANVAS_URL$url")
+        "$CANVAS_URL/$url")
 
     # Extract the http_code from the end of the result string
     local http_code=${result: -3}
@@ -132,6 +172,8 @@ canvas_http_put() {
 
     if [[ $http_code -ne 200 ]]; then
         echo "Error: HTTP PUT request failed with status code $http_code"
+        echo "Request URL: $CANVAS_URL/$url"
+        echo "Raw result: $result"        
         return 1
     fi
 
@@ -139,7 +181,8 @@ canvas_http_put() {
 }
 
 canvas_http_patch() {
-    local url="$1"
+    # Remove leading slash from the URL, if present
+    local url="${1#/}"
     local data="$2"
     local result=$(curl -s \
         -X PATCH \
@@ -147,7 +190,7 @@ canvas_http_patch() {
         -H "Content-Type: application/json" \
         -H "API-KEY: $CANVAS_API_KEY" \
         -d "$data" \
-        "$CANVAS_URL$url")
+        "$CANVAS_URL/$url")
 
     # Extract the http_code from the end of the result string
     local http_code=${result: -3}
@@ -162,6 +205,8 @@ canvas_http_patch() {
 
     if [[ $http_code -ne 200 ]]; then
         echo "Error: HTTP PATCH request failed with status code $http_code"
+        echo "Request URL: $CANVAS_URL/$url"
+        echo "Raw result: $result"        
         return 1
     fi
 

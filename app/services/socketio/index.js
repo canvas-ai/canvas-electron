@@ -209,14 +209,14 @@ function setupIndexEventListeners(socket, index) {
 
     socket.on('index:schema:get', (data, callback) => {
         debug('index:schema:get event')
-
-        try {
-            const schema = index.getDocumentSchema(data.type, data.version);
-            console.log(`schema: ${JSON.stringify(schema)}`)
-            callback(schema)
-        } catch (err) {
-            callback({ status: 'error', message: error.message });
+        const schema = index.getDocumentSchema(data.type, data.version);
+        if (!schema) {
+            let msg = `Schema not found for type "${data.type}" and version "${data.version}"`;
+            debug(msg)
+            callback({ status: 'error', message: msg });
+            return;
         }
+        callback(schema);
 
     })
 

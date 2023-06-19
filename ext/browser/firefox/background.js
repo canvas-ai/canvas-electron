@@ -79,9 +79,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         console.log(`Tab ID ${tabId} changed, sending update to backend`)
         tabUrls[tabId] = tab.url;
 
-        let doc = Tab
-        doc.data = stripTabProperties(tab)
-
+        let doc = formatTabProperties(tab)
         insertDocument(doc)
 
     }
@@ -131,6 +129,7 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
 
     let doc = Tab
     doc.data = stripTabProperties(tab)
+    console.log(doc)
 
     // Update backend
     console.log(`Tab ID ${tabId} removed, updating backend`);
@@ -152,14 +151,18 @@ function fetchContextUrl() {
 }
 
 function fetchTabSchema() {
-    socket.emit('schema:get', {type: 'data/abstr/tab', version: '2'}, function(data) {
+    socket.emit('index:schema:get', {type: 'data/abstr/tab', version: '2'}, function(data) {
+        if (!data || data.status == 'error') return console.error('Tab schema not found');
         Tab = data;
         console.log('Tab schema fetched: ', Tab);
     });
 }
 
 function fetchStoredUrls() {
-    socket.emit('getStoredUrls', {}, function(data) {
+    socket.emit('listDocuments', {
+        context: context,
+        type: 'data/abstr/tab',
+    }, (data) => {
         tabUrls = data;
         console.log('Stored URLs fetched: ', tabUrls);
     });
@@ -192,6 +195,20 @@ function updateBrowserTabs(tabArray, hideInsteadOfRemove = true) {
     });
 }
 
+function insertDocument(doc) {
+    socket.emit('index:insertDocument', doc, (res) => {
+        console.log('Document inserted: ', res);
+    });
+}
+
+function updateDocument(doc) {
+
+}
+
+function removeDocument(doc) {
+    
+}
+
 function stripTabProperties(tab) {
     return {
         //id: tab.id,
@@ -220,4 +237,41 @@ function stripTabProperties(tab) {
         url: tab.url,
         title: tab.title
     }
+}
+
+function formatTabProperties(tab) {
+    return { 
+        ...Tab,
+        data: {
+            url: tab.url,
+            title: tab.title,
+        },
+        meta: {
+            //id: tab.id,
+            index: tab.index,
+            // Restore may fail if windowId does not exist
+            // TODO: Handle this case with windows.create()
+            // windowId: tab.windowId,
+            highlighted: tab.highlighted,
+            active: tab.active,
+            pinned: tab.pinned,
+            hidden: tab.hidden,
+            // boolean. Whether the tab is created and made visible in the tab bar without any content
+            // loaded into memory, a state known as discarded. The tab's content is loaded when the tab
+            // is activated.
+            // Defaults to true to conserve memory on restore
+            discarded: true, // tab.discarded,
+            incognito: tab.incognito,
+            //width: 1872,
+            //height: 1004,
+            //lastAccessed: 1675111332554,
+            audible: tab.audible,
+            mutedInfo: tab.mutedInfo,
+            isArticle: tab.isArticle,
+            isInReaderMode: tab.isInReaderMode,
+            sharingState: tab.sharingState,
+        }        
+        
+    }
+
 }

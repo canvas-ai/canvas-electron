@@ -10,12 +10,14 @@ const BitmapManager = require('./lib/BitmapManager')
 const Bitmap = require('./lib/Bitmap')
 
 // Schemas
-const Document = require('./schemas/Document')//.v1.0
-
+// TODO: Use JSON Schema and a proper validator instead
 const DOCUMENT_SCHEMAS = {
-    file: require('./schemas/data/abstr/File').toJSON(),
-    tab: require('./schemas/data/abstr/Tab').toJSON(),
-    note: require('./schemas/data/abstr/Note').toJSON()
+    // Generic document schema
+    document: require('./schemas/Document').toJSON(),
+    // Data abstraction schemas
+    file: require('./schemas/data/abstraction/File').toJSON(),
+    tab: require('./schemas/data/abstraction/Tab').toJSON(),
+    note: require('./schemas/data/abstraction/Note').toJSON()
 }
 
 
@@ -32,26 +34,15 @@ class Index extends EE {
 
         // Initialize event emitter
         super({
-            // set this to `true` to use wildcards
-            wildcard: true,
-
-            // the delimiter used to segment namespaces
-            delimiter: '/',
-
-            // set this to `true` if you want to emit the newListener event
-            newListener: true,
-
-            // set this to `true` if you want to emit the removeListener event
-            removeListener: true,
-
-            // the maximum amount of listeners that can be assigned to an event
-            maxListeners: 32,
-
-            // show event name in memory leak message when more than maximum amount of listeners is assigned
-            verboseMemoryLeak: false,
-
-            // disable throwing uncaughtException if an error event is emitted and it has no listeners
-            ignoreErrors: false
+            wildcard: true,         // set this to `true` to use wildcards
+            delimiter: '/',         // the delimiter used to segment namespaces
+            newListener: true,      // set this to `true` if you want to emit the newListener event
+            removeListener: true,   // set this to `true` if you want to emit the removeListener event
+            maxListeners: 32,       // the maximum amount of listeners that can be assigned to an event
+            verboseMemoryLeak: false,   // show event name in memory leak message when
+                                        // more than maximum amount of listeners is assigned
+            ignoreErrors: false     // disable throwing uncaughtException if an error event is emitted
+                                    //and it has no listeners
         })
 
         // Database instance
@@ -79,22 +70,26 @@ class Index extends EE {
 
     }
 
+
     /**
      * Document management
      */
 
     async insertDocument(doc, contextArray = [], featureArray = []) {
 
+        debug('insertDocument()', doc, contextArray, featureArray)
+
         // Validate document
         let parsed = this.#validateDocument(doc)
+        debug('Document validated', parsed)
 
-        // Document type is a mandatory field, add it to the featureArray if not present
+        // Add document type to the featureArray if not present
         if (!featureArray.includes(parsed.type)) featureArray.push(parsed.type)
 
         // Update existing document if already present
         let res = this.hash2oid.get(parsed.hashes.sha1) // TODO: Primary hash algo should be set by a config value
         if (res) {
-            debug('Document already present, updating')
+            debug('Document already present, updating..')
             return this.updateDocument(parsed, contextArray, featureArray)
         }
 
@@ -102,22 +97,20 @@ class Index extends EE {
         let updateHash2oid = this.hash2oid.put(parsed.hashes.sha1, parsed.id)
         let updateUniverse = this.universe.put(parsed.id, parsed)
 
-        // Update bitmaps in parallel
+        // Update bitmaps
         let tickContextArrayBitmaps = this.#tickContextArrayBitmaps(contextArray, parsed.id)
         let tickFeatureArrayBitmaps = this.#tickFeatureArrayBitmaps(featureArray, parsed.id)
 
-        await Promise.all([updateHash2oid, updateUniverse, tickContextArrayBitmaps, tickFeatureArrayBitmaps])
+        // Execute in parallel
+        await Promise.all([
+            updateHash2oid,
+            updateUniverse,
+            tickContextArrayBitmaps,
+            tickFeatureArrayBitmaps
+        ])
+
         return parsed
 
-    }
-
-    listDocumentSchemas() {
-        return DOCUMENT_SCHEMAS
-    }
-
-    getDocumentSchema(type) {
-        if (!DOCUMENT_SCHEMAS[type]) return null
-        return DOCUMENT_SCHEMAS[type]
     }
 
     // TODO: Evaluate if a separate method to retrieve multiple documents is needed
@@ -143,33 +136,45 @@ class Index extends EE {
     }
 
     async listDocuments(contextArray = [], featureArray = []) {
-        let res = []
+        let documents = []
+
         if (!contextArray.length && !featureArray.length) {
-            res = this.universe.list()
+            documents = this.universe.list()
+            return documents
         }
 
-        // Load context bitmaps
-        contextArray.forEach(context => {
-            let bitmap = this.bitmapCache.get(context) || this.contextBitmaps.load(context)
+        let calculatedContextBitmap = this.contextBitmaps.addMany(contextArray)
+        debug('Context IDs', calculatedContextBitmap)
 
-        })
-        // Load feature bitmaps
-        // Get doc ID vect
-        // Get IDs from Universe
+        let calculatedFeatureBitmap = this.featureBitmaps.addMany(featureArray)
+        debug('Feature IDs', calculatedFeatureBitmap)
 
-        return res
+        let result = BitmapManager.addBitmaps([calculatedContextBitmap, calculatedFeatureBitmap])
+        debug('Result IDs', result.toArray())
+
+        documents = await this.universe.getMany(result.toArray())
+        debug('Documents', documents)
+
+        return documents
+    }
+
+    async updateDocument(doc, contextArray = [], featureArray = []) {
+        return true
+    }
+
+    async removeDocument(doc) {
+
     }
 
     async removeDocumentByID(id) {
+
     }
 
     async removeDocumentByHash(hash) {
 
     }
 
-    async updateDocument(doc, contextArray = [], featureArray = []) {
-        return true
-    }
+
 
     /**
      * Feature management
@@ -193,6 +198,22 @@ class Index extends EE {
 
 
     /**
+     * Schema management
+     */
+
+    listDocumentSchemas() { return DOCUMENT_SCHEMAS; }
+
+    hasDocumentSchema(schema) { return DOCUMENT_SCHEMAS[schema] ? true : false; }
+
+    getDocumentSchema(schema) {
+        // TODO: Rework (this ugly workaround [for inconsistent schema names])
+        if (type.includes('/')) schema = schema.split('/').pop()
+        if (!DOCUMENT_SCHEMAS[schema]) return null
+        return DOCUMENT_SCHEMAS[schema]
+    }
+
+
+    /**
      * Filter management
      */
 
@@ -206,7 +227,7 @@ class Index extends EE {
      */
 
 
-    #validateDocument(doc) {
+    #validateDocument(doc, schema ) {
         if (typeof doc !== 'object') throw new Error('Document is not an object')
         if (!doc.id) doc.id = this.#genDocumentID()
 

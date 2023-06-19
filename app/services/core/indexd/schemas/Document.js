@@ -12,6 +12,8 @@ const DOCUMENT_SCHEMA_TYPE = 'generic';
 
 // Document class
 class Document {
+
+    
     constructor({
         id,
         type,

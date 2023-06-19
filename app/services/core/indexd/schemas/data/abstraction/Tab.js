@@ -14,6 +14,10 @@ class Tab extends Document {
             ...params,
             type: DOCUMENT_SCHEMA_TYPE,
         })
+
+        // Set document defaults
+        data.url = params.url || null;
+        data.title = params.title || null;
     }
 
     static toJSON() {
@@ -24,6 +28,10 @@ class Tab extends Document {
         // Set schema version and type
         base.schemaVersion = DOCUMENT_SCHEMA_VERSION;
         base.type = DOCUMENT_SCHEMA_TYPE;
+        base.data = {
+            url: null,
+            title: null,
+        }
 
         return base;
     }
