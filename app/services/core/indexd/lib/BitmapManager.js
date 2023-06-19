@@ -45,7 +45,7 @@ class BitmapManager {
         }
 
         debug(`Bitmap ID "${key}" not found`)
-        return false
+        return new Bitmap(key)
 
     }
 
@@ -195,7 +195,11 @@ class BitmapManager {
     addMany(bitmapIdArray, autoCreateBitmaps = false) {
 
         // Fallback to an empty RoaringBitmap32
-        if (!Array.isArray(bitmapIdArray) || !bitmapIdArray.length) return new RoaringBitmap32()
+        if (!Array.isArray(bitmapIdArray) || !bitmapIdArray.length) {
+
+            console.log('sme tu !!!!!!!!!!!!!!!')
+            return new RoaringBitmap32()
+        }
 
         let bitmapsToCalculate = bitmapIdArray.reduce((acc, bitmapID) => {
             let bitmap = (autoCreateBitmaps) ?
@@ -206,7 +210,13 @@ class BitmapManager {
             return acc
         }, [])
 
+        if (! bitmapsToCalculate.every(element => element instanceof RoaringBitmap32)) {
+            throw new TypeError("Input must be an array of RoaringBitmap32 bitmaps")
+        }
+
         let partial = bitmapsToCalculate.shift()
+
+
         while(bitmapsToCalculate.length > 0) {
             partial = partial.andInPlace(bitmapsToCalculate.shift())
             debug(`Partial bitmap to add: ${partial.toArray()}`)
@@ -216,22 +226,25 @@ class BitmapManager {
 
     }
 
-    static addMany(bitmapArray) {
+    static addBitmaps(bitmapArray) {
 
-        if (!Array.isArray(bitmapArray) || !bitmapArray.length) return []
-        debug(`Adding ${bitmapArray.length} bitmaps`)
+        // Fallback to an empty RoaringBitmap32
+        if (!Array.isArray(bitmapArray) || !bitmapArray.length) return new RoaringBitmap32()
 
-        let partial = bitmapsToCalculate.shift()
-        debug(`Partial bitmap ${partial.toArray()}`)
+        if (! bitmapArray.every(element => element instanceof RoaringBitmap32)) {
+            throw new TypeError("Input must be an array of RoaringBitmap32 bitmaps")
+        }
 
-        if (!partial instanceof RoaringBitmap32) throw new Error('Item needs to be an instance of RoaringBitmap32')
-        while(bitmapsToCalculate.length > 1) {
-            partial = partial.andInPlace(bitmapsToCalculate.shift())
+        let partial = bitmapArray.shift()
+        while(bitmapArray.length > 0) {
+            partial = partial.andInPlace(bitmapArray.shift())
             debug(`Partial bitmap to add: ${partial.toArray()}`)
         }
 
-        return partial.toArray()
+        return partial //.toArray()
     }
+
+    //intersect() {}
 
     orMany(bitmapArray) {
 

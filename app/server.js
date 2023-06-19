@@ -11,6 +11,8 @@ canvas.start();
 const context = canvas.context;
 const index = canvas.index;
 
+console.log(index.listDocumentSchemas())
+/*
 index.insertDocument({
   type: "data/abstraction/tab",
   data: {
@@ -26,3 +28,6 @@ index.insertDocument({
     body: "This is a test note" + new Date(),
   },
 });
+*/
+
+

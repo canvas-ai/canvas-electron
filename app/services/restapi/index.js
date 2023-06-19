@@ -51,7 +51,7 @@ const bitmapRoutes = require('./routes/bitmaps');
 const DEFAULT_PROTOCOL = config.protocol || 'http'
 const DEFAULT_HOST = config.host || '127.0.0.1'
 const DEFAULT_PORT = config.port || 3000
-const API_KEY = config.key || 'canvas-service-restapi';
+const API_KEY = config.key || 'canvas-json-api';
 
 // Middleware function to validate the API key
 const validateApiKey = (req, res, next) => {

@@ -11,12 +11,24 @@ const config = {
     }
 }
 
+
 /**
  * Runtime Variables
  */
 
-let context = {};
+let context;
+let Tab;
+
 let tabs;
+let tabUrls = {};   // Workaround for the missing tab info on onRemoved() and onMove()
+let watchTabProperties = {
+    properties: [
+        "url",
+        "hidden",
+        "pinned",
+        "mutedInfo"
+    ]
+}
 
 
 /**
@@ -25,8 +37,12 @@ let tabs;
 
 // TODO: Configure based on config.json
 const socket = io.connect(`${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}`);
+
 socket.on('connect', () => {
     console.log('[socket.io] Client connected to server');
+    fetchContextUrl();
+    fetchTabSchema();
+    fetchStoredUrls();
 });
 
 socket.on('connect_error', function(error) {
@@ -38,47 +54,14 @@ socket.on('connect_timeout', function() {
     console.log('[socket.io] Connection Timeout');
 });
 
-socket.on('context:url', (res) => {
-    context.url = res
-    console.log(`[socket.io] Got context URL: "${context.url}"`)
-});
-
 socket.on('disconnect', () => {
     console.log('[socket.io] Client disconnected from server');
-});
-
-socket.emit('context:get', 'url', (res) => {
-    context.url = res
-    console.log(`[socket.io] Got context URL: "${context.url}"`)
-})
-
-// Subscribe to tab updates
-socket.emit('subscribe', 'data/abstraction/tab', updateBrowserTabs);
-
-// Update tabs on data/abstraction/tab event
-socket.on('data/abstraction/tab', (tabArray) => {
-    updateBrowserTabs(tabArray)
 });
 
 
 /**
  * Browser event listeners
  */
-
-let tabUrls = {};   // Workaround for the missing tab info on onRemoved() and onMove()
-let watchTabProperties = {
-    properties: [
-        "url",
-        "hidden",
-        "pinned",
-        "mutedInfo"
-    ]
-}
-
-// Initialize tabUrls
-browser.tabs.query({}).then((tabs) => {
-    for (const tab of tabs) { tabUrls[tab.id] = tab.url; }
-})
 
 browser.tabs.onCreated.addListener((tab) => {
     // noop, we need to wait for the onUpdated event to get the url
@@ -95,7 +78,10 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
         console.log(`Tab ID ${tabId} changed, sending update to backend`)
         tabUrls[tabId] = tab.url;
-        socket.emit('data/abstraction/tab', 'update', stripTabProperties(tab));
+
+        let doc = formatTabProperties(tab)
+        insertDocument(doc)
+
     }
 }, watchTabProperties)
 
@@ -106,8 +92,13 @@ browser.tabs.onMoved.addListener((tabId, moveInfo) => {
         url: url,
         index: moveInfo.toIndex
     };
+
     console.log(`Tab ID ${tabId} moved from ${moveInfo.fromIndex} to ${moveInfo.toIndex}, sending update to backend`);
-    socket.emit('data/abstraction/tab', 'update', tab);
+    let doc = Tab
+    doc.data = stripTabProperties(tab)
+
+    updateDocument(doc)
+
 });
 
 browser.browserAction.onClicked.addListener((tab, OnClickData) => {
@@ -119,8 +110,11 @@ browser.browserAction.onClicked.addListener((tab, OnClickData) => {
     console.log(`Sending update to backend for tab ${tab.id}`);
     tabUrls[tab.id] = tab.url;
 
-    console.log(stripTabProperties(tab))
-    socket.emit('data/abstraction/tab', 'update', stripTabProperties(tab));
+    let doc = Tab
+    doc.data = stripTabProperties(tab)
+
+    updateDocument(doc)
+
 });
 
 browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
@@ -133,9 +127,13 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
     // Ignore empty tabs
     if (!tab.url || tab.url == "about:newtab" || tab.url == "about:blank") return
 
+    let doc = Tab
+    doc.data = stripTabProperties(tab)
+    console.log(doc)
+
     // Update backend
     console.log(`Tab ID ${tabId} removed, updating backend`);
-    socket.emit('data/abstraction/tab', 'delete', tab);
+    removeDocument(doc)
     delete tabUrls[tabId]
 });
 
@@ -143,6 +141,33 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
 /**
  * Functions
  */
+
+// Fetch context URL, Tab schema, and stored URLs from the server
+function fetchContextUrl() {
+    socket.emit('context:get:url', {}, function(data) {
+        context = data;
+        console.log('Context URL fetched: ', context);
+    });
+}
+
+function fetchTabSchema() {
+    socket.emit('index:schema:get', {type: 'data/abstr/tab', version: '2'}, function(data) {
+        if (!data || data.status == 'error') return console.error('Tab schema not found');
+        Tab = data;
+        console.log('Tab schema fetched: ', Tab);
+    });
+}
+
+function fetchStoredUrls() {
+    socket.emit('listDocuments', {
+        context: context,
+        type: 'data/abstr/tab',
+    }, (data) => {
+        tabUrls = data;
+        console.log('Stored URLs fetched: ', tabUrls);
+    });
+}
+
 
 function sanitizePath(path) {
     if (path == '/') return 'universe:///'
@@ -168,6 +193,20 @@ function updateBrowserTabs(tabArray, hideInsteadOfRemove = true) {
             }
         });
     });
+}
+
+function insertDocument(doc) {
+    socket.emit('index:insertDocument', doc, (res) => {
+        console.log('Document inserted: ', res);
+    });
+}
+
+function updateDocument(doc) {
+
+}
+
+function removeDocument(doc) {
+    
 }
 
 function stripTabProperties(tab) {
@@ -198,4 +237,41 @@ function stripTabProperties(tab) {
         url: tab.url,
         title: tab.title
     }
+}
+
+function formatTabProperties(tab) {
+    return { 
+        ...Tab,
+        data: {
+            url: tab.url,
+            title: tab.title,
+        },
+        meta: {
+            //id: tab.id,
+            index: tab.index,
+            // Restore may fail if windowId does not exist
+            // TODO: Handle this case with windows.create()
+            // windowId: tab.windowId,
+            highlighted: tab.highlighted,
+            active: tab.active,
+            pinned: tab.pinned,
+            hidden: tab.hidden,
+            // boolean. Whether the tab is created and made visible in the tab bar without any content
+            // loaded into memory, a state known as discarded. The tab's content is loaded when the tab
+            // is activated.
+            // Defaults to true to conserve memory on restore
+            discarded: true, // tab.discarded,
+            incognito: tab.incognito,
+            //width: 1872,
+            //height: 1004,
+            //lastAccessed: 1675111332554,
+            audible: tab.audible,
+            mutedInfo: tab.mutedInfo,
+            isArticle: tab.isArticle,
+            isInReaderMode: tab.isInReaderMode,
+            sharingState: tab.sharingState,
+        }        
+        
+    }
+
 }
