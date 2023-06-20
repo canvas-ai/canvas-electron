@@ -56,7 +56,7 @@ class SocketIoService extends Service {
             console.log(`Client connected: ${socket.id}`);
             setupSocketEventListeners(socket, this.context);
             setupContextEventListeners(socket, this.context);
-            setupIndexEventListeners(socket, this.index);
+            setupIndexEventListeners(socket, this.index, this.context);
 
             socket.on('disconnect', () => {
                 console.log(`Client disconnected: ${socket.id}`);
@@ -174,13 +174,17 @@ function setupSocketEventListeners(socket, context) {
 
 }
 
-function setupIndexEventListeners(socket, index) {
+function setupIndexEventListeners(socket, index, context) {
 
     // Setters::Index
     socket.on('index:insertDocument', (doc, callback) => {
         debug('index:insertDocument event')
         try {
-            index.insertDocument(doc);
+            index.insertDocument(
+                doc,
+                context.contextArray,
+                // feautureArray
+            );
             callback({ status: 'success', message: 'Document inserted successfully.' });
         } catch (error) {
             callback({ status: 'error', message: `Error inserting document: ${error.message}` });

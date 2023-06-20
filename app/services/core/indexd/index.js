@@ -9,11 +9,15 @@ const EE = require('eventemitter2')
 const BitmapManager = require('./lib/BitmapManager')
 const Bitmap = require('./lib/Bitmap')
 
+// Temporary
+const Document = require('./schemas/Document');
+
+
 // Schemas
 // TODO: Use JSON Schema and a proper validator instead
 const DOCUMENT_SCHEMAS = {
     // Generic document schema
-    document: require('./schemas/Document').toJSON(),
+    default: require('./schemas/Document').toJSON(),
     // Data abstraction schemas
     file: require('./schemas/data/abstraction/File').toJSON(),
     tab: require('./schemas/data/abstraction/Tab').toJSON(),
@@ -136,6 +140,8 @@ class Index extends EE {
     }
 
     async listDocuments(contextArray = [], featureArray = []) {
+
+        debug('listDocuments()', contextArray, featureArray)
         let documents = []
 
         if (!contextArray.length && !featureArray.length) {
@@ -207,7 +213,7 @@ class Index extends EE {
 
     getDocumentSchema(schema) {
         // TODO: Rework (this ugly workaround [for inconsistent schema names])
-        if (type.includes('/')) schema = schema.split('/').pop()
+        if (schema.includes('/')) schema = schema.split('/').pop()
         if (!DOCUMENT_SCHEMAS[schema]) return null
         return DOCUMENT_SCHEMAS[schema]
     }
@@ -227,7 +233,7 @@ class Index extends EE {
      */
 
 
-    #validateDocument(doc, schema ) {
+    #validateDocument(doc, schema = DOCUMENT_SCHEMAS['default']) {
         if (typeof doc !== 'object') throw new Error('Document is not an object')
         if (!doc.id) doc.id = this.#genDocumentID()
 
