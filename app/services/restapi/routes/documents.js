@@ -8,8 +8,16 @@ router.get('/', async (req, res) => {
 
     let index = req.index;
     let context = req.context;
+    let features = req.features;
+    let filters = req.filters;
 
-    let documents = await index.listDocuments(context.array);
+    // TODO: Check feature and filter types
+
+    let documents = await index.listDocuments(
+        context.contextArray,
+        features,
+        filters,
+    );
     if (documents) {
         res.json(documents)
     } else {

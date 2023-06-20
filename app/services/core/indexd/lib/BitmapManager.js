@@ -196,8 +196,6 @@ class BitmapManager {
 
         // Fallback to an empty RoaringBitmap32
         if (!Array.isArray(bitmapIdArray) || !bitmapIdArray.length) {
-
-            console.log('sme tu !!!!!!!!!!!!!!!')
             return new RoaringBitmap32()
         }
 
@@ -215,8 +213,6 @@ class BitmapManager {
         }
 
         let partial = bitmapsToCalculate.shift()
-
-
         while(bitmapsToCalculate.length > 0) {
             partial = partial.andInPlace(bitmapsToCalculate.shift())
             debug(`Partial bitmap to add: ${partial.toArray()}`)
@@ -227,22 +223,36 @@ class BitmapManager {
     }
 
     static addBitmaps(bitmapArray) {
-
         // Fallback to an empty RoaringBitmap32
-        if (!Array.isArray(bitmapArray) || !bitmapArray.length) return new RoaringBitmap32()
+        if (!Array.isArray(bitmapArray) || !bitmapArray.length)
+          return new RoaringBitmap32();
 
-        if (! bitmapArray.every(element => element instanceof RoaringBitmap32)) {
-            throw new TypeError("Input must be an array of RoaringBitmap32 bitmaps")
+        if (!bitmapArray.every(element => element instanceof RoaringBitmap32)) {
+          throw new TypeError("Input must be an array of RoaringBitmap32 bitmaps");
         }
 
-        let partial = bitmapArray.shift()
-        while(bitmapArray.length > 0) {
-            partial = partial.andInPlace(bitmapArray.shift())
-            debug(`Partial bitmap to add: ${partial.toArray()}`)
+        let partial = bitmapArray.shift();
+
+        if (bitmapArray.length === 0) {
+          return partial;
         }
 
-        return partial //.toArray()
+        while (bitmapArray.length > 0) {
+          const nextBitmap = bitmapArray.shift();
+
+          // Perform AND operation only if the next bitmap is not empty
+          if (nextBitmap.size > 0) {
+            partial.andInPlace(nextBitmap);
+          }
+
+          debug(`Partial bitmap after AND operation: ${partial.toArray()}`);
+        }
+
+        debug(`addBitmaps result: ${partial.toArray()}`);
+        return partial;
     }
+
+
 
     //intersect() {}
 
