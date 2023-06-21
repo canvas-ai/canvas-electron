@@ -146,7 +146,8 @@ class Context extends EE {
     }
 
     layerNameToID(name) {
-        return this.#layerIndex.getLayerByName(name).id || null
+        return this.#layerIndex.nameToID(name)
+        //return this.#layerIndex.getLayerByName(name)?.id
     }
 
     createLayer(name, options) {

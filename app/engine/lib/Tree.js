@@ -101,7 +101,7 @@ class Tree extends EventEmitter {
 
         // Emit the ready event
         debug('Context tree initialized')
-        console.log(JSON.stringify(this.#buildJsonTree(), null, 2))
+        debug(JSON.stringify(this.#buildJsonTree(), null, 2))
         this.emit('ready')
 
     }
@@ -117,15 +117,9 @@ class Tree extends EventEmitter {
     // move
     // rename
 
-    removeNode(path) { }
-
-    insertPath(path, autoCreateLayers = true) {
-        if (path === '/') return false
-    }
-
     insert(path = '/', node, autoCreateLayers = true) {
 
-        debug(`Inserting path "${path}" to contex tree`)
+        debug(`Inserting path "${path}" to the context tree`)
         if (path === '/' && !node) {
             debug('Nothing to insert')
             return false
@@ -212,7 +206,6 @@ class Tree extends EventEmitter {
     moveRecursive(pathFrom, pathTo) {
 
         debug(`Moving layer from "${pathFrom}" to "${pathTo}" recursively`)
-
         const node = this.getNode(pathFrom);
         const parentPath = pathFrom.split('/').slice(0, -1).join('/');
         const parentNode = this.getNode(parentPath);
@@ -488,6 +481,8 @@ class Tree extends EventEmitter {
             throw new SyntaxError(`Invalid JSON data: ${err.message}`);
         }
     }
+
+    #buildPathArray() {}
 
 }
 
