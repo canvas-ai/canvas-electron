@@ -49,7 +49,7 @@ router.get('/path', (req, res) => {
 });
 
 router.get('/paths', (req, res) => {
-    res.json({ path: req.context.paths });
+    res.json({ paths: req.context.paths });
 });
 
 router.put('/path', (req, res) => {

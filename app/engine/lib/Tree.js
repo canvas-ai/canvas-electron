@@ -48,8 +48,8 @@ class TreeNode {
     }
 
     get isLeaf() { return this.children.size === 0; }
-
     get hasChildren() { return !this.isLeaf; }
+    get name() { return this.payload.name; }
 
     getChild(id) { return this.children.get(id); }
 
@@ -105,6 +105,12 @@ class Tree extends EventEmitter {
         this.emit('ready')
 
     }
+
+    /**
+     * Getters
+     */
+
+    get paths() { return this.#buildPathArray(); }
 
 
     /**
@@ -292,7 +298,7 @@ class Tree extends EventEmitter {
     }
 
     /**
-     * Legacy API
+     * Legacy methods
      */
 
     fromJSON(json) { return this.load(json); }
@@ -482,7 +488,26 @@ class Tree extends EventEmitter {
         }
     }
 
-    #buildPathArray() {}
+    #buildPathArray(sort = true) {
+        const paths = [];
+
+        const traverseTree = (node, parentPath = '') => {
+          const path = (node.name === 'universe') ?
+            parentPath :
+            parentPath + '/' + node.name;
+
+          if (node.children.size > 0) {
+            for (const child of node.children.values()) {
+              traverseTree(child, path);
+            }
+          } else {
+            paths.push(path);
+          }
+        };
+
+        traverseTree(this.root);
+        return sort ? paths.sort() : paths;
+      }
 
 }
 
