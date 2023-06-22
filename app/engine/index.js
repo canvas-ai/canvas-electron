@@ -85,7 +85,9 @@ class Context extends EE {
     get url() { return this.#url; }
     get path() { return this.#path; }
     get array() { return this.#array; }
+
     get tree() { return this.#tree.getJsonTree(); }
+    get paths() { return this.#tree.paths; }
 
     get bitmaps() {
         return {
@@ -146,7 +148,8 @@ class Context extends EE {
     }
 
     layerNameToID(name) {
-        return this.#layerIndex.getLayerByName(name).id || null
+        return this.#layerIndex.nameToID(name)
+        //return this.#layerIndex.getLayerByName(name)?.id
     }
 
     createLayer(name, options) {
@@ -224,9 +227,9 @@ class Context extends EE {
             url: this.#url,
             path: this.#path,
             array: this.#array,
-            contextArrayLength: this.#contextArray.length,
-            featureArrayLength: this.#featureArray.length,
-            filterArrayLength: this.#filterArray.length,
+            contextArray: this.#contextArray,
+            featureArray: this.#featureArray,
+            filterArray: this.#filterArray,
         }
     }
 

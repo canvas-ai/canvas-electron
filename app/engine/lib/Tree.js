@@ -48,8 +48,8 @@ class TreeNode {
     }
 
     get isLeaf() { return this.children.size === 0; }
-
     get hasChildren() { return !this.isLeaf; }
+    get name() { return this.payload.name; }
 
     getChild(id) { return this.children.get(id); }
 
@@ -101,10 +101,16 @@ class Tree extends EventEmitter {
 
         // Emit the ready event
         debug('Context tree initialized')
-        console.log(JSON.stringify(this.#buildJsonTree(), null, 2))
+        debug(JSON.stringify(this.#buildJsonTree(), null, 2))
         this.emit('ready')
 
     }
+
+    /**
+     * Getters
+     */
+
+    get paths() { return this.#buildPathArray(); }
 
 
     /**
@@ -117,15 +123,9 @@ class Tree extends EventEmitter {
     // move
     // rename
 
-    removeNode(path) { }
-
-    insertPath(path, autoCreateLayers = true) {
-        if (path === '/') return false
-    }
-
     insert(path = '/', node, autoCreateLayers = true) {
 
-        debug(`Inserting path "${path}" to contex tree`)
+        debug(`Inserting path "${path}" to the context tree`)
         if (path === '/' && !node) {
             debug('Nothing to insert')
             return false
@@ -212,7 +212,6 @@ class Tree extends EventEmitter {
     moveRecursive(pathFrom, pathTo) {
 
         debug(`Moving layer from "${pathFrom}" to "${pathTo}" recursively`)
-
         const node = this.getNode(pathFrom);
         const parentPath = pathFrom.split('/').slice(0, -1).join('/');
         const parentNode = this.getNode(parentPath);
@@ -299,7 +298,7 @@ class Tree extends EventEmitter {
     }
 
     /**
-     * Legacy API
+     * Legacy methods
      */
 
     fromJSON(json) { return this.load(json); }
@@ -488,6 +487,27 @@ class Tree extends EventEmitter {
             throw new SyntaxError(`Invalid JSON data: ${err.message}`);
         }
     }
+
+    #buildPathArray(sort = true) {
+        const paths = [];
+
+        const traverseTree = (node, parentPath = '') => {
+          const path = (node.name === 'universe') ?
+            parentPath :
+            parentPath + '/' + node.name;
+
+          if (node.children.size > 0) {
+            for (const child of node.children.values()) {
+              traverseTree(child, path);
+            }
+          } else {
+            paths.push(path);
+          }
+        };
+
+        traverseTree(this.root);
+        return sort ? paths.sort() : paths;
+      }
 
 }
 

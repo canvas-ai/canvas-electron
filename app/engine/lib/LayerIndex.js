@@ -88,22 +88,27 @@ class LayerIndex {
 
     removeLayerByID(id) {
         const layer = this.getLayerByID(id);
-        if (layer) return this.removeLayer(layer)
+        return layer ? this.removeLayer(layer) : false
+    }
+
+    removeLayerByID(id) {
+        const layer = this.getLayerByID(id);
+        return layer ? this.removeLayer(layer) : false
     }
 
     removeLayerByName(name) {
         const layer = this.getLayerByName(name);
-        if (layer) return this.removeLayer(layer)
+        return layer ? this.removeLayer(layer) : false
     }
 
     nameToID(name) {
         const layer = this.getLayerByName(name);
-        return layer.id
+        return layer.id || null
     }
 
     idToName(id) {
         const layer = this.getLayerByID(id);
-        return layer.name
+        return layer.name || null
     }
 
     #initNameToLayerMap() {
