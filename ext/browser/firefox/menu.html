@@ -2,31 +2,21 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <link href='fonts/Roboto/Roboto.css' rel='stylesheet'>
+    <link href="fonts/MaterialIcons/MaterialIcons.css" rel="stylesheet">
 
-    <!--Import Google Robot Font; TODO: Replace with local fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
 
-    <!--Import Google Icon Font; TODO: Replace with local fonts -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <!--Import materialize.css-->
     <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
-
-    <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    <!-- Import JSTree css -->
     <link rel="stylesheet" href="themes/default/style.css">
-
     <style>
         html, body {
             width: 580px;
             max-width: 580px;
             height: auto;
             font-family: 'Roboto', sans-serif;
-            overflow: hidden;
+            overflow: auto;
         }
 
         .context-url {
@@ -35,6 +25,11 @@
 
         .breadcrumb, .breadcrumb::before {
             color: rgba(32,32,32,0.7);
+        }
+
+        #tab-list {
+            max-height: 300px;
+            overflow-y: scroll;
         }
     </style>
     <title>Canvas UI</title>
@@ -67,6 +62,8 @@
             <i class="material-icons right">upload</i>
         </button>
     </div>
+    <ul id="tab-list" class="row">
+    </ul>
 </div>
 
 <ul class="collapsible">

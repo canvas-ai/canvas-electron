@@ -37,13 +37,10 @@ socket.on('connect_timeout', function() {
 });
 
 
-function getContextUrl() {
-    socket.emit('context:get:url', {}, (res) => {
-        console.log(`(UI) Got context URL: "${res}"`)
-        updateContextBreadcrumbs(sanitizePath(res))
-    })
-
-}
+// Populate the pop-up with the current tabs
+browser.tabs.query({}).then((tabs) => {
+    updateTabList(tabs);
+});
 
 document.addEventListener("DOMContentLoaded", async function() {
     var elems = document.querySelectorAll(".collapsible");
@@ -61,6 +58,13 @@ document.addEventListener("DOMContentLoaded", async function() {
 /**
  * Functions
  */
+
+function getContextUrl() {
+    socket.emit('context:get:url', {}, (res) => {
+        console.log(`(UI) Got context URL: "${res}"`)
+        updateContextBreadcrumbs(sanitizePath(res))
+    })
+}
 
 function sanitizePath(path) {
     if (path == '/') return 'universe:///'
@@ -87,7 +91,6 @@ function updateContextBreadcrumbs(url) {
     }
 }
 
-
 async function updateTabCount() {
 
     console.log('Updating tab count')
@@ -105,3 +108,45 @@ async function updateTabCount() {
 }
 
 document.addEventListener("DOMContentLoaded", updateTabCount);
+
+
+// Function to update the tab list in your UI
+function updateTabList(tabs) {
+  const tabListContainer = document.getElementById('tab-list');
+
+  // Clear the existing tab list
+  tabListContainer.innerHTML = '';
+
+  // Generate the updated tab list
+  tabs.forEach((tab) => {
+
+    /*
+    <li class="collection-item">
+        <div>Alvin
+            <a href="#!" class="secondary-content">
+                <i class="material-icons">send</i>
+            </a>
+        </div>
+    </li>
+    */
+
+    const tabHeader = document.createElement("li");
+    tabHeader.className = "collection-header";
+    tabHeader.textContent = "Unsynced Tabs";
+
+    const tabItem = document.createElement("li");
+    tabItem.className = "collection-item";
+    tabItem.textContent = tab.title;
+
+    const tabItemIcon = document.createElement("i");
+    tabItemIcon.className = "material-icons secondary-content";
+    tabItemIcon.textContent = "close";
+
+    tabItem.appendChild(tabItemIcon);
+    tabListContainer.appendChild(tabHeader);
+    tabListContainer.appendChild(tabItem);
+
+  });
+}
+
+document.addEventListener("DOMContentLoaded", updateTabList);
