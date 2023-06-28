@@ -114,8 +114,13 @@ document.addEventListener("DOMContentLoaded", updateTabCount);
 function updateTabList(tabs) {
   const tabListContainer = document.getElementById('tab-list');
 
+  const tabHeader = document.createElement("li");
+  tabHeader.className = "collection-header";
+  tabHeader.textContent = "Unsynced Tabs";
+
   // Clear the existing tab list
   tabListContainer.innerHTML = '';
+  tabListContainer.appendChild(tabHeader);
 
   // Generate the updated tab list
   tabs.forEach((tab) => {
@@ -130,10 +135,6 @@ function updateTabList(tabs) {
     </li>
     */
 
-    const tabHeader = document.createElement("li");
-    tabHeader.className = "collection-header";
-    tabHeader.textContent = "Unsynced Tabs";
-
     const tabItem = document.createElement("li");
     tabItem.className = "collection-item";
     tabItem.textContent = tab.title;
@@ -143,7 +144,6 @@ function updateTabList(tabs) {
     tabItemIcon.textContent = "close";
 
     tabItem.appendChild(tabItemIcon);
-    tabListContainer.appendChild(tabHeader);
     tabListContainer.appendChild(tabItem);
 
   });
