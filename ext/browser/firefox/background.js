@@ -31,6 +31,22 @@ let watchTabProperties = {
 }
 
 
+
+// background.js
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'getTabs') {
+      // Fetch the tabs data
+      browser.tabs.query({}).then((tabs) => {
+        // Send the tabs data back to the frontend
+        sendResponse({ action: 'tabsData', tabs: tabs });
+      });
+      return true; // Allows sendResponse to be called asynchronously
+    }
+  });
+
+
+
 /**
  * Socket.io
  */
@@ -75,12 +91,17 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
         // Ignore empty tabs
         if (tab.url == "about:newtab" || tab.url == "about:blank") return
-
-        console.log(`Tab ID ${tabId} changed, sending update to backend`)
         tabUrls[tabId] = tab.url;
 
-        let doc = formatTabProperties(tab)
+        let doc = formatTabProperties(tab);
+
+        // Update backend
+        console.log(`Tab ID ${tabId} changed, sending update to backend`)
         insertDocument(doc)
+
+        // Update browser
+        console.log(`Tab ID ${tabId} changed, sending update to browser extension`)
+        browser.runtime.sendMessage({ tabs: tabs });
 
     }
 }, watchTabProperties)
@@ -93,10 +114,10 @@ browser.tabs.onMoved.addListener((tabId, moveInfo) => {
         index: moveInfo.toIndex
     };
 
+    // Update backend
     console.log(`Tab ID ${tabId} moved from ${moveInfo.fromIndex} to ${moveInfo.toIndex}, sending update to backend`);
     let doc = Tab
     doc.data = stripTabProperties(tab)
-
     updateDocument(doc)
 
 });
@@ -129,11 +150,15 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
 
     let doc = Tab
     doc.data = stripTabProperties(tab)
-    console.log(doc)
 
     // Update backend
     console.log(`Tab ID ${tabId} removed, updating backend`);
     removeDocument(doc)
+
+    // Update browser
+    console.log(`Tab ID ${tabId} removed, sending update to browser extension`)
+    browser.runtime.sendMessage({ tabs: tabs });
+
     delete tabUrls[tabId]
 });
 
@@ -206,7 +231,7 @@ function updateDocument(doc) {
 }
 
 function removeDocument(doc) {
-    
+
 }
 
 function stripTabProperties(tab) {
@@ -240,7 +265,7 @@ function stripTabProperties(tab) {
 }
 
 function formatTabProperties(tab) {
-    return { 
+    return {
         ...Tab,
         data: {
             url: tab.url,
@@ -270,8 +295,8 @@ function formatTabProperties(tab) {
             isArticle: tab.isArticle,
             isInReaderMode: tab.isInReaderMode,
             sharingState: tab.sharingState,
-        }        
-        
+        }
+
     }
 
 }

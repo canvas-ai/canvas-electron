@@ -36,9 +36,9 @@ exports.start = (ctx) => {
         }
     });
 
-    //server.listen(process.env.PORT || 1090, function () {
-    //    console.log("Listening on http://localhost:" + server.server.address().port);
-    //});
+    server.listen(process.env.PORT || 1090, function () {
+        console.log("Listening on http://localhost:" + server.server.address().port);
+    });
 
 }
 
@@ -53,3 +53,5 @@ exports.restart = () => {
 exports.status = () => {
     return true
 }
+
+
