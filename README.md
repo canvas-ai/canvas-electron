@@ -16,7 +16,84 @@
 ---
 **Codebase cleanup/migration in-progress! Warning! Might hurt your eyes :)**
 
+As time is the most precious resource one can waste and I want to have the core functionality ready till EO 08/2023, I'll be experimenting with a couple of paid contribution models.
+
+**Resolution of issues labeled as "Paid" will be paid for after your PR is approved and merged**
+
+Features that are not on the roadmap or need to be re-prioritized will be voted on, estimated and implemented based on the amount of funds reserved.
+
 ---
+<br />
+
+## Basic Concepts / What is Canvas
+
+Canvas is a cross-platform(linux, macos, windows) desktop overlay to help you organize your work / workflows and **data**(regardless of its type and location) into separate "contexts".
+
+Contexts are stored as a tree structure resembling a file-system hierarchy:
+
+```
+universe://
+    Work
+        /Customer A
+                /Devel
+                    /JIRA-1234
+                    /JIRA01235
+                /Reports
+                    /Compliance
+                        /2022
+                        /2023
+        /Infrastructure
+            /DC Frankfurt
+                /network
+                /overview
+        Billing
+            /acme llc
+                /2022
+                /2023
+                /Contracts
+                /...
+            /acme inc
+    Home
+        /Music
+        /Podcasts
+            /Physics*
+            /Medicine**
+        /Library
+            /Physics*
+            /Math
+            /Medicine**
+        /Our new house
+            /Heating
+            /Electricity
+            /Kitchen
+                /Sinks
+                /Materials
+                    /Shinnoki
+                    /Egger
+                    /..
+            /Project docs
+                /Archicad
+                /Sketchup
+    Edu
+        /Medicine**
+        /Physics*
+```
+Every path in this tree represents a context url
+- ``universe://library/physics``
+- ``universe://work/billing/acme_llc/contracts``
+
+Every context *url part* represents a layer. Layers are of 4(5) types:
+
+- **Workspace**: Exportable, shareable collection of layers and data sources. By default, you start with an undifferentiated "universe". Even though color plays a huge role in our perception of reality, its quite underused in todays UI design. Workspaces in Canvas can have a primary color assigned, If they do, Canvas will automatically use gradients [of the workspace primary color] for individual data abstractions. This visual hint will make searching through your universe easier (and more fun). As you might have guessed, the default primary color of the universe is white(dispersive prisms are cool :)
+
+- **Canvas**: A layer with multiple context, feature and/or filter bitmaps assigned that (optionally) stores Canvas UI layout and UI applet data.
+
+- **Context**: The **default** layer type that links a context url part to one and only one context bitmap. As an example, moving a layer called "reports" to the root "/" ("universe:///") would - in a standard bitmap-y fashion - show all data linked to the "reports" bitmap for the entire universe; moving/copying the same layer under universe://customer_a/reports would filter out only a subset related to customer_a. Ideally, you want to prevent having multiple layers representing the same data. Reports, reports_new, reports2, customera_reports should be represented by one layer called "reports", leaving the larger context(layer order) handle the rest for you.
+
+- **Filter**: Represents a single filter or feature bitmap, example: ``universe://customer_a/:emails/:today``, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/timeline/today" filter.
+
+- **Label**: A noop layer with no context or feature bitmap links
+
 <br />
 
 ## Installation instructions
@@ -51,88 +128,6 @@ To install the bashrc wrapper:
 Global app config: ``canvas/config``
 Default user home for portable use: ``canvas/user``
 default user home: ``$HOME/.canvas``
-
-<br />
-
-## Basic concepts
-You use Canvas to divide your work / workflows and **data**(regardless of its location) into separate "contexts". Contexts are stored as a tree structure resembling a file-system hierarchy:
-
-```
-universe://
-    CustomerA
-        /Devel
-            /JIRA-1234
-        /Reports
-            /Compliance
-                /2022
-                /2023
-        /Infrastructure
-            /DC Frankfurt
-                /dmz
-                    /wsa
-                    /..
-    CustomerB
-        /Projects
-            /2022
-                /Rand PoC
-                /..
-    Billing
-        /My LLC A
-            /2022
-            /2023
-            /Contracts
-            /...
-        /My LLC B
-    Home
-        /New House
-            /Heating
-            /Electricity
-            /Kitchen
-                /Sinks
-                /Materials
-                    /Shinnoki
-                    /Egger
-                    /..
-            /Project docs
-                /Archicad
-                /Sketchup
-        /Music
-        /..
-```
-Every path in this tree represents a context url
-- ``universe://home/ournewhouse/heating``
-- ``universe://billing/llca/contracts``
-
-Every context *url part* represents a layer. Layers are of 4(5) types:
-
-- **Workspace**: Exportable, shareable collection of layers and data sources. By default, this is your "universe".
-
-- **Canvas**: A multi-context layer that links to feature and filter bitmaps and (optionally) stores Canvas UI layout and UI applet data. A good example would be ``universe://project_a/sec_cmpl/customer_a/dash``, which, besides inherently filtering the customer_a data could also link to
-  - data/abstraction/tab OR data/abstraction/email OR data/abstraction/file OR data/abstraction/todo AND
-  - filter/email/from/itsec-guy1@customer_a OR
-  - filter/email/from/itsec@customer_a OR
-  - (filter/email/from/@customer_a AND filter/email/subject/Compliance*) OR
-  - data/source/deviceid://path/to/customer_a/reports/incoming
-
-  When opened in the GUI, you would get a nice list of reports, incoming emails, **browser tabs** and todo items. A layer of type "canvas" loosely resembles a database view.
-
-- **Context**: The **default layer type** that links a context url part to one and only one context bitmap. As an example, moving a layer called "reports" to the root "/" ("universe:///") would - in a standard bitmap-y fashion - show all data linked to the "reports" bitmap for the entire universe; moving/copying the same layer under universe://customer_a/reports would filter out only a subset related to customer_a. Ideally, you want to prevent having multiple layers representing the same data. Reports, reports_new, reports2, customera_reports should be represented by one layer called "reports", leaving the larger context(layer order) handle the rest for you
-
-- **Filter**: Represents a single filter or feature bitmap, example: ``universe://customer_a/:emails/:today``, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/timeline/today" filter.
-
-- **Label**: A noop layer with no context or feature bitmap links
-
-<br />
-
-## Use cases
-**To-be replaced by a video**
-TL;DR Version: You start working on a random DevOps task "A". You may start by opening your browser, doing some research, maybe downloading and extracting some files, making some notes. Then, another high-priority(tm) task "B" comes along! Oook, n x (Ctrl+T), maybe move your previous tabs to your growing 2k+ entries OneTab list, do some more research, write some code snippets or configuration files, run some qemu and/or docker magic. Then! your carpenter calls! asking a few unpleasant questions about - lets say, your kitchen - that you were to answer during the last weekend. You put all the above aside and quickly start looking through your bookmarks and your by now severely trashed downloads folder ..for that one visualization you wanted to send him.
-
-Now imagine the same with Canvas:
-
-- You start your work by creating a context called **customer/dev/taskA**(replace with jira-1234 or INC1234 if you like). This will store and close your current browser tabs, cleanup your desktop and downloads folders, todo, calendar and notes - so that you can start working on a clean "table", or "desk-top" :)
-- Once task "B" comes along, knowing you have all your work stored and indexed, you create another context **customer/dev/taskB**  and start working on that one
-- When your carpenter calls, you just switch to **New House/Kitchen** which will load all related tabs, populate a webdav-based desktop folder showing you (aot) that pdf you would be searching for otherwise, displaying a font 22 note on your sidebar "Send till Monday!" and all the reminder emails you missed from the carpenter.
 
 <br />
 
