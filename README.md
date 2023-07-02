@@ -37,7 +37,7 @@ universe://
         /Customer A
                 /Devel
                     /JIRA-1234
-                    /JIRA01235
+                    /JIRA-1235
                 /Reports
                     /Compliance
                         /2022
@@ -78,19 +78,19 @@ universe://
         /Medicine**
         /Physics*
 ```
-Every path in this tree represents a context url
+Every path in this tree can be represented by a context url
 - ``universe://library/physics``
 - ``universe://work/billing/acme_llc/contracts``
 
-Every context *url part* represents a layer. Layers are of 4(5) types:
+Every context tree leaf / context url part represents a layer. There are 5 types of layers:
 
-- **Workspace**: Exportable, shareable collection of layers and data sources. By default, you start with an undifferentiated "universe". Even though color plays a huge role in our perception of reality, its quite underused in todays UI design. Workspaces in Canvas can have a primary color assigned, If they do, Canvas will automatically use gradients [of the workspace primary color] for individual data abstractions. This visual hint will make searching through your universe easier (and more fun). As you might have guessed, the default primary color of the universe is white(dispersive prisms are cool :)
+- **Workspace**: Exportable, shareable collection of layers and data sources. By default, you start with an undifferentiated "universe". Even though color plays a huge role in our perception of reality, its quite underused in todays UI design. Workspaces in Canvas can have a primary color assigned, If they do, Canvas will automatically use gradients [of the primary workspace color] for individual data abstractions. This visual hint will make searching through your universe easier (and more fun). As you might have guessed, the default primary color of the universe is white(dispersive prisms are cool :)
 
 - **Canvas**: A layer with multiple context, feature and/or filter bitmaps assigned that (optionally) stores Canvas UI layout and UI applet data.
 
-- **Context**: The **default** layer type that links a context url part to one and only one context bitmap. As an example, moving a layer called "reports" to the root "/" ("universe:///") would - in a standard bitmap-y fashion - show all data linked to the "reports" bitmap for the entire universe; moving/copying the same layer under universe://customer_a/reports would filter out only a subset related to customer_a. Ideally, you want to prevent having multiple layers representing the same data. Reports, reports_new, reports2, customera_reports should be represented by one layer called "reports", leaving the larger context(layer order) handle the rest for you.
+- **Context**: The default layer type that links a context url part to one and only one context bitmap. Moving a layer called "reports" to the root "/" ("universe:///") will - in a standard bitmap-y fashion - show all data linked to the "reports" bitmap for the entire universe; moving/copying the same layer under universe://customer_a/reports will filter out only a subset related to customer_a. Ideally, you want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera_reports" should be represented by one layer called "reports", leaving the larger context(layer order) handle the filtering for you.
 
-- **Filter**: Represents a single filter or feature bitmap, example: ``universe://customer_a/:emails/:today``, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/timeline/today" filter.
+- **Filter**: Represents a single filter or feature bitmap; example: ``universe://customer_a/:emails/:today``, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/timeline/today" filter.
 
 - **Label**: A noop layer with no context or feature bitmap links
 
