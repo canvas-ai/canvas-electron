@@ -1,90 +1,189 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <link href='fonts/Roboto/Roboto.css' rel='stylesheet'>
     <link href="fonts/MaterialIcons/MaterialIcons.css" rel="stylesheet">
 
-
-    <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="stylesheet" href="themes/default/style.css">
     <style>
-        html, body {
-            width: 580px;
-            max-width: 580px;
+        html,
+        body {
+            width: 480px;
+            min-height: 580px;
             height: auto;
             font-family: 'Roboto', sans-serif;
-            overflow: auto;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .navbar-fixed {
+            height: 110px;
+        }
+
+        main {
+            flex: 1 0 auto;
         }
 
         .context-url {
             padding-left: 18px;
         }
 
-        .breadcrumb, .breadcrumb::before {
-            color: rgba(32,32,32,0.7);
+        .breadcrumb,
+        .breadcrumb::before {
+            color: rgba(32, 32, 32, 0.7);
         }
 
-        #tab-list {
-            max-height: 300px;
-            overflow-y: scroll;
+        .collection-item {}
+
+        .collection-item > p {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding-right: 32px;
+
         }
 
-        .tab > a {
-            color: #000 !important;
+        .collection-item:hover {
+            background-color: rgba(122, 122, 122, 0.1);
         }
+
+        /**
+        * Overrides for tab colors
+        **/
+
+        .tabs.tabs-transparent .tab a,
+        .tabs.tabs-transparent .tab.disabled a,
+        .tabs.tabs-transparent .tab.disabled a:hover {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .tabs .tab a {
+            color: rgba(66, 66, 66, 0.7);
+        }
+
+        .tabs .tab a:focus, .tabs .tab a:focus.active {
+            background-color: rgba(66, 66, 66, 0.1);
+            outline: none;
+          }
+
+        .tabs .tab a:hover, .tabs .tab a.active {
+            background-color: transparent;
+            color: #424242;
+        }
+
+        .tabs .tab.disabled a,
+        .tabs .tab.disabled a:hover {
+            color: rgba(66, 66, 66, 0.4);
+            cursor: default;
+        }
+
+        .tabs .indicator {
+            position: absolute;
+            bottom: 0;
+            height: 2px;
+            background-color: #424242;
+            will-change: left, right;
+        }
+
     </style>
     <title>Canvas UI</title>
 </head>
 <body>
 
-<div class="navbar-fixed">
-<nav class="nav-extended white">
-    <div class="nav-wrapper">
-        <a href="#" class="brand-logo right black-text"><img src="icons/logo_256x256.png" class="brand-logo right" width="40px" style="margin-top:8px;"/></a>
-        <a href="#" data-target="mobile-demo" class="black-text">
-            <div id="breadcrumb-container" class="col s12 black-text">
-                <a href="#!" class="breadcrumb black-text">Universe</a>
-                <!-- Breadcrumbs -->
+    <header class="navbar-fixed">
+        <nav class="nav-extended white">
+            <div class="nav-wrapper">
+                <a href="#" class="brand-logo right black-text"><img src="icons/logo_256x256.png" class="brand-logo right"
+                        width="40px" style="margin-top:8px;" /></a>
+                <a href="#" data-target="mobile-demo" class="black-text">
+                    <div id="breadcrumb-container" class="col s12 black-text">
+                        <a href="#!" class="breadcrumb black-text">Universe</a>
+                    </div>
+                </a>
             </div>
-        </a>
-    </div>
-    <div class="nav-content">
-        <ul class="tabs tabs-transparent">
-        <li class="tab"><a href="#test1">Browser<span class="badge">1</span></a></li>
-        <li class="tab"><a class="active" href="#test2">Canvas<span class="badge">1</span></a></li>
-        </ul>
-    </div>
-</nav>
+            <div class="nav-content">
+                <ul class="tabs black-text">
+                    <li class="tab"><a href="#browser-to-canvas" class="black-text">Browser > Canvas</a></li>
+                    <li class="tab"><a href="#canvas-to-browser" class="black-text">Canvas > Browser</a></li>
+                    <li class="tab"><a href="#settings" class="black-text"><i class="material-icons">settings</i></a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
 
-<ul class="sidenav" id="mobile-demo">
-    <li><a href="sass.html">Sass</a></li>
-    <li><a href="badges.html">Components</a></li>
-    <li><a href="collapsible.html">JavaScript</a></li>
-</ul>
-
-<div id="test1" class="col s12">Test 1</div>
-<div id="test2" class="col s12">Test 2</div>
-<div id="test3" class="col s12">Test 3</div>
-<div id="test4" class="col s12">Test 4</div>
-
-
-
-</div>
-
-
-
-<nav>
-    <div class="context-url nav-wrapper white">
-        <img src="icons/logo_256x256.png" class="brand-logo right" width="40px" style="margin-top:8px;"/>
-        <div id="breadcrumb-container" class="col s12 black-text">
-            <a href="#!" class="breadcrumb black-text">Universe</a>
-            <!-- Breadcrumbs -->
+    <main>
+        <div id="browser-to-canvas" class="container">
+            <h4>Sync to Canvas<span><a class="black white-text waves-effect waves-light btn right">Sync all<i class="material-icons left">sync</i></a></span></h4>
+            <ul id="tab-list" class="collection">
+                <li class="collection-item">Alvin</li>
+                <li class="collection-item">Alvin</li>
+                <li class="collection-item">Alvin</li>
+                <li class="collection-item">Alvin</li>
+            </ul>
         </div>
-    </div>
-</nav>
+
+        <div id="canvas-to-browser" class="container">
+            <h4>Sync to Browser<span><a class="black white-text waves-effect waves-light btn right">Sync all<i class="material-icons left">sync</i></a></span></h4>
+            <ul class="collection">
+                <li class="collection-item">Alvin</li>
+                <li class="collection-item">Alvin</li>
+                <li class="collection-item">Alvin</li>
+                <li class="collection-item">Alvin</li>
+            </ul>
+        </div>
+
+        <div id="settings" class="container">
+            <h5>Settings</h5>
+            <ul class="collapsible">
+                <li>
+                    <div class="collapsible-header"><i class="material-icons">settings</i>Extension Settings</div>
+                    <div class="collapsible-body">
+                        <div class="row">
+                            <div class="col s10">Auto-sync browser tabs to Canvas</div>
+                            <div class="col s2">
+                                <div class="switch">
+                                    <label>
+                                        <input type="checkbox">
+                                        <span class="lever"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col s10">Automatically switch tab-sets on context change</div>
+                            <div class="col s2">
+                                <div class="switch">
+                                    <label>
+                                        <input type="checkbox">
+                                        <span class="lever"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </li>
+
+                <li class="disabled">
+                    <div class="collapsible-header"><i class="material-icons">cloud_sync</i>Canvas Settings</div>
+                    <div class="collapsible-body"></div>
+                </li>
+            </ul>
+        </div>
+    </main>
+
+
+<!--
 
 <div class="container">
 
@@ -93,7 +192,7 @@
     <a href="#!" class="collection-item black-text"><span id="tab-count" class="green black-text badge">0</span>Number of tabs in the current context</a>
     <a href="#!" class="collection-item black-text"><span class="red black-text badge">0</span>Number of unsynced tabs</a>
     <div class="row collection-item">
-        <button class="col s6 btn green waves-effect waves-medium" name="action">
+        <button class="col s6 btn green waves-effect waves-medium" name="action" id="sync-tabs-to-canvas">
             Save current tabs
             <i class="material-icons right">save</i>
         </button>
@@ -106,49 +205,26 @@
     </ul>
 </div>
 
-<ul class="collapsible">
-    <li>
-        <div class="collapsible-header"><i class="material-icons">settings</i>Extension Settings</div>
-        <div class="collapsible-body">
-            <div class="row">
-                <div class="col s10">Auto-sync browser tabs to Canvas</div>
-                <div class="col s2">
-                    <div class="switch">
-                        <label>
-                            <input type="checkbox">
-                            <span class="lever"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
 
+
+-->
+
+    <footer class="page-footer grey darken-3">
+        <div class="container white-text">
             <div class="row">
-                <div class="col s10">Automatically switch tab-sets on context change</div>
-                <div class="col s2">
-                    <div class="switch">
-                        <label>
-                            <input type="checkbox">
-                            <span class="lever"></span>
-                        </label>
-                    </div>
+                <div class="col s6 16 left-align">©2023 Canvas UI</div>
+                <div class="col s6 16 right-align">
+                    <a class="white-text text-lighten-4" href="https://github.com/idncsk/canvas/issues/new" target="_blank">Submit an issue</a>
                 </div>
             </div>
         </div>
+    </footer>
 
-    </li>
-
-    <li class="disabled">
-        <div class="collapsible-header"><i class="material-icons">cloud_sync</i>Canvas Settings</div>
-        <div class="collapsible-body"></div>
-    </li>
-
-</ul>
-
-<script src="js/jquery-3.6.4.min.js"></script>
-<script src="js/jstree.min.js"></script>
-<script src="js/materialize.min.js"></script>
-<script src="js/socket.io.min.js"></script>
-<script src="js/ui.js"></script>
+    <script src="js/jquery-3.6.4.min.js"></script>
+    <script src="js/jstree.min.js"></script>
+    <script src="js/materialize.min.js"></script>
+    <script src="js/socket.io.min.js"></script>
+    <script src="js/ui.js"></script>
 
 </body>
 <!--
@@ -156,4 +232,5 @@
     Simplicity is the ultimate sophistication
 
 -->
+
 </html>

@@ -54,9 +54,17 @@ app.on('second-instance', (e, argv, cwd) => {
     if (!argv) return
     console.log('2nd instance CLI parser(TODO)')
     console.log(argv)
-    // parse cli args, if we get something like --preview /path/to/temp/mail.html
-    // from shell open we can open it in a browser preview window or something
-    // if (app.isReady()) {  }
+
+    // --open-*
+    // --open-toolbox
+    // --open-launcher
+    // --open-canvas
+    // --open-settings
+    // --open-about
+
+    // --insert-*
+
+    // --remove-*
 })
 
 // TODO: Replace with a global argv parser

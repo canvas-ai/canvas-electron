@@ -9,12 +9,15 @@
  */
 
 /**
- * Config (to-be-moved to config.json / LocalStore)
+ * Config (to-be-moved to LocalStore)
  */
 
 const config = {
-    autoUpdateTabs: true,
-    socketio: {
+    sync:{
+        autoRestoreSession: false,  // Restores all tabs from the backend on startup
+        autoSaveSession: false,     // Saves all tabs to the backend as they are created
+    },
+    transport: {
         protocol: 'http',
         host: '127.0.0.1',
         port: 3001
@@ -22,13 +25,13 @@ const config = {
 }
 
 // TODO: Configure based on config.json
-const socket = io.connect(`${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}`);
+const socket = io.connect(`${config.transport.protocol}://${config.transport.host}:${config.transport.port}`);
 socket.on('connect', () => {
     console.log('[socket.io:ui] Client connected to server');
 });
 
 socket.on('connect_error', function(error) {
-    console.log(`[socket.io:ui] Connection to "${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}" failed`);
+    console.log(`[socket.io:ui] Connection to "${config.transport.protocol}://${config.transport.host}:${config.transport.port}" failed`);
     console.error(error.message); // Error message will give you more detail about the error.
 });
 
@@ -36,23 +39,40 @@ socket.on('connect_timeout', function() {
     console.log('[socket.io:ui] Connection Timeout');
 });
 
-
 // Populate the pop-up with the current tabs
 browser.tabs.query({}).then((tabs) => {
     updateTabList(tabs);
 });
 
+
+
+/**
+ * UI
+ */
+
+// Initialize Materialize components
 document.addEventListener("DOMContentLoaded", async function() {
-    var elems = document.querySelectorAll(".collapsible");
-    var instances = M.Collapsible.init(elems, {
+    console.log('UI | DOM loaded');
+
+    var mTabElements = document.querySelectorAll(".tabs");
+    var mTabs = M.Tabs.init(mTabElements, {});
+
+    var mCollapsibleElements = document.querySelectorAll(".collapsible");
+    var mCollapsible = M.Collapsible.init(mCollapsibleElements, {
         accordion: false,
     });
 
-    console.log('DOM loaded');
     getContextUrl()
     updateTabCount()
 
 });
+
+
+let syncTabsToCanvasButton = document.getElementById('sync-tabs-to-canvas');
+syncTabsToCanvasButton.addEventListener('click', () => {
+    console.log('UI | Syncing tabs to canvas')
+    browser.runtime.sendMessage({ action: 'syncTabsToCanvas2' });
+})
 
 
 /**
@@ -61,7 +81,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
 function getContextUrl() {
     socket.emit('context:get:url', {}, (res) => {
-        console.log(`(UI) Got context URL: "${res}"`)
+        console.log(`UI | Got context URL: "${res}"`)
         updateContextBreadcrumbs(sanitizePath(res))
     })
 }
@@ -73,7 +93,7 @@ function sanitizePath(path) {
 }
 
 function updateContextBreadcrumbs(url) {
-    console.log('Updating breadcrumbs')
+    console.log('UI | Updating breadcrumbs')
 
     url = sanitizePath(url)
     const breadcrumbContainer = document.getElementById("breadcrumb-container");
@@ -93,7 +113,7 @@ function updateContextBreadcrumbs(url) {
 
 async function updateTabCount() {
 
-    console.log('Updating tab count')
+    console.log('UI | Updating tab count')
     let tabs = await browser.tabs.query({});
     let count = 0;
 
@@ -103,7 +123,7 @@ async function updateTabCount() {
         }
     }
 
-    console.log(`Number of open tabs (excluding empty/new tabs): ${count}`);
+    console.log(`UI | Number of open tabs (excluding empty/new tabs): ${count}`);
     document.getElementById('tab-count').textContent = count;
 }
 
@@ -112,41 +132,50 @@ document.addEventListener("DOMContentLoaded", updateTabCount);
 
 // Function to update the tab list in your UI
 function updateTabList(tabs) {
-  const tabListContainer = document.getElementById('tab-list');
 
-  const tabHeader = document.createElement("li");
-  tabHeader.className = "collection-header";
-  tabHeader.textContent = "Unsynced Tabs";
+    if (!tabs || tabs.length < 1) return;
 
-  // Clear the existing tab list
-  tabListContainer.innerHTML = '';
-  tabListContainer.appendChild(tabHeader);
+    console.log(typeof tabs)
+    const tabListContainer = document.getElementById('tab-list');
 
-  // Generate the updated tab list
-  tabs.forEach((tab) => {
+    // Clear the existing tab list
+    tabListContainer.innerHTML = '';
 
-    /*
-    <li class="collection-item">
-        <div>Alvin
-            <a href="#!" class="secondary-content">
-                <i class="material-icons">send</i>
-            </a>
-        </div>
-    </li>
-    */
+    // Generate the updated tab list
+    tabs.forEach((tab) => {
 
-    const tabItem = document.createElement("li");
-    tabItem.className = "collection-item";
-    tabItem.textContent = tab.title;
+        /*
+        <li class="collection-item">
+            <div>Alvin
+                <a href="#!" class="secondary-content">
+                    <i class="material-icons">send</i>
+                </a>
+            </div>
+        </li>
+        */
 
-    const tabItemIcon = document.createElement("i");
-    tabItemIcon.className = "material-icons secondary-content";
-    tabItemIcon.textContent = "close";
+        const tabItem = document.createElement("li");
+        tabItem.className = "collection-item";
 
-    tabItem.appendChild(tabItemIcon);
-    tabListContainer.appendChild(tabItem);
+        const tabItemTitle = document.createElement("p");
+        tabItemTitle.textContent = tab.title;
 
-  });
+
+
+        const tabItemIconSync = document.createElement("i");
+        tabItemIconSync.className = "material-icons secondary-content black-text";
+        tabItemIconSync.textContent = "sync";
+
+        const tabItemIconLoad = document.createElement("i");
+        tabItemIconLoad.className = "material-icons secondary-content";
+        tabItemIconLoad.textContent = "close";
+
+        tabItem.appendChild(tabItemTitle);
+        tabItem.appendChild(tabItemIconSync);
+        tabItem.appendChild(tabItemIconLoad);
+        tabListContainer.appendChild(tabItem);
+
+    });
 }
 
 document.addEventListener("DOMContentLoaded", updateTabList);

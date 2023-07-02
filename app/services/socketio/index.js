@@ -3,6 +3,7 @@
 
 /**
  * Simple socket.io server implementation
+ * TODO: Rewrite all event listeners to "module:method", { data }, callback
  */
 
 // Load environment variables
@@ -12,13 +13,15 @@ const { app, user, transport } = require('../../env')
 const Service = require('../../models/Service');
 
 // Utils
-const debug = require('debug')('canvas-service-socketio')
+const debug = require('debug')('canvas-service-socket.io')
 const io = require('socket.io')
 
 // Config
-const config = require('../../../config/socketio-server.json')
+// TODO: To be moved to a global conf module that will first
+// check for a user config file, then for a system config file
+const config = require('../../../config/socket.io-server.json')
 
-// Constants, to be moved to config
+// Defaults
 const DEFAULT_PROTOCOL = config.protocol || 'http'
 const DEFAULT_HOST = config.host || '127.0.0.1'
 const DEFAULT_PORT = config.port || 3001
