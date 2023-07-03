@@ -1,10 +1,13 @@
 /**
- * Config (to-be-moved to config.json / LocalStore)
+ * Config (to-be-moved to LocalStore)
  */
 
 const config = {
-    autoUpdateTabs: true,
-    socketio: {
+    sync:{
+        autoRestoreSession: false,  // Restores all tabs from the backend on startup
+        autoSaveSession: false,     // Saves all tabs to the backend as they are created
+    },
+    transport: {
         protocol: 'http',
         host: '127.0.0.1',
         port: 3001
@@ -17,8 +20,11 @@ const config = {
  */
 
 let context;
-let Tab;
+let store;
 
+let syncQueue = new Map()
+
+let TabSchema;
 let tabs;
 let tabUrls = {};   // Workaround for the missing tab info on onRemoved() and onMove()
 let watchTabProperties = {
@@ -31,28 +37,12 @@ let watchTabProperties = {
 }
 
 
-
-// background.js
-
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'getTabs') {
-      // Fetch the tabs data
-      browser.tabs.query({}).then((tabs) => {
-        // Send the tabs data back to the frontend
-        sendResponse({ action: 'tabsData', tabs: tabs });
-      });
-      return true; // Allows sendResponse to be called asynchronously
-    }
-  });
-
-
-
 /**
  * Socket.io
  */
 
 // TODO: Configure based on config.json
-const socket = io.connect(`${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}`);
+const socket = io.connect(`${config.transport.protocol}://${config.transport.host}:${config.transport.port}`);
 
 socket.on('connect', () => {
     console.log('[socket.io] Client connected to server');
@@ -62,7 +52,7 @@ socket.on('connect', () => {
 });
 
 socket.on('connect_error', function(error) {
-    console.log(`[socket.io] Connection to "${config.socketio.protocol}://${config.socketio.host}:${config.socketio.port}" failed`);
+    console.log(`[socket.io] Connection to "${config.transport.protocol}://${config.transport.host}:${config.transport.port}" failed`);
     console.error(error.message); // Error message will give you more detail about the error.
 });
 
@@ -72,6 +62,35 @@ socket.on('connect_timeout', function() {
 
 socket.on('disconnect', () => {
     console.log('[socket.io] Client disconnected from server');
+});
+
+
+/**
+ * Message Handlers
+ */
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log('Message received: ', message);
+
+    switch(message.action) {
+
+        case 'get:context:url':
+            sendResponse(context.url);
+            break;
+
+        case 'get:tab:schema':
+            sendResponse(TabSchema);
+
+        //case 'get:tab':
+        case 'syncTab':
+        case 'syncTabs':
+
+        default:
+            console.error(`Unknown message action: ${message.action}`);
+            break;
+
+    }
+
 });
 
 
@@ -164,6 +183,37 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
 
 
 /**
+ * Functions (new api)
+ */
+
+function saveTabToBackend(tab, cb) {
+    let doc = formatTabProperties(tab);
+    socket.emit('index:insertDocument', doc, (res) => {
+        console.log('Document inserted: ', res);
+        if (cb) cb(res)
+    });
+}
+
+function loadTabFromBackend(tabID, cb) {
+    socket.emit('index:getDocuments', tabID, (res) => {
+        console.log('Document fetched: ', res);
+        if (cb) cb(res)
+    });
+}
+
+function saveTabsToBackend() {
+
+}
+
+function loadTabsFromBackend() {
+
+}
+
+
+
+
+
+/**
  * Functions
  */
 
@@ -186,19 +236,11 @@ function fetchTabSchema() {
 function fetchStoredUrls() {
     socket.emit('listDocuments', {
         context: context,
-        type: 'data/abstr/tab',
+        type: 'data/abstraction/tab',
     }, (data) => {
         tabUrls = data;
         console.log('Stored URLs fetched: ', tabUrls);
     });
-}
-
-
-function sanitizePath(path) {
-    if (path == '/') return 'universe:///'
-    path = 'universe://' + path
-    path = path.replace(/\/\//g, '/')
-    return path
 }
 
 function updateBrowserTabs(tabArray, hideInsteadOfRemove = true) {
@@ -220,18 +262,18 @@ function updateBrowserTabs(tabArray, hideInsteadOfRemove = true) {
     });
 }
 
-function insertDocument(doc) {
-    socket.emit('index:insertDocument', doc, (res) => {
-        console.log('Document inserted: ', res);
-    });
-}
 
-function updateDocument(doc) {
 
-}
 
-function removeDocument(doc) {
+/**
+ * Utils
+ */
 
+function sanitizePath(path) {
+    if (path == '/') return 'universe:///'
+    path = 'universe://' + path
+    path = path.replace(/\/\//g, '/')
+    return path
 }
 
 function stripTabProperties(tab) {
@@ -267,7 +309,9 @@ function stripTabProperties(tab) {
 function formatTabProperties(tab) {
     return {
         ...Tab,
+        type: 'data/abstraction/tab',
         data: {
+            browser: 'firefox',
             url: tab.url,
             title: tab.title,
         },

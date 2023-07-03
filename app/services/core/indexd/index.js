@@ -123,9 +123,9 @@ class Index extends EE {
 
         let res;
         if (ids.length === 1) {
-            res = this.universe.get(ids[0], cb); //sync
+            res = this.universe.get(ids[0]); //sync
         } else {
-            res = await this.universe.getMany(ids, cb);
+            res = await this.universe.getMany(ids);
         }
 
         if (cb) { cb(null, res); }
