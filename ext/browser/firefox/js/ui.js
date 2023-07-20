@@ -144,23 +144,11 @@ function updateTabList(tabs) {
     // Generate the updated tab list
     tabs.forEach((tab) => {
 
-        /*
-        <li class="collection-item">
-            <div>Alvin
-                <a href="#!" class="secondary-content">
-                    <i class="material-icons">send</i>
-                </a>
-            </div>
-        </li>
-        */
-
         const tabItem = document.createElement("li");
         tabItem.className = "collection-item";
 
         const tabItemTitle = document.createElement("p");
         tabItemTitle.textContent = tab.title;
-
-
 
         const tabItemIconSync = document.createElement("i");
         tabItemIconSync.className = "material-icons secondary-content black-text";
