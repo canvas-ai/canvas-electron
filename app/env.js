@@ -46,12 +46,12 @@ const user = {
     // Identities
 
     // User directories
-    home: USER_HOME,
-    config: USER_CONFIG,
-    db: USER_DB,
-    index: USER_INDEX,
     cache: USER_CACHE,
-    data: USER_DATA
+    config: USER_CONFIG,
+    data: USER_DATA,
+    db: USER_DB,
+    home: USER_HOME,
+    index: USER_INDEX
 }
 
 const device = {}

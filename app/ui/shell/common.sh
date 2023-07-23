@@ -8,7 +8,7 @@
 # Get the path of the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-# Get the path of the ROOT directory by going up one level from SCRIPT_DIR
+# Get the path of the CANVAS_ROOT directory (subject to change)
 CANVAS_ROOT="$(cd "$SCRIPT_DIR/../../.." >/dev/null 2>&1 && pwd)"
 
 # Set the path of the config file

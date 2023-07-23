@@ -18,6 +18,7 @@ const {
 const path = require('path')
 const debug = require('debug')('ui-electron-tray')
 
+
 // Canvas Utils
 //const log = app.utils.logger('ui.tray')
 //const config = app.utils.config('ui.tray')
@@ -48,33 +49,33 @@ class CanvasTray extends Tray {
     })*/
     this.#config = {} //app.utils.config(options.configPath)
     this.title = options.title
-/*
-    if (this.#config.get('enableContext')) {
-      // loading plugin
-      let context = require('./plugins/context')
-      // setup event listeners
-    }
+    /*
+        if (this.#config.get('enableContext')) {
+          // loading plugin
+          let context = require('./plugins/context')
+          // setup event listeners
+        }
 
-    if (this.#config.get('enableApps')) {
-      // loading plugin
-      let context = require('./plugins/context')
-      // setup event listeners
-    }
+        if (this.#config.get('enableApps')) {
+          // loading plugin
+          let context = require('./plugins/context')
+          // setup event listeners
+        }
 
-    if (this.#config.get('enableRoles')) {
-      // loading plugin
-      // setup event listeners
-    }
+        if (this.#config.get('enableRoles')) {
+          // loading plugin
+          // setup event listeners
+        }
 
-    if (this.#config.get('enableServices')) {
-      // loading plugin
-      // setup event listeners
-    }
+        if (this.#config.get('enableServices')) {
+          // loading plugin
+          // setup event listeners
+        }
 
-    if (this.#config.get('enablePeers')) {
-      // loading plugin
-      // setup event listeners
-    }*/
+        if (this.#config.get('enablePeers')) {
+          // loading plugin
+          // setup event listeners
+        }*/
 
     // https://github.com/electron/electron/issues/28131
     this.setToolTip(options.title)
@@ -85,7 +86,32 @@ class CanvasTray extends Tray {
 
   }
 
-  #updateTrayMenu() {
+
+
+/**
+ * Canvas Tray Menu
+ * ---
+ * - Context
+ * -- {}
+ * - Toolbox
+ * - Canvas
+ * ---
+ * - Workspaces
+ * -- {}
+ * ---
+ * - Apps
+ * - Roles
+ * - Services
+ * ---
+ * - Identities
+ * - Peers
+ * ---
+ * - Settings
+ * - About
+ * - Quit
+ */
+
+#updateTrayMenu() {
 
     debug('Updating tray menu')
 
@@ -99,17 +125,19 @@ class CanvasTray extends Tray {
     if (hasPeers) genPeerMenu(menu)
     */
 
-    menu.append( new MenuItem({ label: this.title, enabled: false }) )
-    menu.append( new MenuItem({ type: 'separator' }) )
+    menu.append(new MenuItem({ label: this.title, enabled: false }))
+    menu.append(new MenuItem({ type: 'separator' }))
     menu.append(
-      new MenuItem({ label:'Toolbox',
+      new MenuItem({
+        label: 'Toolbox',
         click() { app.toolbox.toggle() }
       })
     )
 
-    menu.append( new MenuItem({ type: 'separator' }) )
+    menu.append(new MenuItem({ type: 'separator' }))
     menu.append(
-      new MenuItem({ label:'Setings',
+      new MenuItem({
+        label: 'Setings',
         click() {
           log('Settings window')
         }
@@ -117,15 +145,17 @@ class CanvasTray extends Tray {
     )
 
     menu.append(
-      new MenuItem({ label:'About',
+      new MenuItem({
+        label: 'About',
         click() { app.showAboutPanel() },
         role: 'about'
       })
     )
 
-    menu.append( new MenuItem({type: 'separator'}) )
+    menu.append(new MenuItem({ type: 'separator' }))
     menu.append(
-      new MenuItem({ label:'Exit',
+      new MenuItem({
+        label: 'Exit',
         click() {
           app.isQuitting = true
           app.quit()
