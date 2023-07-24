@@ -20,6 +20,8 @@
 !user/.keep
 /data/**
 !data/.keep
+/home/**
+!home/.keep
 
 ## Dev
 /.vscode

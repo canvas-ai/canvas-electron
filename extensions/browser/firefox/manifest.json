@@ -2,7 +2,8 @@
   "manifest_version": 2,
   "name": "Canvas Browser Sync",
   "description": "Tab sync browser extension for Canvas",
-  "version": "2.0",
+  "version": "2.1",
+  "homepage_url": "https://getcanvas.org",
   "icons": {
     "64": "icons/logo_64x64.png",
     "128": "icons/logo_128x128.png",
@@ -18,11 +19,28 @@
 
   "background": {
     "scripts": [
+      "js/store.modern.min.js",
       "js/socket.io.min.js",
+      "config.js",
       "background.js"
     ],
     "persistent": true
   },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "js/content-script.js"
+      ],
+      "css": [
+        "css/content.css"
+      ],
+      "run_at": "document_start"
+    }
+  ],
 
   "browser_action": {
     "default_icon": "icons/logo_128x128.png",

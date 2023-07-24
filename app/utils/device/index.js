@@ -6,7 +6,9 @@ const { machineId, machineIdSync } = require("node-machine-id");
 const os = require("os");
 const ip = require("ip");
 
+
 class Device {
+
   constructor() {
     this.id = machineIdSync(true).substr(0, 11);
     this.endianness = os.endianness();
@@ -33,13 +35,6 @@ class Device {
     this.user = os.userInfo(); // Probably better to handle this on our own ?
   }
 
-  //get id() { return this._id }
-  //get endianness() { return this._endianness }
-  //get os() { return this._os }
-  //get network() { return this._network }
-  //get user() { return this._user }
-
-  // Shortcuts
   get ip() {
     return this.network.address;
   }

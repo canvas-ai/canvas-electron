@@ -1,57 +1,34 @@
-
 /**
- * After spending quite some time trying to get messaging running
- * between the background script and the UI script
- * browser.runtime.connect()
- * browser.runtime.sendMessage()
- *
- * I decided to go with socket.io, please fix this! :)
+ * Runtime Variables
  */
 
-/**
- * Config (to-be-moved to LocalStore)
- */
-
-const config = {
-    sync:{
-        autoRestoreSession: false,  // Restores all tabs from the backend on startup
-        autoSaveSession: false,     // Saves all tabs to the backend as they are created
-    },
-    transport: {
-        protocol: 'http',
-        host: '127.0.0.1',
-        port: 3001
-    }
-}
-
-// TODO: Configure based on config.json
-const socket = io.connect(`${config.transport.protocol}://${config.transport.host}:${config.transport.port}`);
-socket.on('connect', () => {
-    console.log('[socket.io:ui] Client connected to server');
-});
-
-socket.on('connect_error', function(error) {
-    console.log(`[socket.io:ui] Connection to "${config.transport.protocol}://${config.transport.host}:${config.transport.port}" failed`);
-    console.error(error.message); // Error message will give you more detail about the error.
-});
-
-socket.on('connect_timeout', function() {
-    console.log('[socket.io:ui] Connection Timeout');
-});
-
-// Populate the pop-up with the current tabs
-browser.tabs.query({}).then((tabs) => {
-    updateTabList(tabs);
-});
-
+let config = {};
+let context = {};
+let isConnected = false;
 
 
 /**
- * UI
+ * Initialize UI
  */
+
+browser.runtime.sendMessage({ action: 'get:socket:status' }, (status) => {
+    console.log(`UI | Background canvas connection status: "${status}"`)
+    isConnected = status;
+});
+
+browser.runtime.sendMessage({ action: 'get:config' }, (cfg) => {
+    console.log(`UI | Config: "${JSON.stringify(cfg, null, 2)}"`)
+    config = cfg;
+});
+
+browser.runtime.sendMessage({ action: 'get:context' }, (ctx) => {
+    console.log(`UI | Context: "${JSON.stringify(ctx, null, 2)}"`)
+    context = ctx;
+});
+
 
 // Initialize Materialize components
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", async () => {
     console.log('UI | DOM loaded');
 
     var mTabElements = document.querySelectorAll(".tabs");
@@ -62,16 +39,54 @@ document.addEventListener("DOMContentLoaded", async function() {
         accordion: false,
     });
 
-    getContextUrl()
-    updateTabCount()
+    // Populate the pop-up with
+    browser.runtime.sendMessage({ action: 'get:context:url' }, (url) => {
+        if (!url) {
+            console.log('UI | No context URL received from backend')
+            updateContextBreadcrumbs('> Canvas backend not connected')
+            return;
+        }
+
+        context.url = url
+    });
+
+    browser.tabs.query({}).then((tabs) => {
+        updateTabList(tabs);
+        updateTabCount(tabs);
+    });
 
 });
 
 
-let syncTabsToCanvasButton = document.getElementById('sync-tabs-to-canvas');
+/**
+ * Listeners
+ */
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log('UI | Message received: ', message);
+    if (message.type === 'context:url') {
+        const url = message.data;
+        console.log(`UI | Got context URL: "${url}"`)
+        updateContextBreadcrumbs(sanitizePath(url))
+        context.url = url
+    }
+});
+
+
+/**
+ * UI Controls
+ */
+
+let syncTabsToCanvasButton = document.getElementById('sync-all-tabs');
 syncTabsToCanvasButton.addEventListener('click', () => {
-    console.log('UI | Syncing tabs to canvas')
-    browser.runtime.sendMessage({ action: 'syncTabsToCanvas2' });
+    console.log('UI | Syncing all tabs to canvas')
+    browser.runtime.sendMessage({ action: 'insert:tabs' });
+})
+
+let openTabsFromCanvasButton = document.getElementById('open-all-tabs');
+openTabsFromCanvasButton.addEventListener('click', () => {
+    console.log('UI | Opening all tabs from canvas')
+
 })
 
 
@@ -79,21 +94,10 @@ syncTabsToCanvasButton.addEventListener('click', () => {
  * Functions
  */
 
-function getContextUrl() {
-    socket.emit('context:get:url', {}, (res) => {
-        console.log(`UI | Got context URL: "${res}"`)
-        updateContextBreadcrumbs(sanitizePath(res))
-    })
-}
-
-function sanitizePath(path) {
-    if (path == '/') return 'universe:///'
-    path = path.replace(/\/\//g, '/').replace(/\:/g, '')
-    return path
-}
-
 function updateContextBreadcrumbs(url) {
     console.log('UI | Updating breadcrumbs')
+    if (!url) return console.log('UI | No URL provided')
+    if (typeof url !== 'string') return console.log('UI | URL is not a string')
 
     url = sanitizePath(url)
     const breadcrumbContainer = document.getElementById("breadcrumb-container");
@@ -111,10 +115,9 @@ function updateContextBreadcrumbs(url) {
     }
 }
 
-async function updateTabCount() {
-
+function updateTabCount(tabs) {
     console.log('UI | Updating tab count')
-    let tabs = await browser.tabs.query({});
+    if (!tabs || tabs.length < 1) return console.log('UI | No tabs provided')
     let count = 0;
 
     for (let i = 0; i < tabs.length; i++) {
@@ -127,15 +130,10 @@ async function updateTabCount() {
     document.getElementById('tab-count').textContent = count;
 }
 
-document.addEventListener("DOMContentLoaded", updateTabCount);
-
-
-// Function to update the tab list in your UI
 function updateTabList(tabs) {
 
     if (!tabs || tabs.length < 1) return;
 
-    console.log(typeof tabs)
     const tabListContainer = document.getElementById('tab-list');
 
     // Clear the existing tab list
@@ -144,23 +142,11 @@ function updateTabList(tabs) {
     // Generate the updated tab list
     tabs.forEach((tab) => {
 
-        /*
-        <li class="collection-item">
-            <div>Alvin
-                <a href="#!" class="secondary-content">
-                    <i class="material-icons">send</i>
-                </a>
-            </div>
-        </li>
-        */
-
         const tabItem = document.createElement("li");
         tabItem.className = "collection-item";
 
         const tabItemTitle = document.createElement("p");
         tabItemTitle.textContent = tab.title;
-
-
 
         const tabItemIconSync = document.createElement("i");
         tabItemIconSync.className = "material-icons secondary-content black-text";
@@ -177,5 +163,3 @@ function updateTabList(tabs) {
 
     });
 }
-
-document.addEventListener("DOMContentLoaded", updateTabList);

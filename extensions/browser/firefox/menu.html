@@ -37,12 +37,14 @@
             padding-left: 18px;
         }
 
+        #breadcrumb-container {
+            margin-left: 12px;
+        }
+
         .breadcrumb,
         .breadcrumb::before {
             color: rgba(32, 32, 32, 0.7);
         }
-
-        .collection-item {}
 
         .collection-item > p {
             overflow: hidden;
@@ -102,13 +104,10 @@
     <header class="navbar-fixed">
         <nav class="nav-extended white">
             <div class="nav-wrapper">
-                <a href="#" class="brand-logo right black-text"><img src="icons/logo_256x256.png" class="brand-logo right"
-                        width="40px" style="margin-top:8px;" /></a>
-                <a href="#" data-target="mobile-demo" class="black-text">
-                    <div id="breadcrumb-container" class="col s12 black-text">
-                        <a href="#!" class="breadcrumb black-text">Universe</a>
-                    </div>
+                <a href="#" class="brand-logo right black-text">
+                    <img src="icons/logo_256x256.png" class="brand-logo right" width="40px" style="margin-top:8px;" />
                 </a>
+                <div id="breadcrumb-container" class="col s12 black-text"></div>
             </div>
             <div class="nav-content">
                 <ul class="tabs black-text">
@@ -122,22 +121,25 @@
 
     <main>
         <div id="browser-to-canvas" class="container">
-            <h4>Sync to Canvas<span><a class="black white-text waves-effect waves-light btn right">Sync all<i class="material-icons left">sync</i></a></span></h4>
+            <h5>Sync to Canvas
+                <span class="" id="tab-count"></span>
+                <span>
+                    <a id="sync-all-tabs"
+                        class="black white-text waves-effect waves-light btn-small right">
+                        Sync all
+                        <i class="material-icons right">sync</i>
+                    </a>
+                </span>
+            </h5>
             <ul id="tab-list" class="collection">
-                <li class="collection-item">Alvin</li>
-                <li class="collection-item">Alvin</li>
-                <li class="collection-item">Alvin</li>
-                <li class="collection-item">Alvin</li>
+                <li class="collection-item">No browser tabs to sync</li>
             </ul>
         </div>
 
         <div id="canvas-to-browser" class="container">
-            <h4>Sync to Browser<span><a class="black white-text waves-effect waves-light btn right">Sync all<i class="material-icons left">sync</i></a></span></h4>
+            <h5>Sync to Browser<span><a id="open-all-tabs" class="black white-text waves-effect waves-light btn-small right">Open all<i class="material-icons right">sync</i></a></span></h5>
             <ul class="collection">
-                <li class="collection-item">Alvin</li>
-                <li class="collection-item">Alvin</li>
-                <li class="collection-item">Alvin</li>
-                <li class="collection-item">Alvin</li>
+                <li class="collection-item">No browser tabs to sync</li>
             </ul>
         </div>
 
@@ -175,39 +177,15 @@
                 </li>
 
                 <li class="disabled">
-                    <div class="collapsible-header"><i class="material-icons">cloud_sync</i>Canvas Settings</div>
+                    <div class="collapsible-header">
+                        <i class="material-icons">cloud_sync</i>
+                        Canvas Settings
+                    </div>
                     <div class="collapsible-body"></div>
                 </li>
             </ul>
         </div>
     </main>
-
-
-<!--
-
-<div class="container">
-
-<h4>Canvas browser sync</h4>
-<div class="collection">
-    <a href="#!" class="collection-item black-text"><span id="tab-count" class="green black-text badge">0</span>Number of tabs in the current context</a>
-    <a href="#!" class="collection-item black-text"><span class="red black-text badge">0</span>Number of unsynced tabs</a>
-    <div class="row collection-item">
-        <button class="col s6 btn green waves-effect waves-medium" name="action" id="sync-tabs-to-canvas">
-            Save current tabs
-            <i class="material-icons right">save</i>
-        </button>
-        <button class="col s6 btn red waves-effect waves-medium" name="action">
-            Load tabs from Canvas
-            <i class="material-icons right">upload</i>
-        </button>
-    </div>
-    <ul id="tab-list" class="row">
-    </ul>
-</div>
-
-
-
--->
 
     <footer class="page-footer grey darken-3">
         <div class="container white-text">
@@ -221,9 +199,7 @@
     </footer>
 
     <script src="js/jquery-3.6.4.min.js"></script>
-    <script src="js/jstree.min.js"></script>
     <script src="js/materialize.min.js"></script>
-    <script src="js/socket.io.min.js"></script>
     <script src="js/ui.js"></script>
 
 </body>
@@ -232,5 +208,4 @@
     Simplicity is the ultimate sophistication
 
 -->
-
 </html>

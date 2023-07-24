@@ -28,7 +28,7 @@ class Url {
         this._protocol = this.getProtocol(url)
 
         // Construct the URL href
-        this._string = this._protocol + '//' + this._path
+        this._string = this._protocol + '/' + this._path
 
         // Get the URL array
         this._array = this.getArrayFromString(this._string)
@@ -51,7 +51,7 @@ class Url {
         let protocol = Url.getProtocol(url)
 
         // Construct the URL href
-        return protocol + '//' + path
+        return protocol + '/' + path
 
 
     }
@@ -80,24 +80,21 @@ class Url {
 
     getPath(url) {
         let sanitized = url.toLowerCase();
-
         sanitized = sanitized
             .replace(/\\/g, '/') // replace backslash with slash
             .replace(/^[^:]+:/, '') // remove the protocol
-            .replace(/\/+/g, '/') // replace consecutive slashes with a single slash
-            .replace(/([^:/])\/+/g, "$1/") // replace multiple slashes
+            .replace(/\/{3,}/g, '//') // replace three or more consecutive slashes with two slashes
+            .replace(/([^:])\/{2,}/g, "$1/") // replace two or more slashes with one, but not following a colon
             .replace(/ +/g, '_') // replace spaces with underscore
             .replace(/[`$:%^*;'",<>{}[\]\\]/gi, ''); // replace special characters
 
         sanitized = sanitized.split('/')
             .map(part => part.trim())
             .filter(part => part !== '_')
-            .filter(part => part !== '.')
-            .filter(part => part !== '..')
             .join("/");
 
-        // Add leading slash
-        sanitized = sanitized.startsWith('/') ? sanitized : `/${sanitized}`;
+        // Remove leading slash
+        sanitized = sanitized.startsWith('/') ? sanitized.slice(1) : sanitized;
 
         // Fallback to DEFAULT_URL_PATH
         return sanitized || DEFAULT_URL_PATH;
@@ -105,24 +102,21 @@ class Url {
 
     static getPath(url) {
         let sanitized = url.toLowerCase();
-
         sanitized = sanitized
             .replace(/\\/g, '/') // replace backslash with slash
             .replace(/^[^:]+:/, '') // remove the protocol
-            .replace(/\/+/g, '/') // replace consecutive slashes with a single slash
-            .replace(/([^:/])\/+/g, "$1/") // replace multiple slashes
+            .replace(/\/{3,}/g, '//') // replace three or more consecutive slashes with two slashes
+            .replace(/([^:])\/{2,}/g, "$1/") // replace two or more slashes with one, but not following a colon
             .replace(/ +/g, '_') // replace spaces with underscore
             .replace(/[`$:%^*;'",<>{}[\]\\]/gi, ''); // replace special characters
 
         sanitized = sanitized.split('/')
             .map(part => part.trim())
             .filter(part => part !== '_')
-            .filter(part => part !== '.')
-            .filter(part => part !== '..')
             .join("/");
 
-        // Add leading slash
-        sanitized = sanitized.startsWith('/') ? sanitized : `/${sanitized}`;
+        // Remove leading slash
+        sanitized = sanitized.startsWith('/') ? sanitized.slice(1) : sanitized;
 
         // Fallback to DEFAULT_URL_PATH
         return sanitized || DEFAULT_URL_PATH;

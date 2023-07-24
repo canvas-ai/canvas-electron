@@ -3,12 +3,12 @@
 
 // Utils
 const path = require('path')
+const fs = require('fs')
 const os = require('os')
-const fs= require('fs')
 const isElectron = require('is-electron')()
 const pkg = require('./package.json')
+const device = require('./utils/device')
 
-// Most of the below code is not really needed, to-be-removed!
 // App env
 const APP_ROOT = path.dirname(path.resolve(__dirname))
 const APP_HOME = path.join(APP_ROOT, 'app')
@@ -43,18 +43,15 @@ const app = {
 }
 
 const user = {
-    // Identities
-
     // User directories
-    home: USER_HOME,
-    config: USER_CONFIG,
-    db: USER_DB,
-    index: USER_INDEX,
     cache: USER_CACHE,
-    data: USER_DATA
+    config: USER_CONFIG,
+    data: USER_DATA,
+    db: USER_DB,
+    home: USER_HOME,
+    index: USER_INDEX
 }
 
-const device = {}
 
 // TODO: Move to config
 const ipc = (process.platform === 'win32') ?
@@ -103,10 +100,15 @@ module.exports = {
     },
 
     runtime: (isElectron) ? 'electron' : 'node',
+
+    // TODO: Initialize config and logger here
     utils: {
+        // config: config,
+        // logger: logger,
         checkObjectAgainstSchema
     },
 
+    // TODO: Create a transport module instead
     ipc
 }
 
