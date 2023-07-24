@@ -59,6 +59,24 @@ const ipc = (process.platform === 'win32') ?
         path.join(app.var, 'run', `${pkg.name}-ipc.sock`)
 
 
+// Initialize the global config module
+const Config = require('./utils/config')
+const config = Config({
+    userConfigDir: user.config,
+    appConfigDir: app.config,
+    versioning: false
+})
+
+// Initialize logging module
+/* const Log = require('./utils/log')
+const logger = new Log({
+    level: process.env.LOG_LEVEL || 'debug',
+    name: pkg.name,
+    version: pkg.version,
+    path: path.join(user.data, 'logs')
+}) */
+
+
 /**
  * Process environment setup
  */
@@ -101,10 +119,9 @@ module.exports = {
 
     runtime: (isElectron) ? 'electron' : 'node',
 
-    // TODO: Initialize config and logger here
+    config: config,
+    //logger: logger,
     utils: {
-        // config: config,
-        // logger: logger,
         checkObjectAgainstSchema
     },
 
