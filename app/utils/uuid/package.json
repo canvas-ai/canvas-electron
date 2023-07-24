@@ -4,7 +4,4 @@
   "main": "index.js",
   "author": "idnc_sk",
   "license": "AGPL-3.0-or-later",
-  "dependencies": {
-    "uuid": "^3.3.2"
-  }
 }
