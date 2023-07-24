@@ -1,52 +1,70 @@
 "use strict";
 
+
 /**
- * Canvas \ Util \ Config
+ * Simple Config module for Canvas
+ *
+ * Usage:
+ * const Config = require('./utils/config')
+ * const config = Config({
+ *  userConfigDir: 'path/to/user/config',
+ *  appConfigDir: 'path/to/app/config',
+ *  versioning: true,
+ * })
+ *
+ * const myConfig = config.open('myConfig')
+ *
+ * The above will do the following
+ * - Check if myConfig.<deviceid>.json exists in the user config dir
+ * - Check if myConfig.<platform>.json exists in the user config dir
+ * - Check if myConfig.json exists in the user config dir
+ * - Check if myConfig.<deviceid>.json exists in the app config dir
+ * - Check if myConfig.<platform>.json exists in the app config dir
+ * - Check if myConfig.json exists in the app config dir
+ * - If none of the above exist, create myConfig.json in the user config dir
+ *
  */
 
 const Conf = require("conf");
+const fs = require("fs");
 const path = require("path");
+const device = require("../device");
 
-const DEFAULT_NAME = "config";
-const DEFAULT_ROOT = "";
-
-var CONFIGS = new Map();
-
-// Wrapper around the great Conf utility
-class Config extends Conf {
-  constructor(options) {
-    let defaultCwd;
-    let appVersion;
-
-    options = {
-      name: "config",
-      ...options,
-    };
-
-    if (!options.projectVersion) {
-      options.projectVersion = appVersion;
+const findFile = (files) => {
+    for (const file of files) {
+        if (fs.existsSync(file)) {
+            return file;
+        }
     }
-
-    if (options.path) {
-      options.cwd = path.isAbsolute(options.path)
-        ? options.path
-        : path.join(defaultCwd, options.path);
-    } else {
-      options.cwd = defaultCwd;
-    }
-
-    options.configName = options.name;
-    delete options.name;
-
-    super(options);
-  }
-}
-
-// One global logger vs per instance?
-module.exports = (name = "config", opts = {}) => {
-  if (!CONFIGS.has(name)) {
-    CONFIGS.set(name, new Config(name, opts));
-  }
-
-  return CONFIGS.get(name);
+    return null;
 };
+
+const Config = (configOpts) => {
+
+    return {
+        open: (name) => {
+            const filesToCheck = [
+                path.join(configOpts.userConfigDir, `${name}.${device.id}.json`),
+                path.join(configOpts.userConfigDir, `${name}.${device.os.platform}.json`),
+                path.join(configOpts.userConfigDir, `${name}.json`),
+                path.join(configOpts.appConfigDir, `${name}.${device.id}.json`),
+                path.join(configOpts.appConfigDir, `${name}.${device.os.platform}.json`),
+                path.join(configOpts.appConfigDir, `${name}.json`),
+            ];
+
+            const file = findFile(filesToCheck);
+
+            if (!file) {
+                const defaultFile = path.join(configOpts.userConfigDir, `${name}.json`);
+                fs.writeFileSync(defaultFile, '{}', { encoding: 'utf-8' });
+                return new Conf({ configName: name, cwd: configOpts.userConfigDir });
+            } else {
+                const dir = path.dirname(file);
+                const baseName = path.basename(file, '.json');
+                return new Conf({ configName: baseName, cwd: dir });
+            }
+        },
+    };
+};
+
+module.exports = Config;
