@@ -28,7 +28,7 @@ class Url {
         this._protocol = this.getProtocol(url)
 
         // Construct the URL href
-        this._string = this._protocol + '/' + this._path
+        this._string = this._protocol + '//' + this._path
 
         // Get the URL array
         this._array = this.getArrayFromString(this._string)

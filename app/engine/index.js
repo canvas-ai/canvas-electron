@@ -5,10 +5,7 @@
 const path = require('path')
 const debug = require('debug')('canvas-context')
 const EE = require('eventemitter2')
-const crypto = require('crypto')
-const uuid12 = () => {
-    return ([1e3]+-1e3+-1e3).replace(/[018]/g,b=>(b^crypto.rng(1)[0]%16>>b/4).toString(16))
-}
+const { uuid12 } = require('../utils/uuid')
 
 // App includes
 const {
@@ -214,6 +211,39 @@ class Context extends EE {
     updateContextTreeFromJson(json) {
         this.#tree.load(json)
     }
+
+
+    /**
+     * neurald methods
+     */
+
+    query(query, ctxArr, ftArr, filArr) {
+        if (!ctxArr) ctxArr = this.#contextArray
+    }
+
+
+    /**
+     * Data store methods
+     */
+
+    listDocuments(ctxArr, ftArr, filArr) {
+        if (!ctxArr) ctxArr = this.#contextArray
+    }
+
+    insertDocument(doc, ctxArr, ftArr) {
+        if (!ctxArr) ctxArr = this.#contextArray
+    }
+
+    updateDocument(doc, ctxArr, ftArr) {
+        if (!ctxArr) ctxArr = this.#contextArray
+    }
+
+    removeDocuments(doc, ctxArr, ftArr) {
+        if (!ctxArr) ctxArr = this.#contextArray
+    }
+
+
+
 
     /**
      * Misc
