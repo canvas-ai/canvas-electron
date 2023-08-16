@@ -5,36 +5,21 @@
 const {
     app,
     user,
-    transport,
-    isElectron
 } = require('./env.js')
-
 
 // Utils
 const path = require('path')
+const fs = require('fs')
 const debug = require('debug')('canvas-main')
 const JsonMap = require('./utils/JsonMap')
-//const Config = require('./utils/config')
-//const Log = require('./utils/log')
 
 // Manager classes
-// Not really necessary currently, but will be useful later
-// when we move to a multi-process architecture
-const ServiceManager = require('./managers/ServiceManager')
-const RoleManager = require('./managers/RoleManager')
 const AppManager = require('./managers/AppManager')
-
-// Transports
-//const SocketIO = require('./transports/socketio')
-//const RestAPI = require('./transports/restapi')
-
-// Core services
-const Db = require('./services/core/db')
-const Index = require('./services/core/indexd')
-const StoreD = require('./services/core/stored')
-
-// Engine
-const Context = require('./engine');
+const ContextManager = require('./managers/ContextManager')
+const PeerManager = require('./managers/PeerManager')
+const RoleManager = require('./managers/RoleManager')
+const ServiceManager = require('./managers/ServiceManager')
+const UserManager = require('./managers/UserManager')
 
 
 /**
@@ -54,13 +39,16 @@ class Canvas {
          */
 
         // Initialize the global config module
-        // TODO: Extract to a separate config module
         // Initialize logging
-        // TODO: Extract to a separate logging module
 
         /**
          * Core services
          */
+
+        /**
+         * Transport modules
+         */
+
 
         // Initialize the DB Backend
         this.db = new Db({
@@ -134,7 +122,7 @@ class Canvas {
 
         // Services
         if (options.loadServices) await this.setupServices([
-            'restapi',
+            //'restapi',
             'socketio'
         ])
 

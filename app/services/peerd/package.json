@@ -1,9 +1,0 @@
-{
-  "name": "canvas-svc-peerd",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "AGPL-3.0-or-later",
-  "dependencies": {
-    "polo": "^0.8.1"
-  }
-}

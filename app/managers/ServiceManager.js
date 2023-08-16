@@ -11,11 +11,12 @@
  */
 
 // Environment
-const { app, user, transport, isElectron } = require('../env.js')
+const { app } = require('../env.js')
 
 // Utils
 const EventEmitter = require("eventemitter2");
 const path = require("path");
+const fs = require('fs');
 const debug = require("debug")("canvas:service-manager")
 
 // Default options
@@ -25,13 +26,13 @@ const defaultOptions = {
 
 
 /**
- * Service manager
+ * Service Manager
  */
 
 class ServiceManager extends EventEmitter {
 
     constructor(options = {
-        rootPath: path.join(app.home, 'services')
+        rootPath: path.join(app.paths.home, 'services')
     }) {
 
         debug('Initializing Canvas Service Manager')
@@ -75,10 +76,13 @@ class ServiceManager extends EventEmitter {
         }
 
         try {
-            const Service = require(path.join(this.root, name));
-            this.loadedServices.set(name, Service);
+            let servicePath = path.join(this.root, name)
+            if (!fs.existsSync(servicePath)) throw new Error(`Service ${name} not found at path "${servicePath}"`)
+            // Implement subfolder search for services/core
+            const LoadedService = require(servicePath);
+            this.loadedServices.set(name, LoadedService);
         } catch (err) {
-            console.error(`[loadService] Failed to load service '${name}': ${err}`);
+            throw new Error(`[loadService] Failed to load service '${name}': ${err}`);
         }
     }
 
@@ -104,7 +108,7 @@ class ServiceManager extends EventEmitter {
         }
     }
 
-    initializeService(name, options = {}, ...args) {
+        initializeService(name, options = {}, ...args) {
 
         // If the service is already initialized, don't initialize it again
         if (this.initializedServices.has(name)) {
@@ -119,6 +123,7 @@ class ServiceManager extends EventEmitter {
             }
 
             const serviceInstance = new Service(options);
+            console.log(serviceInstance)
             //this.loadedServices.delete(name);
             this.initializedServices.set(name, serviceInstance);
             return serviceInstance;

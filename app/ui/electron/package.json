@@ -6,6 +6,7 @@
   "author": "idnc_sk",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
+    "@editorjs/editorjs": "^2.27.2",
     "electron-localshortcut": "^3.2.1",
     "jquery": "^3.6.0",
     "pubsub-js": "^1.9.4"

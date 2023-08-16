@@ -119,6 +119,19 @@ app.on('ready', function () {
         title: app.getName()
     })
 
+
+
+    // Create new browser window
+    const mainWindow = new BrowserWindow({
+        webPreferences: {
+        nodeIntegration: true,
+        },
+    });
+
+    // Load Editor.js
+    mainWindow.loadURL(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'));
+    mainWindow.show()
+
     /*
     * Main session object
     */
