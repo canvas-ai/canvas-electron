@@ -28,53 +28,57 @@ const USER_CONFIG = path.join(USER_HOME, 'config')
  * Runtime configuration
  */
 
-const app = {
+global.app = {
     // App package info
     name: (pkg.productName) ? pkg.productName : pkg.name,
     version: pkg.version,
     description: pkg.description,
     license: pkg.license,
 
-    // App directories
-    root: APP_ROOT,
-    home: APP_HOME,
-    config: APP_CONFIG,
-    var: APP_VAR
+    paths: {
+        // App directories
+        root: APP_ROOT,
+        home: APP_HOME,
+        config: APP_CONFIG,
+        var: APP_VAR
+    }
 }
 
-const user = {
-    // User directories
-    cache: USER_CACHE,
-    config: USER_CONFIG,
-    data: USER_DATA,
-    db: USER_DB,
-    home: USER_HOME,
-    index: USER_INDEX
+global.user = {
+
+    identities: {},
+    paths: {
+        cache: USER_CACHE,
+        config: USER_CONFIG,
+        data: USER_DATA,
+        db: USER_DB,
+        home: USER_HOME,
+        index: USER_INDEX
+    }
 }
 
 
 // TODO: Move to config
 const ipc = (process.platform === 'win32') ?
-        path.join('\\\\?\\pipe', process.cwd(), pkg.name) :
-        path.join(app.var, 'run', `${pkg.name}-ipc.sock`)
+    path.join('\\\\?\\pipe', process.cwd(), pkg.name) :
+    path.join(app.var, 'run', `${pkg.name}-ipc.sock`)
 
 
 // Initialize the global config module
 const Config = require('./utils/config')
 const config = Config({
-    userConfigDir: user.config,
-    appConfigDir: app.config,
+    userConfigDir: user.paths.config,
+    appConfigDir: app.paths.config,
     versioning: false
 })
 
 // Initialize logging module
-/* const Log = require('./utils/log')
+/*const Log = require('./utils/logger')
 const logger = new Log({
-    level: process.env.LOG_LEVEL || 'debug',
-    name: pkg.name,
-    version: pkg.version,
-    path: path.join(user.data, 'logs')
-}) */
+    appName: pkg.name,
+    logLevel: process.env.LOG_LEVEL || 'debug',
+    logPath: path.join(APP_VAR, 'log')
+})*/
 
 
 /**
@@ -107,8 +111,8 @@ Object.assign(process.env, {
 });
 
 module.exports = {
-    app,
-    user,
+    app: global.app, // will be removed
+    user: global.user, // will be removed
     device,
 
     // TODO: Remove, this is a very old remnant/more of a reminder for myself
@@ -121,11 +125,16 @@ module.exports = {
 
     config: config,
     //logger: logger,
+
     utils: {
         checkObjectAgainstSchema
     },
 
-    // TODO: Create a transport module instead
+    // TODO: Rework
+    transport: {
+        ipc: ipc
+    },
+
     ipc
 }
 
