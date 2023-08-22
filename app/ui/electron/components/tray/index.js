@@ -13,16 +13,9 @@ const {
   shell
 } = require('electron')
 
-
 // Utils
 const path = require('path')
 const debug = require('debug')('ui-electron-tray')
-
-
-// Canvas Utils
-//const log = app.utils.logger('ui.tray')
-//const config = app.utils.config('ui.tray')
-//const notify = require('../utils/notifier')
 
 
 /**
@@ -31,23 +24,16 @@ const debug = require('debug')('ui-electron-tray')
 
 class CanvasTray extends Tray {
 
-  #log = null
-  #config = null
 
   constructor(options) {
 
     options = {
       title: 'Tray',
-      icon: path.resolve(__dirname, '../../public/logo_1024x1024.png'),
+      icon: path.resolve(__dirname, '../../../assets/logo_1024x1024.png'),
       ...options
     }
 
     super(options.icon)
-
-    /*this.#log = app.utils.logger('tray', {
-      path: options.logPath
-    })*/
-    this.#config = {} //app.utils.config(options.configPath)
     this.title = options.title
     /*
         if (this.#config.get('enableContext')) {
