@@ -1,9 +1,14 @@
-'use strict'
+/**
+ * Canvas Index
+ */
 
 
 // Utils
 const debug = require('debug')('canvas-index')
 const EE = require('eventemitter2')
+
+// Database
+const Db = require('../db')
 
 // App includes
 const BitmapManager = require('./lib/BitmapManager')
@@ -34,7 +39,10 @@ class Index extends EE {
     #db
     #epoch = "e0"   // Epoch functionality in the TODO list
 
-    constructor(db) {
+    constructor(options = {}) {
+
+
+        debug('Initializing Canvas Index')
 
         // Initialize event emitter
         super({
@@ -49,8 +57,14 @@ class Index extends EE {
                                     //and it has no listeners
         })
 
-        // Database instance
-        this.#db = db
+        // Validate options
+        if (!options.path) throw new Error('Database path is required')
+
+        // Initialize the database backend
+        this.#db = new Db({
+            path: options.path,
+            maxDbs: options.maxDbs || 32
+        })
 
         // Main object (document) dataset
         this.universe = this.#db.createDataset('documents')
@@ -71,6 +85,8 @@ class Index extends EE {
 
         // Timeline (txLog)
         // Metadata
+
+        debug('Canvas Index initialized')
 
     }
 

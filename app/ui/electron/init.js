@@ -1,46 +1,38 @@
-'use strict'
-
-
 // Electron
 const {
     app,
     globalShortcut,
-    protocol
-} = require('electron')
+    protocol,
+    BrowserWindow,
+} = require('electron');
 
 // Utils
-const path = require('path')
+const path = require('path');
 
-// Environment
+// Environment variables
 const {
-    user,
-} = require('../../env')
-
-const APP = require('../../env').app
-console.log(APP)
-
+    app: APP,
+    user: USER,
+    config,
+    logger,
+} = require('../../env.js');
 
 // Set a few handy runtime variables
-process.title = APP.name
 app.setName(APP.name)
 app.version = APP.version
 app.isQuitting = false
 
-
 // Enable default sandboxing
-//app.enableSandbox()
+app.enableSandbox()
 
 // Lets take care of some electron defaults
-app.setPath('appData', path.join(APP.var, 'run') )      //Per-user application data directory,
-app.setPath('userData', user.home)      //The directory for storing app's configuration files
-// Temporary data
-//app.setPath('cache', APP.var.run)
-//app.setPath('temp', APP.var.tmp)
-// Logging and debug directories
-//app.setAppLogsPath(APP.var.log)
-//app.setPath('crashDumps', APP.var.run)
-
-
+const electronHome = path.join(USER.paths.home, 'electron')
+app.setPath('appData', path.join(electronHome, 'appData'))
+app.setPath('userData', path.join(electronHome, 'userData'))
+app.setPath('cache', path.join(electronHome, 'cache'))
+app.setPath('temp', path.join(electronHome, 'temp'))
+app.setAppLogsPath(path.join(electronHome, 'log'))
+app.setPath('crashDumps', path.join(electronHome, 'crashDumps'))
 
 // Make sure only one instance of the app is running
 // The below should open a new Canvas instead of process.exit
@@ -74,26 +66,15 @@ if (process.argv.some(arg => arg === '-v' || arg === '--version')) {
     process.exit()
 }
 
-
-/*
-* Bling-bling
-*/
-
 app.setAboutPanelOptions({
     applicationName: app.name,
     applicationVersion: `Version: ${app.getVersion()}`,
     copyright: 'iostream s.r.o. ©2022 | All rights reserved',
     authors: 'idnc_sk',
     website: 'https://getcanvas.org/',
-    iconPath: path.join(__dirname, '../public/logo_1024x1024.png')
+    iconPath: path.join(__dirname, '../assets/logo_1024x1024.png')
 })
 
-
-/**
- * Initialize the app runtime env
- */
-
-const PubSub = require('pubsub-js');
 
 /*
 * App init
@@ -102,50 +83,37 @@ const PubSub = require('pubsub-js');
 app.on('ready', function () {
 
     registerGlobalEventListeners()
-    /*
     registerGlobalShortcuts()
-    registerProcessSignalHandlers()
-    initialiseTransports()
-    */
 
-    /*
-    * Start the main tray app
-    */
 
-    let Tray = require('./tray')
+    let Tray = require('./components/tray')
     app.tray = new Tray({
-        //logPath: path.join(APP.var.log, 'tray'),
-        configPath: path.join(APP.config, 'tray'),
         title: app.getName()
     })
 
-
-
     // Create new browser window
-    const mainWindow = new BrowserWindow({
+    const notes = new BrowserWindow({
         webPreferences: {
-        nodeIntegration: true,
+            nodeIntegration: true,
         },
     });
 
     // Load Editor.js
-    mainWindow.loadURL(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'));
-    mainWindow.show()
+    notes.loadURL(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'));
+    notes.show()
+    notes.on('close', (event) => {
+        event.preventDefault(); // Prevent the close
+        notes.hide(); // Hide the window
+      });
 
-    /*
-    * Main session object
-    */
-
-    app.session = {}
-
-    /*
-    * Initialize a toolbox singleton
-    */
-
-    let toolbox = require('./desktop')
-    toolbox.init()
-
-
+    app.tray.on('click', (...event) => {
+        console.log(event)
+        if (notes.isVisible()) {
+            notes.hide()
+        } else {
+            notes.show()
+        }
+    })
 
 })
 
@@ -205,23 +173,3 @@ function registerProtocols() {
         }
     ])
 }
-
-function initialiseTransports() {
-    return true
-}
-
-function initialiseServiceWorkers() {
-
-    app.services = {}
-    /*
-    * Start roles/worker processes
-    */
-
-    // Make sure PM2 is running
-    // https://github.com/electron/electron/issues/8375#issuecomment-281811495
-    //process.env['ELECTRON_NO_ASAR'] = true
-    //process.env['ELECTRON_RUN_AS_NODE'] = true
-    return true
-}
-
-function initialiseRoleWorkers() {}

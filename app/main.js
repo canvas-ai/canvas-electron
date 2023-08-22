@@ -1,25 +1,32 @@
-'use strict';
-
+/**
+ * Canvas main()
+ */
 
 // Environment variables
 const {
-    app,
-    user,
-} = require('./env.js')
+    app: APP,
+    user: USER,
+    config,
+    logger,
+} = require('./env.js');
 
 // Utils
-const path = require('path')
-const fs = require('fs')
-const debug = require('debug')('canvas-main')
-const JsonMap = require('./utils/JsonMap')
+const path = require('path');
+const fs = require('fs');
+const debug = require('debug')('canvas-main');
+const JsonMap = require('./utils/JsonMap');
+
+// Core services
+const IndexD = require('./services/core/indexd');
+const StoreD = require('./services/core/stored');
 
 // Manager classes
-const AppManager = require('./managers/AppManager')
-const ContextManager = require('./managers/ContextManager')
-const PeerManager = require('./managers/PeerManager')
-const RoleManager = require('./managers/RoleManager')
-const ServiceManager = require('./managers/ServiceManager')
-const UserManager = require('./managers/UserManager')
+const AppManager = require('./managers/AppManager');
+const ContextManager = require('./managers/ContextManager');
+const PeerManager = require('./managers/PeerManager');
+const RoleManager = require('./managers/RoleManager');
+const ServiceManager = require('./managers/ServiceManager');
+const UserManager = require('./managers/UserManager');
 
 
 /**
@@ -28,85 +35,60 @@ const UserManager = require('./managers/UserManager')
 
 class Canvas {
 
+
     constructor(options = {
-        enableSession: true
+        sessionEnabled: true,
+        sessionRestoreOnStart: true,
+        enableUserRoles: false,
+        enableUserApps: false,
     }) {
 
         debug('Initializing Canvas')
 
-        /**
-         * Core Utils
-         */
+        // Managers
+        this.serviceManager = new ServiceManager()
+        //this.userManager = new UserManager()
+        //this.contextManager = new ContextManager()
+        //this.roleManager = new RoleManager()
+        //this.appManager = new AppManager()
+        //this.peerManager = new PeerManager()
 
-        // Initialize the global config module
-        // Initialize logging
 
         /**
          * Core services
          */
 
-        /**
-         * Transport modules
-         */
-
-
-        // Initialize the DB Backend
-        this.db = new Db({
-            path: path.join(user.db),
-            maxDbs: 32
+        this.index = new IndexD({
+            path: path.join(USER.paths.home, 'index'),
         })
 
-        // Initialize Index
-        this.index = new Index(this.db.createDataset('index'))
-
-        // Initialize data store
-        this.data = new StoreD({
-            dataPath: user.data,
-            cachePath: user.cache
+        this.storage = new StoreD({
+            cachePath: USER.paths.cache,
+            localDataPath: USER.paths.data
         })
 
-        /**
-         * Service Managers
-         */
-
-        // Initialize Service Manager
-        this.sm = new ServiceManager({
-            rootPath: path.join(app.home, 'services')
-        })
-
-        // Initialize Role Manager
-        this.rm = new RoleManager({
-            rootPath: path.join(app.home, 'roles')
-        })
-
-        // Initialize App Manager
-        this.am = new AppManager({
-            rootPath: path.join(app.home, 'apps')
-        })
+        // Transports
 
 
         // Session
         // TODO: Extract to a separate session module
-        this.session = (options.enableSession) ?
-            new JsonMap(path.join(user.home, 'session')) :
+        this.session = (options.sessionEnabled) ?
+            new JsonMap(path.join(USER.paths.home, 'session')) :
             false
-
-        // Global Context (subject to change!)
-        this.context = null
 
         // App State
         this.isInitialized = false
         this.isMaster = true
+        this.status = 'stopped'
 
     }
 
-    async start(contextId = 0, options = {
-        loadServices: true,
-        loadRoles: false,
-        loadApps: false,
+    async start(context, options = {
+        loadSavedSession: true, // If false, we'll start with an empty context
+        loadUserServices: true,
+        loadUserRoles: true,
+        loadUserApps: true,
     }) {
-
-        debug('Starting Canvas application services')
 
         // TODO: Return an IPC/RPC connection instead
         if (this.isInitialized && this.isMaster) throw new Error('Application already running')
@@ -114,51 +96,64 @@ class Canvas {
         // Fetch the context URL from the session
         let url = (this.session) ? this.session.get('url') : null
 
-        // Initialize global Context (subject to change!)
-        this.context = this.createContext(url)
-
         // Event listeners
         await this.setupProcessEventListeners()
 
         // Services
-        if (options.loadServices) await this.setupServices([
-            //'restapi',
-            'socketio'
-        ])
-
-        // Roles
-        // Apps
+        if (options.loadServices) await this.setupServices([ /*..*/ ])
     }
 
-    getContext() { return this.context; }
+    async restart() {}
 
-    createContext(url) {
-
-        let context = new Context(url)
-
-        // Setup an event listener for session update if
-        // session support is enabled, to be moved to a separate method
-        if (this.session) {
-            context.on('url', (url) => {
-                debug("Context URL changed, updating session")
-                this.session.set('url', url)
-            })
-        }
-
-        return context
-    }
-
-    removeContext(id) {}
+    async status() {}
 
     async shutdown() {
-        //await this.#session.save()
-        await this.#shutdownApps()
-        await this.#shutdownRoles()
-        await this.#shutdownServices()
-        process.exit(0)
+        console.log('Shutting down Canvas');
+
+        try {
+            //await this.session.save();
+            await this.shutdownApps();
+            await this.shutdownRoles();
+            await this.shutdownServices();
+
+            console.log('Graceful shutdown completed successfully.');
+            process.exit(0);
+        } catch (error) {
+            console.error('Error during shutdown:', error);
+            process.exit(1);
+        }
     }
 
-    async setupTransports() {}
+
+    /**
+     * AppManager Facade
+     */
+
+    listApps(type) {}
+    registerApp() {}
+    unregisterApp() {}
+    startApp() {}
+    stopApp() {}
+
+
+    /**
+     * RoleManager Facade
+     */
+
+    listRoles(type) { return this.rm.listRoles(type); }
+    registerRole() {}
+    unregisterRole() {}
+    startRole() {}
+    stopRole() {}
+    restartRole() {}
+    getRoleStatus() {}
+
+
+    listServices(type) { return this.sm.listServices(type); }
+    listUsers() { return this.um.listUsers(); }
+    listPeers() { return this.pm.listPeers(); }
+    listContexts() { return this.cm.listContexts(); }
+
 
     async setupServices(services = []) {
         services.forEach(async (service) => {
@@ -171,72 +166,56 @@ class Canvas {
         })
     }
 
-    async setupIpcEventListeners() {
-        //ipcServer.on('eventFoo', (data) => this.#handleIpcEvent('eventFoo', data))
-        //ipcServer.on('eventBar', (data) => this.#handleIpcEvent('eventBar', data))
-        //ipcServer.on('eventBaz', (data) => this.#handleIpcEvent('eventBaz', data))
-    }
+    setupProcessEventListeners() {
 
-    async setupContextEventListeners() {}
+        process.on('uncaughtException', (error) => {
+            console.error(error);
+            this.shutdown().then(() => process.exit(1));
+        });
 
-    async setupProcessEventListeners() {
-
-        // TODO
-		process.on('uncaughtException', error => console.error(error))
-		process.on('unhandledRejection', (reason, promise) => {
+        process.on('unhandledRejection', (reason, promise) => {
             console.error('Unhandled Rejection at:', promise, 'reason:', reason);
         });
 
         process.on('warning', (warning) => {
-            console.warn(warning.name);    // Print the warning name
-            console.warn(warning.message); // Print the warning message
-            console.warn(warning.stack);   // Print the stack trace
+            console.warn(warning.name);
+            console.warn(warning.message);
+            console.warn(warning.stack);
         });
 
         process.on('SIGINT', async (signal) => {
-            console.log(`Received ${signal}, gracefully shutting down`)
-            await this.shutdown()
+            console.log(`Received ${signal}, gracefully shutting down`);
+            await this.shutdown();
+            process.exit(0);
         });
 
         process.on('SIGTERM', async (signal) => {
-            console.log(`Received ${signal}, gracefully shutting down`)
-            await this.shutdown()
+            console.log(`Received ${signal}, gracefully shutting down`);
+            await this.shutdown();
+            process.exit(0);
         });
 
         process.on('beforeExit', async (code) => {
-            debug('Process beforeExit event with code: ', code);
-            await this.#shutdownApps()
-            await this.#shutdownRoles()
-            await this.#shutdownServices()
+            if (code !== 0) return;
+            debug('Process beforeExit: ', code);
+            await this.shutdown();
         });
 
         process.on('exit', (code) => {
-            debug(`About to exit with code: ${code}`);
+            debug(`Bye: ${code}`);
         });
-
     }
 
-    registerServices() {
-        // Loop through config services with status enabled
-        // Check if svc exists
-        // check if method register exists
-        // register -> start
-    }
-
-    async #shutdownApps() {
+    async shutdownServices() {
         return true
     }
 
-    async #shutdownRoles() {
+    async shutdownRoles() {
         return true
     }
 
-    async #shutdownServices() {
+    async shutdownApps() {
         return true
-    }
-
-    static isRunning() {
-        return false
     }
 
 }

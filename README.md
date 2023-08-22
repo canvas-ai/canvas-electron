@@ -82,7 +82,7 @@ Every path in this tree can be represented by a context url
 - ``universe://library/physics``
 - ``universe://work/billing/acme_llc/contracts``
 
-Every context tree leaf / context url part represents a layer. There are 5 types of layers:
+Every context tree leaf / context url segment represents a layer. There are 5 types of layers:
 
 - **Workspace**: Exportable, shareable collection of layers and data sources. By default, you start with an undifferentiated "universe". Even though color plays a huge role in our perception of reality, its quite underused in todays UI design. Workspaces in Canvas can have a primary color assigned, If they do, Canvas will automatically use gradients [of the primary workspace color] for individual data abstractions. This visual hint will make searching through your universe easier (and more fun). As you might have guessed, the default primary color of the universe is white(dispersive prisms are cool :)
 
