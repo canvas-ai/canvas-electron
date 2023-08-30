@@ -15,6 +15,7 @@ const {
     user: USER,
     config,
     logger,
+    device,
 } = require('../../env.js');
 
 // Set a few handy runtime variables
@@ -75,45 +76,73 @@ app.setAboutPanelOptions({
     iconPath: path.join(__dirname, '../assets/logo_1024x1024.png')
 })
 
-
 /*
-* App init
+* Initialize core components
 */
 
-app.on('ready', function () {
+const Canvas = require('../../main.js')
+const canvas = new Canvas({
+    sessionEnabled: true,
+    sessionRestoreOnStart: true,
+    enableUserRoles: true,
+    enableUserApps: true,
+})
 
+// Register custom protocols
+registerProtocols()
+
+
+/**
+ * App init
+ */
+
+app.on('ready', async function () {
+
+    // Register process signal handlers
+    registerProcessSignalHandlers()
+
+    // Register global event listeners
     registerGlobalEventListeners()
+
+    // Register global shortcuts
     registerGlobalShortcuts()
 
+    // Custom app variables
+    app.ui = {}         // UI elements
+    app.user = {}       // User variables
+    app.device = device // Current device
 
+    // Start the engine and initialize components
+    const canvas = new Canvas()
+    await canvas.start()
+    app.contextManager = canvas.contextManager
+    app.context = await canvas.createContext()
+
+
+    // Load Tray
     let Tray = require('./components/tray')
-    app.tray = new Tray({
+    app.ui.tray = new Tray({
         title: app.getName()
     })
 
-    // Create new browser window
-    const notes = new BrowserWindow({
+    // Load Canvas
+    app.ui.canvas = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
         },
     });
 
-    // Load Editor.js
-    notes.loadURL(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'));
-    notes.show()
-    notes.on('close', (event) => {
+    app.ui.canvas.setVisibleOnAllWorkspaces(true)
+    app.ui.canvas.loadURL(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'));
+    app.ui.canvas.show()
+    app.ui.canvas.on('close', (event) => {
         event.preventDefault(); // Prevent the close
-        notes.hide(); // Hide the window
-      });
+        app.ui.canvas.hide(); // Hide the window
+    });
 
-    app.tray.on('click', (...event) => {
-        console.log(event)
-        if (notes.isVisible()) {
-            notes.hide()
-        } else {
-            notes.show()
-        }
-    })
+
+    app.ui.tray.on('click', () => app.ui.canvas.toggle())
+    globalShortcut.register('super+c', () => app.ui.canvas.toggle())
 
 })
 
@@ -123,6 +152,7 @@ app.on('ready', function () {
  */
 
 function registerGlobalShortcuts() {
+
     return true
 }
 
@@ -154,11 +184,12 @@ function registerGlobalEventListeners() {
 }
 
 function registerProcessSignalHandlers() {
-    process.on('SIGINT', () => {
+/*    process.on('SIGINT', () => {
         console.log('process > app.quit()')
         app.isQuitting = true
-        app.quit()
+        app.quit() ||process.exit(0)
     })
+    */
 }
 
 function registerProtocols() {

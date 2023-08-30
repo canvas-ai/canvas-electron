@@ -143,8 +143,10 @@ class CanvasTray extends Tray {
       new MenuItem({
         label: 'Exit',
         click() {
+          console.log('Exit from tray')
           app.isQuitting = true
-          app.quit()
+          console.log(app.quit())
+          process.exit(0)
         },
         accelerator: 'Command+Q'
       })

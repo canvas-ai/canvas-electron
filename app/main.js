@@ -48,7 +48,7 @@ class Canvas {
         // Managers
         this.serviceManager = new ServiceManager()
         //this.userManager = new UserManager()
-        //this.contextManager = new ContextManager()
+        this.contextManager = new ContextManager()
         //this.roleManager = new RoleManager()
         //this.appManager = new AppManager()
         //this.peerManager = new PeerManager()
@@ -101,6 +101,9 @@ class Canvas {
 
         // Services
         if (options.loadServices) await this.setupServices([ /*..*/ ])
+
+
+        this.isInitialized = true
     }
 
     async restart() {}
@@ -124,6 +127,16 @@ class Canvas {
         }
     }
 
+    /**
+     * Context manager
+     */
+
+    createContext(url) {
+        if (!this.isInitialized) {
+            throw new Error("Application must be initialized before creating a context.");
+        }
+        return this.contextManager.createContext(url);
+    }
 
     /**
      * AppManager Facade

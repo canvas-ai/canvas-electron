@@ -1,18 +1,16 @@
-'use strict'
-
-
 // Utils
 const path = require('path')
 const debug = require('debug')('canvas-context')
 const EE = require('eventemitter2')
 const { uuid12 } = require('../utils/uuid')
 
-// App includes
+// Env includes
 const {
     app,
     user,
 } = require('../env')
 
+// App includes
 const Url = require('./lib/Url')
 const Layer = require('./lib/Layer')
 const LayerIndex = require('./lib/LayerIndex')
@@ -32,12 +30,14 @@ const CONTEXT_URL_HISTORY_SIZE = 512
 class Context extends EE {
 
     #id;
-    #url = CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE;
-    #path = CONTEXT_URL_BASE;
+    #url;
+    #path;
     #array;
     #layerIndex;
     #treeIndex;
     #tree;
+
+    #canvasHome;
 
     #contextArray = [];
     #featureArray = [];
@@ -59,20 +59,21 @@ class Context extends EE {
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
 
+        // Set canvas home
+        this.#canvasHome = options?.canvasHome || user.paths.home
+
         // Initialize indexes
-        this.#layerIndex = new LayerIndex(path.join(user.home, 'layerIndex.json'))
-        this.#treeIndex = new TreeIndex(path.join(user.home, 'treeIndex.json'))
+        this.#layerIndex = new LayerIndex(path.join(this.#canvasHome, 'layerIndex.json'))
+        this.#treeIndex = new TreeIndex(path.join(this.#canvasHome, 'treeIndex.json'))
         this.#tree = new Tree(this.#layerIndex, this.#treeIndex)
 
         // Initialize event listeners
         this.#initializeTreeEventListeners()
 
-        // Sets the context url
-        if (url) this.set(url, CONTEXT_AUTOCREATE_LAYERS)
-        debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`)
-
+        // Set the context url
+        this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
+        debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
     }
-
 
     /**
      * Getters
@@ -263,6 +264,27 @@ class Context extends EE {
         }
     }
 
+    // Clean up resources associated with this context
+    destroy() {
+        // Emit a "destroy" event
+        this.emit('destroy');
+
+        // Remove all listeners from the event emitter
+        this.removeAllListeners();
+
+        // Set private fields to null to release memory
+        this.#id = null;
+        this.#url = null;
+        this.#path = null;
+        this.#array = null;
+        this.#layerIndex = null;
+        this.#treeIndex = null;
+        this.#tree = null;
+        this.#canvasHome = null;
+        this.#contextArray = null;
+        this.#featureArray = null;
+        this.#filterArray = null;
+    }
 
     /**
      * Internal methods
