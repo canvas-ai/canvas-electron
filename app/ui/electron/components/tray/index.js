@@ -35,33 +35,6 @@ class CanvasTray extends Tray {
 
     super(options.icon)
     this.title = options.title
-    /*
-        if (this.#config.get('enableContext')) {
-          // loading plugin
-          let context = require('./plugins/context')
-          // setup event listeners
-        }
-
-        if (this.#config.get('enableApps')) {
-          // loading plugin
-          let context = require('./plugins/context')
-          // setup event listeners
-        }
-
-        if (this.#config.get('enableRoles')) {
-          // loading plugin
-          // setup event listeners
-        }
-
-        if (this.#config.get('enableServices')) {
-          // loading plugin
-          // setup event listeners
-        }
-
-        if (this.#config.get('enablePeers')) {
-          // loading plugin
-          // setup event listeners
-        }*/
 
     // https://github.com/electron/electron/issues/28131
     this.setToolTip(options.title)

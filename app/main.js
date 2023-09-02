@@ -81,6 +81,14 @@ class Canvas {
         this.isMaster = true
         this.status = 'stopped'
 
+
+        //this.apps = this.appManager.listApps()
+        //this.roles = this.roleManager.listRoles()
+        //this.services = this.serviceManager.listServices()
+        //this.identities = this.identitiesManager.listIdentities()
+        //this.peers = this.PeerManager.listPeers()
+        //this.contexts = this.contextManager.listContexts()
+
     }
 
     async start(context, options = {
