@@ -10,6 +10,8 @@ const EventEmitter = require("eventemitter2");
 const path = require("path");
 const debug = require("debug")("canvas:app-manager")
 
+const Context = require('../engine')
+
 // Default options
 const defaultOptions = {
     env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
@@ -21,26 +23,13 @@ const defaultOptions = {
 
 class ContextManager extends EventEmitter {
 
-    constructor(params = {
-        rootPath: path.join(app.home, 'apps')
-    }) {
-
+    constructor() {
         debug('Initializing Context Manager')
         super();
-
-        this.root = params.rootPath;
         this.bitmapCache = new Map()
     }
 
-    createContext(url) {}
-
-    removeContext(url) {}
-
-    listContexts() {}
-
-    getCurrentContext() { return this.context; }
-
-    createContext(url) {
+    async createContext(url) {
 
         let context = new Context(url)
 
@@ -55,6 +44,12 @@ class ContextManager extends EventEmitter {
 
         return context
     }
+
+    async removeContext(url) {}
+
+    listContexts() {}
+
+    getCurrentContext() { return this.context; }
 
     removeContext(id) {}
 

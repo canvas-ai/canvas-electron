@@ -70,7 +70,7 @@ class Storage {
     deleteByHash() {}
     deleteByUrl() {}
 
-    list() {}
+    list(backend) {}
     listAsStream() {}
 
     has() {}
