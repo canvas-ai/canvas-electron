@@ -56,6 +56,7 @@ const Config = (configOpts) => {
 
             if (!file) {
                 const defaultFile = path.join(configOpts.userConfigDir, `${name}.json`);
+                fs.mkdirSync(configOpts.userConfigDir);
                 fs.writeFileSync(defaultFile, '{}', { encoding: 'utf-8' });
                 return new Conf({ configName: name, cwd: configOpts.userConfigDir });
             } else {

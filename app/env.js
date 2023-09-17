@@ -23,6 +23,7 @@ const device = require('./utils/device')
  * |   ├── run
  * |   |   ├── canvas-ipc.sock
  * |   |   ├── canvas.pid
+ * |   |   ├── canvas-user-role.sock
  * |   ├── tmp
  */
 
@@ -30,6 +31,7 @@ const APP_ROOT = path.dirname(path.resolve(__dirname))
 const APP_HOME = path.join(APP_ROOT, 'app')
 const APP_CONFIG = path.join(APP_ROOT, 'config')
 const APP_VAR = path.join(APP_ROOT, 'var')
+
 
 /**
  * User directories
@@ -133,6 +135,7 @@ Object.assign(process.env, {
     // User
     CANVAS_USER_HOME: USER_HOME,
     CANVAS_USER_CONFIG: USER_CONFIG,
+    CANVAS_USER_CACHE: USER_CACHE,
     CANVAS_USER_DATA: USER_DATA,
     CANVAS_USER_VAR: USER_VAR,
 

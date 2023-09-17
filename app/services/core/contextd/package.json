@@ -1,5 +1,5 @@
 {
-  "name": "canvas-engine",
+  "name": "canvas-svc-contextd",
   "version": "1.1.0",
   "description": "",
   "main": "index.js",
@@ -14,7 +14,5 @@
   "dependencies": {
     "conf": "^10.2.0",
     "date-fns": "^2.29.3",
-    "stored-map": "^1.0.6",
-    "tree-model": "^1.0.7"
   }
 }

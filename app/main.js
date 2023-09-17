@@ -13,12 +13,12 @@ const {
 // Utils
 const path = require('path');
 const fs = require('fs');
-const debug = require('debug')('canvas-main');
+const debug = require('debug')('canvas-main'); // TODO: Replace with logger
 const JsonMap = require('./utils/JsonMap');
 
 // Core services
-const IndexD = require('./services/core/indexd');
-const StoreD = require('./services/core/stored');
+const db = require('./services/db')
+const Index = require('./services/core/indexd')
 
 // Manager classes
 const AppManager = require('./managers/AppManager');
@@ -39,8 +39,8 @@ class Canvas {
     constructor(options = {
         sessionEnabled: true,
         sessionRestoreOnStart: true,
-        enableUserRoles: false,
         enableUserApps: false,
+        enableUserRoles: false
     }) {
 
         debug('Initializing Canvas')
@@ -53,19 +53,14 @@ class Canvas {
         //this.appManager = new AppManager()
         //this.peerManager = new PeerManager()
 
-
         /**
-         * Core services
+         * Initialize core services
          */
 
-        this.index = new IndexD({
+        this.index = new Index({
             path: path.join(USER.paths.home, 'index'),
         })
 
-        this.storage = new StoreD({
-            cachePath: USER.paths.cache,
-            localDataPath: USER.paths.data
-        })
 
         // Transports
 
@@ -88,6 +83,11 @@ class Canvas {
         //this.identities = this.identitiesManager.listIdentities()
         //this.peers = this.PeerManager.listPeers()
         //this.contexts = this.contextManager.listContexts()
+
+        // Current
+        //this.device = {}
+        //this.user = {} // user.identities
+        //this.context = {}
 
     }
 
@@ -169,6 +169,10 @@ class Canvas {
     restartRole() {}
     getRoleStatus() {}
 
+
+    /**
+     * ServiceManager Facade
+     */
 
     listServices(type) { return this.sm.listServices(type); }
     listUsers() { return this.um.listUsers(); }
