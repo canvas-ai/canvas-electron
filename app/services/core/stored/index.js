@@ -8,16 +8,30 @@ const Cache = require('./cache')
 
 // Includes
 const Db = require('../../db')
+const Document = {
+    id: '',
+    meta: {
+        dataType: 'json' //
+    },
+    data: {
 
+    }
+}
 
 
 // TODO: Generate dynamically based on the ./abstractions folder
 const STORAGE_ABSTRACTIONS = [
-
+    'file',
+    'note',
+    'tab',
+    'todo'
 ];
 
 // TODO: Generate dynamically based on the ./backends folder
 const STORAGE_BACKENDS = [
+    'fs',
+    'fs-json',
+    's3',
     'lmdb'
 ];
 
@@ -42,16 +56,26 @@ class Stored {
             ...options
         }
 
+        this.dataPath = options.dataPath
+        this.metadataPath = options.metadataPath
+        this.cachePath = options.cachePath
+
         this.metadata = (db) ? db : new Db({
             path: options.metadataPath
         })
 
-        this.cache = (options.cachePolicy != 'none') ? new Cache(this.#cachePath) : false;
-        this.dataBackends = {}
+        this.cache = (options.cachePolicy != 'none') ? new Cache(this.cachePath) : false;
+
+        this.dataAbstractions = []
+        this.dataBackends = []
 
     }
 
-    put(meta, data, backend = [], options ={}) {}
+    //put(meta, data, backend = [], options ={}) {
+    put(document, backend , options ={}) {
+
+    }
+
     putAsStream() {}
 
     get() {}
@@ -64,7 +88,7 @@ class Stored {
     statByHash() {}
     statByUrl() {}
 
-    getByID(oid) {}
+    getByID() {}
 
     getByHash() {}
     getByUrl() {}
