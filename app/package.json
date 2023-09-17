@@ -36,7 +36,8 @@
     "roaring": "^2.2.0",
     "socket.io": "^4.6.2",
     "t": "^0.5.1",
-    "webdav-server": "^2.6.2"
+    "webdav-server": "^2.6.2",
+    "winston": "^3.10.0"
   },
   "devDependencies": {
     "electron": "^25.1.1",

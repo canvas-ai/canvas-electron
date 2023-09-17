@@ -13,7 +13,7 @@ const {
 // Utils
 const path = require('path');
 const fs = require('fs');
-const debug = require('debug')('canvas-main');
+const debug = require('debug')('canvas-main'); // TODO: Replace with logger
 const JsonMap = require('./utils/JsonMap');
 
 // Core services
@@ -39,8 +39,8 @@ class Canvas {
     constructor(options = {
         sessionEnabled: true,
         sessionRestoreOnStart: true,
-        enableUserRoles: false,
         enableUserApps: false,
+        enableUserRoles: false
     }) {
 
         debug('Initializing Canvas')
@@ -169,6 +169,10 @@ class Canvas {
     restartRole() {}
     getRoleStatus() {}
 
+
+    /**
+     * ServiceManager Facade
+     */
 
     listServices(type) { return this.sm.listServices(type); }
     listUsers() { return this.um.listUsers(); }

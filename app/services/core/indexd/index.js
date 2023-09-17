@@ -8,7 +8,7 @@ const debug = require('debug')('canvas-index')
 const EE = require('eventemitter2')
 
 // Database
-const Db = require('../db')
+const Db = require('../../db')
 
 // App includes
 const BitmapManager = require('./lib/BitmapManager')
