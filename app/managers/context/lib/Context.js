@@ -1,12 +1,11 @@
 // Utils
-const debug = require('debug')('canvas:context')
+const debug = require('debug')('canvas-context')
 const EE = require('eventemitter2')
 const { uuid12 } = require('../../../utils/uuid')
 
 // App includes
 const Url = require('./Url')
 const Layer = require('./Layer')
-
 
 // Constants
 const CONTEXT_AUTOCREATE_LAYERS = true
@@ -24,6 +23,7 @@ class Context extends EE {
     #url;
     #path;
     #array;
+
     #layerIndex;
     #tree;
 
@@ -31,9 +31,7 @@ class Context extends EE {
     #featureArray = [];
     #filterArray = [];
 
-    constructor(url, options = {
-
-    }) {
+    constructor(url, tree, options) {
 
         // Initialize event emitter
         super({
@@ -48,6 +46,11 @@ class Context extends EE {
 
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
+
+        // TODO: Temporary
+        if (!tree) throw new Error('Context tree not set')
+        this.#tree = tree
+        this.#layerIndex = this.#tree.layers
 
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
@@ -91,7 +94,7 @@ class Context extends EE {
         let parsed = new Url(url)
         if (this.#url === parsed.url) return this.#url
 
-        debug(`Setting context url for context "${this.#id}" to "${parsed.url}"`)
+        debug(`Setting context url for context id "${this.#id}" to "${parsed.url}"`)
         this.#tree.insert(parsed.path)
         this.#initializeLayers(parsed.array)
 
@@ -128,13 +131,7 @@ class Context extends EE {
     }
 
     createLayer(name, options) {
-        options = {
-            name: name,
-            ...options
-        }
-
-        let layer = new Layer(options)
-        this.#layerIndex.addLayer(layer)
+        return this.#layerIndex.createLayer(name, options)
     }
 
     // TODO: Not tested yet!
@@ -206,6 +203,7 @@ class Context extends EE {
 
     listDocuments(ctxArr, ftArr, filArr) {
         if (!ctxArr) ctxArr = this.#contextArray
+        return []
     }
 
     insertDocument(doc, ctxArr, ftArr) {

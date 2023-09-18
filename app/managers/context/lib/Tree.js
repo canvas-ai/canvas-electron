@@ -1,7 +1,6 @@
 'use strict'
 
 
-
 // Utils
 const EventEmitter = require('eventemitter2')
 const debug = require('debug')('cotext-tree')
@@ -78,9 +77,9 @@ class TreeNode {
 class Tree extends EventEmitter {
 
     #layers;
-    #index;
+    #db;
 
-    constructor(layerIndex, treeIndex) {
+    constructor(layerIndex, db) {
 
         // Initialize the event emittter
         super()
@@ -89,8 +88,8 @@ class Tree extends EventEmitter {
         this.root = new TreeNode('/', rootLayer)
 
         // Initialize indexes
-        this.#layers = (typeof layerIndex === 'object') ? layerIndex : new LayerIndex(path.join(DEFAULT_USERDATA_PATH, 'layerIndex.json'))
-        this.#index = (typeof treeIndex === 'object') ? treeIndex : new TreeIndex(path.join(DEFAULT_USERDATA_PATH, 'treeIndex.json'))
+        this.#layers = (typeof layerIndex === 'object') ? layerIndex : new LayerIndex(path.join(DEFAULT_USERDATA_PATH, 'layers.json'))
+        this.#db = (typeof db === 'object') ? db : new TreeIndex(path.join(DEFAULT_USERDATA_PATH, 'tree.json'))
 
         // Load tree from the database
         if (this.load()) {
@@ -111,6 +110,7 @@ class Tree extends EventEmitter {
      */
 
     get paths() { return this.#buildPathArray(); }
+    get layers() { return this.#layers; }
 
 
     /**
@@ -281,12 +281,12 @@ class Tree extends EventEmitter {
     save() {
         debug('Saving current in-memory tree to database')
         let data = this.#buildJsonIndexTree()
-        this.#index.set('tree', data)//if (!this.#index.set('tree', data)) throw new Error('Unable to save tree to database')
+        this.#db.set('tree', data)//if (!this.#db.set('tree', data)) throw new Error('Unable to save tree to database')
         return true
     }
 
     // Load JSON tree from the database
-    load(json = this.#index.get('tree')) {
+    load(json = this.#db.get('tree')) {
         debug('Loading JSON data from database')
         if (!json) {
             debug('No persistent JSON data found')

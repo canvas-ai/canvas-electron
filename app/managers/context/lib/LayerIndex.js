@@ -1,8 +1,6 @@
 'use strict'
 
 
-const debug = require('debug')('context-layer-index')
-
 /**
  * We are using JsonMap instead of LMDB/the Canvas DB backend
  * to be able to easily edit individual layers in a text editor
