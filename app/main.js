@@ -6,27 +6,27 @@
 const {
     app: APP,
     user: USER,
-    config,
-    logger,
 } = require('./env.js');
 
 // Utils
 const path = require('path');
 const fs = require('fs');
 const debug = require('debug')('canvas-main'); // TODO: Replace with logger
-const JsonMap = require('./utils/JsonMap');
+const JsonMap = require('./utils/JsonMap.js');
+const Config = require('./utils/config')
+const Log = require('./utils/logger')
 
 // Core services
-const db = require('./services/db')
-const Index = require('./services/core/indexd')
+const db = require('./services/db/index.js')
+const Index = require('./services/core/indexd/index.js')
 
 // Manager classes
-const AppManager = require('./managers/AppManager');
-const ContextManager = require('./managers/ContextManager');
-const PeerManager = require('./managers/PeerManager');
-const RoleManager = require('./managers/RoleManager');
-const ServiceManager = require('./managers/ServiceManager');
-const UserManager = require('./managers/UserManager');
+const AppManager = require('./managers/AppManager.js');
+const ContextManager = require('./managers/ContextManager.js');
+const PeerManager = require('./managers/PeerManager.js');
+const RoleManager = require('./managers/RoleManager.js');
+const ServiceManager = require('./managers/ServiceManager.js');
+const UserManager = require('./managers/UserManager.js');
 
 
 /**
@@ -45,22 +45,33 @@ class Canvas {
 
         debug('Initializing Canvas')
 
-        // Managers
+        this.config = Config({
+            userConfigDir: USER_CONFIG,
+            appConfigDir: APP_CONFIG,
+            versioning: false
+        })
+
+        this.logger = new Log({
+            appName: pkg.name,
+            logLevel: process.env.LOG_LEVEL || 'debug',
+            logPath: path.join(USER_VAR, 'log')
+        })
+
         this.serviceManager = new ServiceManager()
-        //this.userManager = new UserManager()
+        this.roleManager = new RoleManager()
+        this.appManager = new AppManager()
+        this.userManager = new UserManager()
         this.contextManager = new ContextManager()
-        //this.roleManager = new RoleManager()
-        //this.appManager = new AppManager()
-        //this.peerManager = new PeerManager()
+        this.peerManager = new PeerManager()
+
 
         /**
          * Initialize core services
          */
 
-        this.index = new Index({
-            path: path.join(USER.paths.home, 'index'),
-        })
+        this.db = this.serviceManager.initializeService('core/db', {
 
+        })
 
         // Transports
 
@@ -71,25 +82,29 @@ class Canvas {
             new JsonMap(path.join(USER.paths.home, 'session')) :
             false
 
-        // App State
-        this.isInitialized = false
-        this.isMaster = true
-        this.status = 'stopped'
-
-
-        //this.apps = this.appManager.listApps()
-        //this.roles = this.roleManager.listRoles()
-        //this.services = this.serviceManager.listServices()
-        //this.identities = this.identitiesManager.listIdentities()
-        //this.peers = this.PeerManager.listPeers()
-        //this.contexts = this.contextManager.listContexts()
-
         // Current
         //this.device = {}
         //this.user = {} // user.identities
         //this.context = {}
 
+        // App State
+        this.isInitialized = false
+        this.isMaster = true
+        this.status = 'stopped'
+
     }
+
+    // Getters
+    get apps() { return this.appManager.list(); }
+    get roles() { return this.roleManager.list(); }
+    get services() { return this.serviceManager.list(); }
+    get identities() { return this.identitiesManager.list(); }
+    get peers() { return this.peerManager.list(); }
+    get contexts() { return this.contextManager.list(); }
+
+    get user() { return this.userManager.user; }
+    get device() { return this.userManager.device; }
+
 
     async start(context, options = {
         loadSavedSession: true, // If false, we'll start with an empty context

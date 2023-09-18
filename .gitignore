@@ -18,6 +18,7 @@
 ## User directories
 /user/**
 !user/.keep
+!user/.ignore
 /data/**
 !data/.keep
 /home/**

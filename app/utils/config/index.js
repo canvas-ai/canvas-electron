@@ -28,7 +28,7 @@
 const Conf = require("conf");
 const fs = require("fs");
 const path = require("path");
-const device = require("../device");
+const device = require("../../base/Device");
 
 const findFile = (files) => {
     for (const file of files) {

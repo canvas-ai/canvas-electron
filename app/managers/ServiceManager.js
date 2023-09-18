@@ -64,8 +64,6 @@ class ServiceManager extends EventEmitter {
         return running;
     }
 
-
-
     loadService(name) {
 
         // If the service is already loaded, don't load it again
@@ -107,7 +105,7 @@ class ServiceManager extends EventEmitter {
         }
     }
 
-        initializeService(name, options = {}, ...args) {
+    initializeService(name, options = {}, ...args) {
 
         // If the service is already initialized, don't initialize it again
         if (this.initializedServices.has(name)) {
