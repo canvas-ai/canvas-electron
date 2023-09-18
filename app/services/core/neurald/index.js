@@ -26,6 +26,18 @@ class NeuralD {
         // loads relevant documents and feeds them to the NN for training / finetuning
 
 
+        /**
+         *                  Layers (higher order circuits, column2plane)
+         *                   (inhibitory bitmap layer masks)
+         *                      \ /
+         *                       V       / STM => ihibit LTM
+         * => input feeds => ResC       / + Prediction => Feed back to RESC
+         *                  Output
+         *              output feeds
+         *                     Internal state
+         *
+         */
+
     }
 
 

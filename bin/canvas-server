@@ -4,5 +4,5 @@
 // TODO: Change to runtime dir
 // Enable the below if --use-system-nodejs is supplied
 const path  = require('path')
-const app = path.join(path.dirname(__dirname), 'app', 'server')
+const app = path.join(path.dirname(__dirname), 'app', 'canvas-server')
 require(app)

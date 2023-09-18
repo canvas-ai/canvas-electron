@@ -23,6 +23,7 @@ const CONTEXT_URL_PROTO = 'universe'
 const CONTEXT_URL_BASE = "/"
 const CONTEXT_URL_HISTORY_SIZE = 512
 
+
 /**
  * Canvas Context
  */
