@@ -11,9 +11,7 @@ const {
 
 // Utils
 const path = require('path');
-const fs = require('fs');
 const debug = require('debug')('canvas-main'); // TODO: Replace with logger
-const JsonMap = require('./utils/JsonMap.js');
 const Config = require('./utils/config')
 const Log = require('./utils/logger')
 
@@ -46,15 +44,15 @@ class Canvas {
         debug('Initializing Canvas')
 
         this.config = Config({
-            userConfigDir: USER_CONFIG,
-            appConfigDir: APP_CONFIG,
+            userConfigDir: USER.paths.config,
+            appConfigDir: APP.paths.config,
             versioning: false
         })
 
         this.logger = new Log({
-            appName: pkg.name,
+            appName: APP.name,
             logLevel: process.env.LOG_LEVEL || 'debug',
-            logPath: path.join(USER_VAR, 'log')
+            logPath: path.join(USER.paths.var, 'log')
         })
 
 
@@ -69,30 +67,29 @@ class Canvas {
         this.storage = new Storage({
             dataPath: USER.paths.data,
             cachePath: USER.paths.cache,
-            metadataPath: this.db.createDataset('metadata'),
             cachePolicy: 'remote'
-        })
+        }, this.db.createDataset('storage'))
+
 
         // TODO: Implement a new Map() for bitmaps
         // TODO: Implement a proper backend for Layers
         // TODO: Implement a proper SessionManager
+
+        this.contextManager = new ContextManager({
+            //layerStore: this.db.createDataset('layers')
+        })
 
         /**
          * Initialize the session manager
          */
 
         this.session = (options.sessionEnabled) ?
-            new JsonMap(path.join(USER.paths.home, 'session')) :
+            this.db.createDataset('session') :
             null
 
         // Static variables
         this.device = DEVICE
         this.app = APP
-
-        this.services = null
-        this.roles = null
-        this.apps = null
-        this.user = null    // user.identity / user.identities
 
         // App State
         this.isInitialized = false
@@ -105,15 +102,14 @@ class Canvas {
     }
 
     // Getters
+    /*
     get apps() { return this.appManager.list(); }
     get roles() { return this.roleManager.list(); }
     get services() { return this.serviceManager.list(); }
     get identities() { return this.identitiesManager.list(); }
     get peers() { return this.peerManager.list(); }
     get contexts() { return this.contextManager.list(); }
-
-    get user() { return this.user; }
-    get device() { return this.device; }
+    */
 
 
     async start(contextUrl, options) {
@@ -141,12 +137,12 @@ class Canvas {
         // Oook lets implement a single url-based global context for now
         // till a proper SessionManager is ready
         let url = contextUrl || this.session.get('url') || null
-        this.context = this.contextManager.createContext(url)
+        this.context = this.contextManager.createContext(url, options)
 
         // Setup context event listeners to update the session
         if (this.session) {
-            context.on('url', (url) => {
-                debug(`Context URL of context "${context.id}" changed, updating session`)
+            this.context.on('url', (url) => {
+                debug(`Context URL of context "${this.context.id}" changed, updating session`)
                 this.session.set('url', url)
             })
         }
@@ -161,7 +157,7 @@ class Canvas {
     }
 
     async shutdown(exit = true) {
-        debug('Shutting down Canvas');
+        if (exit ) debug('Shutting down Canvas');
 
         try {
             //if (this.session) await this.session.save();
@@ -190,6 +186,9 @@ class Canvas {
         }
         return this.contextManager.createContext(url);
     }
+
+    getCurrentContext() { return this.context; }
+
 
     /**
      * AppManager Facade
@@ -227,7 +226,7 @@ class Canvas {
 
     listServices(type) { return this.sm.listServices(type); }
     shutdownServices() {
-        debub('Stopping services');
+        debug('Stopping services');
     }
 
 

@@ -6,6 +6,7 @@
 
 // Utils
 const log = console.log
+const debug = require('debug')('canvas-stored:cache')
 
 // Lib
 const cacache = require('cacache')
@@ -19,12 +20,9 @@ const defConfig = {
 class Cache {
 
     constructor(cacheRoot, options) {
-
         if (!cacheRoot) { throw new Error('Cache path not set, program will exit') }
-
-        log(`Cache constructor; cache root @${cacheRoot}`)
         this.cacheRoot = cacheRoot
-
+        debug(`Canvas cache dir set to ${cacheRoot}`)
     }
 
     list() {

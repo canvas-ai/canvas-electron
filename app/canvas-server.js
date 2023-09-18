@@ -18,8 +18,9 @@ console.log(context.insertDocument({
   type: "data/abstraction/tab",
   data: {
     url: "https://www.test.com/search?q=canvas+server",
-    title: "canvatestch",
+    title: "canvas test",
   },
 }))
 
 canvas.shutdown();
+

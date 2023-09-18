@@ -24,9 +24,7 @@ const Context = require('./lib/Context.js')
 class ContextManager extends EventEmitter {
 
 
-    constructor({
-
-    }) {
+    constructor() {
 
         debug('Initializing Context Manager')
 
@@ -42,17 +40,17 @@ class ContextManager extends EventEmitter {
         })
 
         // Initialize indexes
-        this.layerIndex = new LayerIndex(path.join(USER.paths.home, 'layerIndex.json'))
-        this.treeIndex = new TreeIndex(path.join(USER.paths.home, 'treeIndex.json'))
+        this.dbLayers = new LayerIndex(path.join(USER.paths.home, 'layers.json'))
+        this.dbTree = new TreeIndex(path.join(USER.paths.home, 'tree.json'))
         this.activeContexts = new Map()
 
         // Initialize the global context tree for our universe
-        this.tree = new Tree(this.layerIndex, this.treeIndex)
+        this.tree = new Tree(this.dbLayers, this.dbTree)
 
     }
 
-    async createContext(url, options = {}) {
-        let context = new Context(url, options)
+    createContext(url, tree = this.tree, options = {}) {
+        let context = new Context(url, tree, options)
         this.activeContexts.set(context.id, context)
         return context
     }
@@ -72,10 +70,3 @@ class ContextManager extends EventEmitter {
 }
 
 module.exports = ContextManager;
-
-
-
-
-const cm = new ContextManager({
-
-})

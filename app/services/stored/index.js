@@ -5,6 +5,8 @@
 const path = require('path')
 const os = require('os')
 const Cache = require('./cache')
+const debug = require('debug')('canvas-stored')
+
 
 // Includes
 const Db = require('../db')
@@ -43,12 +45,12 @@ const STORAGE_BACKENDS = [
 class Stored {
 
 
-    constructor(options) {
+    constructor(options, kvstore) {
 
+        debug('Initializing Canvas StoreD')
         options = {
             dataPath: path.join(os.homedir(), '.stored/data'),
             cachePath: path.join(os.homedir(), '.stored/cache'),
-            metadataPath: path.join(os.homedir(), '.stored/metadata'),
             autoRegisterAbstractions: true,
             autoRegisterBackends: true,
             cachePolicy: 'remote', // all, remote, none
@@ -56,14 +58,11 @@ class Stored {
         }
 
         this.dataPath = options.dataPath
-        this.metadataPath = options.metadataPath
         this.cachePath = options.cachePath
 
-        // If a db is passed in, use it, otherwise create a new one
-        // TODO: instanceof would be nicer
-        this.metadata = (options.metadataPath.open !== undefined) ?
-            options.metadataPath : new Db({
-                    path: options.metadataPath
+        this.metadata = (kvstore) ?
+            kvstore : new Db({
+                    path: path.join(this.dataPath, 'db')
                 })
 
         this.cache = (options.cachePolicy != 'none') ?
