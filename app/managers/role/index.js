@@ -6,7 +6,8 @@
  */
 
 // Environment
-const { app, user, transport, isElectron } = require('../env.js')
+const { APP, USER, DEVICE } = require('../../env.js')
+
 
 // Utils
 const EventEmitter = require("eventemitter2");
@@ -25,7 +26,7 @@ const defaultOptions = {
 class RoleManager extends EventEmitter {
 
     constructor(params = {
-        rootPath: path.join(app.home, 'roles')
+        rootPath: path.join(APP.home, 'roles')
     }) {
 
         debug('Initializing Canvas Role Manager')

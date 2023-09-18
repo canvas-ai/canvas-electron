@@ -7,7 +7,7 @@ const os = require('os')
 const Cache = require('./cache')
 
 // Includes
-const Db = require('../../db')
+const Db = require('../db')
 const Document = {
     id: '',
     meta: {
@@ -43,12 +43,11 @@ const STORAGE_BACKENDS = [
 class Stored {
 
 
-    constructor(options, db = null) {
+    constructor(options) {
 
         options = {
             dataPath: path.join(os.homedir(), '.stored/data'),
             cachePath: path.join(os.homedir(), '.stored/cache'),
-            metadataBackend: 'lmdb',
             metadataPath: path.join(os.homedir(), '.stored/metadata'),
             autoRegisterAbstractions: true,
             autoRegisterBackends: true,
@@ -60,11 +59,15 @@ class Stored {
         this.metadataPath = options.metadataPath
         this.cachePath = options.cachePath
 
-        this.metadata = (db) ? db : new Db({
-            path: options.metadataPath
-        })
+        // If a db is passed in, use it, otherwise create a new one
+        // TODO: instanceof would be nicer
+        this.metadata = (options.metadataPath.open !== undefined) ?
+            options.metadataPath : new Db({
+                    path: options.metadataPath
+                })
 
-        this.cache = (options.cachePolicy != 'none') ? new Cache(this.cachePath) : false;
+        this.cache = (options.cachePolicy != 'none') ?
+            new Cache(this.cachePath) : false;
 
         this.dataAbstractions = []
         this.dataBackends = []
@@ -72,9 +75,7 @@ class Stored {
     }
 
     //put(meta, data, backend = [], options ={}) {
-    put(document, backend , options ={}) {
-
-    }
+    put(document, backend , options ={}) {}
 
     putAsStream() {}
 
