@@ -8,6 +8,7 @@ const fs = require('fs')
 const os = require('os')
 const pkg = require('./package.json')
 const isElectron = require('is-electron')()
+const device = require('./base/Device')
 
 
 /**
@@ -60,7 +61,7 @@ const USER_CONFIG = process.env['CANVAS_USER_CONFIG'] || path.join(USER_HOME, 'c
 const USER_DATA = process.env['CANVAS_USER_DATA'] || path.join(USER_HOME, 'data')
 const USER_VAR = process.env['CANVAS_USER_VAR'] || path.join(USER_HOME, 'var')
 
-
+// Collect all ENV constants
 const env = {
     APP: {
         name: (pkg.productName) ? pkg.productName : pkg.name,
@@ -86,6 +87,8 @@ const env = {
             var: USER_VAR
         }
     },
+
+    DEVICE: device,
 
     transport: {
         ipc: (process.platform === 'win32') ?
@@ -122,32 +125,11 @@ Object.assign(process.env, {
 
 module.exports = env
 
+
 /**
  * Utils
  */
 
 function getUserHome() {
     return (isPortable) ? path.join(APP_ROOT, 'user') : path.join(os.homedir(), ".canvas");
-}
-
-function checkObjectAgainstSchema(obj, schema) {
-
-    // Check that all required properties are present in the object
-    Object.keys(schema).forEach((key) => {
-        assert(obj.hasOwnProperty(key), `Object is missing required property: ${key}`);
-    })
-
-    // Check that all properties in the object have the correct type
-    Object.keys(obj).forEach((key) => {
-        if (typeof schema[key] === 'object' && schema[key] !== null) {
-            // If the schema property is an object, recursively check the object against the nested schema
-            checkObjectAgainstSchema(obj[key], schema[key]);
-        } else {
-            assert(
-                typeof obj[key] === schema[key],
-                `Property "${key}" has incorrect type. Expected "${schema[key]}", but got "${typeof obj[key]}".`
-            )
-        }
-   })
-
 }

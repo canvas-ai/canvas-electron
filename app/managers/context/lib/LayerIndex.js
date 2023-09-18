@@ -2,8 +2,15 @@
 
 
 const debug = require('debug')('context-layer-index')
-const JsonMap = require('../../utils/JsonMap')
+
+/**
+ * We are using JsonMap instead of LMDB/the Canvas DB backend
+ * to be able to easily edit individual layers in a text editor
+ * This is subject to change though
+ */
+const JsonMap = require('../../../utils/JsonMap')
 const Layer = require('./Layer')
+
 
 class LayerIndex {
 

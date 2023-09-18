@@ -11,7 +11,7 @@
  */
 
 // Environment
-const { app } = require('../env.js')
+const { APP, USER, DEVICE } = require('../../env.js')
 
 // Utils
 const EventEmitter = require("eventemitter2");
@@ -31,7 +31,7 @@ const defaultOptions = {
 class ServiceManager extends EventEmitter {
 
     constructor(options = {
-        rootPath: path.join(app.paths.home, 'services')
+        rootPath: path.join(APP.paths.home, 'services')
     }) {
 
         debug('Initializing Canvas Service Manager')

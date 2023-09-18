@@ -4,8 +4,9 @@
 
 // Environment variables
 const {
-    app: APP,
-    user: USER,
+    APP,
+    USER,
+    DEVICE
 } = require('./env.js');
 
 // Utils
@@ -17,16 +18,16 @@ const Config = require('./utils/config')
 const Log = require('./utils/logger')
 
 // Core services
-const db = require('./services/db/index.js')
-const Index = require('./services/core/indexd/index.js')
+const Db = require('./services/db')
+const Storage = require('./services/stored')
 
 // Manager classes
-const AppManager = require('./managers/AppManager.js');
-const ContextManager = require('./managers/ContextManager.js');
-const PeerManager = require('./managers/PeerManager.js');
-const RoleManager = require('./managers/RoleManager.js');
-const ServiceManager = require('./managers/ServiceManager.js');
-const UserManager = require('./managers/UserManager.js');
+const AppManager = require('./managers/app');
+const ContextManager = require('./managers/context');
+const PeerManager = require('./managers/peer');
+const RoleManager = require('./managers/role');
+const ServiceManager = require('./managers/service');
+const UserManager = require('./managers/user');
 
 
 /**
@@ -38,7 +39,6 @@ class Canvas {
 
     constructor(options = {
         sessionEnabled: true,
-        sessionRestoreOnStart: true,
         enableUserApps: false,
         enableUserRoles: false
     }) {
@@ -57,40 +57,50 @@ class Canvas {
             logPath: path.join(USER_VAR, 'log')
         })
 
-        this.serviceManager = new ServiceManager()
-        this.roleManager = new RoleManager()
-        this.appManager = new AppManager()
-        this.userManager = new UserManager()
-        this.contextManager = new ContextManager()
-        this.peerManager = new PeerManager()
-
 
         /**
-         * Initialize core services
+         * Initialize core backends
          */
 
-        this.db = this.serviceManager.initializeService('core/db', {
-
+        this.db = new Db({
+            path: path.join(USER.paths.home, 'db'),
         })
 
-        // Transports
+        this.storage = new Storage({
+            dataPath: USER.paths.data,
+            cachePath: USER.paths.cache,
+            metadataPath: this.db.createDataset('metadata'),
+            cachePolicy: 'remote'
+        })
 
+        // TODO: Implement a new Map() for bitmaps
+        // TODO: Implement a proper backend for Layers
+        // TODO: Implement a proper SessionManager
 
-        // Session
-        // TODO: Extract to a separate session module
+        /**
+         * Initialize the session manager
+         */
+
         this.session = (options.sessionEnabled) ?
             new JsonMap(path.join(USER.paths.home, 'session')) :
-            false
+            null
 
-        // Current
-        //this.device = {}
-        //this.user = {} // user.identities
-        //this.context = {}
+        // Static variables
+        this.device = DEVICE
+        this.app = APP
+
+        this.services = null
+        this.roles = null
+        this.apps = null
+        this.user = null    // user.identity / user.identities
 
         // App State
         this.isInitialized = false
         this.isMaster = true
         this.status = 'stopped'
+
+        // Global context (focus)
+        this.context = null
 
     }
 
@@ -102,53 +112,73 @@ class Canvas {
     get peers() { return this.peerManager.list(); }
     get contexts() { return this.contextManager.list(); }
 
-    get user() { return this.userManager.user; }
-    get device() { return this.userManager.device; }
+    get user() { return this.user; }
+    get device() { return this.device; }
 
 
-    async start(context, options = {
-        loadSavedSession: true, // If false, we'll start with an empty context
-        loadUserServices: true,
-        loadUserRoles: true,
-        loadUserApps: true,
-    }) {
+    async start(contextUrl, options) {
 
-        // TODO: Return an IPC/RPC connection instead
+        // TODO: Return a IPC/RPC connection instead
         if (this.isInitialized && this.isMaster) throw new Error('Application already running')
+        this.setupProcessEventListeners()
 
-        // Fetch the context URL from the session
-        let url = (this.session) ? this.session.get('url') : null
+        // Initialize Services
+        this.services = {}
 
-        // Event listeners
-        await this.setupProcessEventListeners()
+        // Initialize Roles
+        this.roles = {}
 
-        // Services
-        if (options.loadServices) await this.setupServices([ /*..*/ ])
+        // Initialize Apps
+        this.apps = {}
 
+        // Initialize the user class
+        this.user = {}
+
+        // Try to restore previous contexts from session
+        let savedContexts = (this.session) ?
+            this.session.get('contexts') : []
+
+        // Oook lets implement a single url-based global context for now
+        // till a proper SessionManager is ready
+        let url = contextUrl || this.session.get('url') || null
+        this.context = this.contextManager.createContext(url)
+
+        // Setup context event listeners to update the session
+        if (this.session) {
+            context.on('url', (url) => {
+                debug(`Context URL of context "${context.id}" changed, updating session`)
+                this.session.set('url', url)
+            })
+        }
 
         this.isInitialized = true
     }
 
-    async restart() {}
+    async restart() {
+        debug('Restarting Canvas..');
+        await this.shutdown(false)
+        await this.start()
+    }
 
-    async status() {}
-
-    async shutdown() {
-        console.log('Shutting down Canvas');
+    async shutdown(exit = true) {
+        debug('Shutting down Canvas');
 
         try {
-            //await this.session.save();
+            //if (this.session) await this.session.save();
             await this.shutdownApps();
             await this.shutdownRoles();
             await this.shutdownServices();
 
             console.log('Graceful shutdown completed successfully.');
-            process.exit(0);
+            if (exit) process.exit(0);
         } catch (error) {
             console.error('Error during shutdown:', error);
             process.exit(1);
         }
     }
+
+    status() { return this.status; }
+
 
     /**
      * Context manager
@@ -170,6 +200,9 @@ class Canvas {
     unregisterApp() {}
     startApp() {}
     stopApp() {}
+    shutdownApps() {
+        debug('Stopping apps');
+    }
 
 
     /**
@@ -183,6 +216,9 @@ class Canvas {
     stopRole() {}
     restartRole() {}
     getRoleStatus() {}
+    shutdownRoles() {
+        debug('Stopping roles');
+    }
 
 
     /**
@@ -190,21 +226,14 @@ class Canvas {
      */
 
     listServices(type) { return this.sm.listServices(type); }
-    listUsers() { return this.um.listUsers(); }
-    listPeers() { return this.pm.listPeers(); }
-    listContexts() { return this.cm.listContexts(); }
-
-
-    async setupServices(services = []) {
-        services.forEach(async (service) => {
-            await this.sm.loadService(service)
-            await this.sm.initializeService(service, {
-                context: this.context,
-                index: this.index
-            })
-            await this.sm.startService(service)
-        })
+    shutdownServices() {
+        debub('Stopping services');
     }
+
+
+    /**
+     * Process
+     */
 
     setupProcessEventListeners() {
 
@@ -244,18 +273,6 @@ class Canvas {
         process.on('exit', (code) => {
             debug(`Bye: ${code}`);
         });
-    }
-
-    async shutdownServices() {
-        return true
-    }
-
-    async shutdownRoles() {
-        return true
-    }
-
-    async shutdownApps() {
-        return true
     }
 
 }

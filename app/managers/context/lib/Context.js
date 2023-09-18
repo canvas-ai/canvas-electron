@@ -1,27 +1,17 @@
 // Utils
-const path = require('path')
-const debug = require('debug')('canvas-context')
+const debug = require('debug')('canvas:context')
 const EE = require('eventemitter2')
-const { uuid12 } = require('../utils/uuid')
-
-// Env includes
-const {
-    app,
-    user,
-} = require('../env')
+const { uuid12 } = require('../../../utils/uuid')
 
 // App includes
-const Url = require('./lib/Url')
-const Layer = require('./lib/Layer')
-const LayerIndex = require('./lib/LayerIndex')
-const Tree = require('./lib/Tree')
-const TreeIndex = require('./lib/TreeIndex')
+const Url = require('./Url')
+const Layer = require('./Layer')
+
 
 // Constants
 const CONTEXT_AUTOCREATE_LAYERS = true
 const CONTEXT_URL_PROTO = 'universe'
 const CONTEXT_URL_BASE = "/"
-const CONTEXT_URL_HISTORY_SIZE = 512
 
 
 /**
@@ -35,16 +25,15 @@ class Context extends EE {
     #path;
     #array;
     #layerIndex;
-    #treeIndex;
     #tree;
-
-    #canvasHome;
 
     #contextArray = [];
     #featureArray = [];
     #filterArray = [];
 
-    constructor(url, options = {}) {
+    constructor(url, options = {
+
+    }) {
 
         // Initialize event emitter
         super({
@@ -59,17 +48,6 @@ class Context extends EE {
 
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
-
-        // Set canvas home
-        this.#canvasHome = options?.canvasHome || user.paths.home
-
-        // Initialize indexes
-        this.#layerIndex = new LayerIndex(path.join(this.#canvasHome, 'layerIndex.json'))
-        this.#treeIndex = new TreeIndex(path.join(this.#canvasHome, 'treeIndex.json'))
-        this.#tree = new Tree(this.#layerIndex, this.#treeIndex)
-
-        // Initialize event listeners
-        this.#initializeTreeEventListeners()
 
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
@@ -99,8 +77,6 @@ class Context extends EE {
     get featureArray() { return this.#featureArray; }
     get filterArray() { return this.#filterArray; }
 
-    get userDataHome() { return user.home; }
-
 
     /**
      * Context management
@@ -115,7 +91,7 @@ class Context extends EE {
         let parsed = new Url(url)
         if (this.#url === parsed.url) return this.#url
 
-        debug(`Setting context to "${parsed.url}"`)
+        debug(`Setting context url for context "${this.#id}" to "${parsed.url}"`)
         this.#tree.insert(parsed.path)
         this.#initializeLayers(parsed.array)
 
@@ -278,10 +254,6 @@ class Context extends EE {
         this.#url = null;
         this.#path = null;
         this.#array = null;
-        this.#layerIndex = null;
-        this.#treeIndex = null;
-        this.#tree = null;
-        this.#canvasHome = null;
         this.#contextArray = null;
         this.#featureArray = null;
         this.#filterArray = null;
