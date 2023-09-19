@@ -1,6 +1,5 @@
 'use strict';
 
-
 const RoaringBitmap32 = require('roaring/RoaringBitmap32')
 const debug = require('debug')('canvas-index-bitmap')
 

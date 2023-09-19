@@ -1,7 +1,4 @@
-
-
-const Db = require('../db')
-const openai = require('openai-api')
+//const openai = require('openai-api')
 
 
 // Power law
@@ -11,12 +8,7 @@ const openai = require('openai-api')
 
 class NeuralD {
 
-    constructor(context, ) {
-
-        this.context = context
-        this.db = new Db({
-
-        })
+    constructor(options) {
 
 
         // Timestamp | bitmap
@@ -45,3 +37,6 @@ class NeuralD {
 
 
 }
+
+
+module.exports = NeuralD

@@ -23,7 +23,7 @@ module.exports = {
     supportsVersions: supportsVersions
 }
 
-// Hight level interface
+// High-level interface
 
 /**
  * @description Writes data to dst(sync)
@@ -44,9 +44,6 @@ function remove() {}
 function move(src, dst) {}
 
 function copy(src, dst) {}
-
-
-
 
 // Low level interface
 //open

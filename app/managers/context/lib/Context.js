@@ -5,7 +5,6 @@ const { uuid12 } = require('../../../utils/uuid')
 
 // App includes
 const Url = require('./Url')
-const Layer = require('./Layer')
 
 // Constants
 const CONTEXT_AUTOCREATE_LAYERS = true
@@ -201,13 +200,13 @@ class Context extends EE {
      * Data store methods
      */
 
+    insertDocument(doc, ftArr) {
+
+    }
+
     listDocuments(ctxArr, ftArr, filArr) {
         if (!ctxArr) ctxArr = this.#contextArray
         return []
-    }
-
-    insertDocument(doc, ctxArr, ftArr) {
-        if (!ctxArr) ctxArr = this.#contextArray
     }
 
     updateDocument(doc, ctxArr, ftArr) {

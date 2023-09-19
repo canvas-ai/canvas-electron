@@ -8,7 +8,7 @@ const debug = require('debug')('canvas-index')
 const EE = require('eventemitter2')
 
 // Database
-const Db = require('../../db')
+const Db = require('../db')
 
 // App includes
 const BitmapManager = require('./lib/BitmapManager')
@@ -36,6 +36,7 @@ const DOCUMENT_SCHEMAS = {
 
 class Index extends EE {
 
+
     #db
     #epoch = "e0"   // Epoch functionality in the TODO list
 
@@ -57,36 +58,46 @@ class Index extends EE {
                                     //and it has no listeners
         })
 
-        // Validate options
-        if (!options.path) throw new Error('Database path is required')
-
-        // Initialize the database backend
-        this.#db = new Db({
-            path: options.path,
-            maxDbs: options.maxDbs || 32
-        })
+        if (options.db) {
+            this.#db = options.db
+        } else {
+            // Validate options
+            if (!options.path) throw new Error('Database path is required')
+            // Initialize the database backend
+            this.#db = new Db({
+                path: options.path,
+                maxDbs: options.maxDbs || 32
+            })
+        }
 
         // Main object (document) dataset
         this.universe = this.#db.createDataset('documents')
 
         // Main indexes (TODO: Rework)
         this.hash2oid = this.#db.createDataset('hash2oid')
+        this.tIndexed2oid = this.#db.createDataset('tIndexed2oid')
+        this.tUpdated2oid = this.#db.createDataset('tUpdated2oid')
 
-        // Current context for bitmap operations
-        this.context = new Map()
+        // Bitmaps (one central bitmap store,subject to change)
+        // [context]
+        // context/uuid #customers
+        // context/uuid #customera
+        // context/uuid #dev
+        // context/uuid #jira-1234
 
-        // In-memory bitmap cache
-        // Implemented
-        this.bitmapCache = new Map()
+        // [features]
+        // feature/data/abstr/file
+        // feature/data/abstr/file/ext/txt
+        // feature/data/abstr/contact
+        // feature/data/abstr/email
+        // feature/data/abstr/email/hasAttachment
+        // feature/data/abstr/email/flagged
+        // feature/data/abstr/email/priority/low
+        // feature/data/mime/application/pdf
+        // feature/data/encoding/utf8
+        // feature/data/versions/1.0.0
+        this.bitmaps = this.#db.createDataset('bitmaps')
 
-        // Bitmap managers
-        this.contextBitmaps = new BitmapManager(this.#db.createDataset('context'), this.bitmapCache)
-        this.featureBitmaps = new BitmapManager(this.#db.createDataset('features'), this.bitmapCache)
-
-        // Timeline (txLog)
-        // Metadata
-
-        debug('Canvas Index initialized')
 
     }
 
@@ -214,9 +225,13 @@ class Index extends EE {
 
     async listFeatures() {}
 
-    async tickFeature(feature, id) {}
+    async tickFeatures(featureArray, id) {
+        this.#tickFeatureArrayBitmaps(featureArray, id)
+    }
 
-    async untickFeature(feature, id) {}
+    async untickFeatures(featureArray, id) {
+
+    }
 
 
     /**

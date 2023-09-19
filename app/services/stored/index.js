@@ -7,19 +7,8 @@ const os = require('os')
 const Cache = require('./cache')
 const debug = require('debug')('canvas-stored')
 
-
 // Includes
 const Db = require('../db')
-const Document = {
-    id: '',
-    meta: {
-        dataType: 'json' //
-    },
-    data: {
-
-    }
-}
-
 
 // TODO: Generate dynamically based on the ./abstractions folder
 const STORAGE_ABSTRACTIONS = [
@@ -45,23 +34,25 @@ const STORAGE_BACKENDS = [
 class Stored {
 
 
-    constructor(options, kvstore) {
+    constructor(options) {
 
         debug('Initializing Canvas StoreD')
         options = {
-            dataPath: path.join(os.homedir(), '.stored/data'),
-            cachePath: path.join(os.homedir(), '.stored/cache'),
+            paths: {
+                data: path.join(os.homedir(), '.stored/data'),
+                cache: path.join(os.homedir(), '.stored/cache')
+            },
             autoRegisterAbstractions: true,
             autoRegisterBackends: true,
             cachePolicy: 'remote', // all, remote, none
             ...options
         }
 
-        this.dataPath = options.dataPath
-        this.cachePath = options.cachePath
+        this.dataPath = options.paths.data
+        this.cachePath = options.paths.cache
 
-        this.metadata = (kvstore) ?
-            kvstore : new Db({
+        this.metadata = (options.db) ?
+            options.db : new Db({
                     path: path.join(this.dataPath, 'db')
                 })
 
