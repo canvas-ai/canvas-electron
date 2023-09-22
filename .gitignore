@@ -32,6 +32,8 @@
 ## Documentation
 /docs/**
 !/docs/.keep
+!/docs/ui
+!/docs/ui/*
 
 ## Logs
 *.log

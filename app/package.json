@@ -10,7 +10,7 @@
     "cli": "node cli",
     "server": "nodemon server.js",
     "canvas": "electron ui/electron",
-    "rebuild": "electron-rebuild -f -w roaring"
+    "rebuild": "electron-rebuild -f"
   },
   "author": "me@idnc.sk",
   "license": "AGPL-3.0-or-later",
@@ -44,15 +44,12 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
-    "electron": "^25.1.1",
+    "electron": "^26.2.2",
     "electron-rebuild": "^3.2.9",
     "electron-reload": "^2.0.0-alpha.1",
     "jsdoc": "^4.0.2"
   },
   "engines": {
-    "node": [
-      "18.15.0",
-      "20.5.0"
-    ]
+	"node": "=18.16.1"
   }
 }

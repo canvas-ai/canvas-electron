@@ -11,11 +11,9 @@ const path = require('path');
 
 // Environment variables
 const {
-    app: APP,
-    user: USER,
-    config,
-    logger,
-    device,
+    APP,
+    USER,
+    DEVICE
 } = require('../../env.js');
 
 // Set a few handy runtime variables
@@ -110,7 +108,7 @@ app.on('ready', async function () {
     // Custom app variables
     app.ui = {}         // UI elements
     app.user = {}       // User variables
-    app.device = device // Current device
+    app.device = DEVICE // Current device
 
     // Start the engine and initialize components
     const canvas = new Canvas()
@@ -133,8 +131,10 @@ app.on('ready', async function () {
     });
 
     app.ui.canvas.setVisibleOnAllWorkspaces(true)
+    console.log(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'))
     app.ui.canvas.loadURL(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'));
     app.ui.canvas.show()
+    app.ui.canvas.webContents.openDevTools()
     app.ui.canvas.on('close', (event) => {
         event.preventDefault(); // Prevent the close
         app.ui.canvas.hide(); // Hide the window
