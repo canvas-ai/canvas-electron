@@ -78,7 +78,7 @@ class Index extends EE {
         this.tIndexed2oid = this.#db.createDataset('tIndexed2oid')
         this.tUpdated2oid = this.#db.createDataset('tUpdated2oid')
 
-        // Bitmaps (one central bitmap store,subject to change)
+        // Bitmaps
         // [context]
         // context/uuid #customers
         // context/uuid #customera
@@ -88,16 +88,21 @@ class Index extends EE {
         // []
 
         // [features]
+        // Static set (predefined/hardcoded, not removable)
         // feature/data/abstr/file
         // feature/data/abstr/file/ext/txt
         // feature/data/abstr/contact
+        // feature/data/abstr/contact/foo@bar.baz
         // feature/data/abstr/email
-        // feature/data/abstr/email/hasAttachment
-        // feature/data/abstr/email/flagged
+        // feature/data/abstr/email/attachment
+        // feature/data/abstr/email/flag
         // feature/data/abstr/email/priority/low
         // feature/data/mime/application/pdf
         // feature/data/encoding/utf8
         // feature/data/versions/1.0.0
+        // Dynamic set (generated dynamically by the feature extracting functions
+        // removed automatically if not used)
+        // feature/d/data/abstr/email/somerandomfeature
         this.bitmaps = this.#db.createDataset('bitmaps')
 
 
