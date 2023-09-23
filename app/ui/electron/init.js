@@ -11,11 +11,9 @@ const path = require('path');
 
 // Environment variables
 const {
-    app: APP,
-    user: USER,
-    config,
-    logger,
-    device,
+    APP,
+    USER,
+    DEVICE
 } = require('../../env.js');
 
 // Set a few handy runtime variables
@@ -80,13 +78,14 @@ app.setAboutPanelOptions({
 * Initialize core components
 */
 
+/*
 const Canvas = require('../../main.js')
 const canvas = new Canvas({
     sessionEnabled: true,
     sessionRestoreOnStart: true,
     enableUserRoles: true,
     enableUserApps: true,
-})
+})*/
 
 // Register custom protocols
 registerProtocols()
@@ -110,13 +109,13 @@ app.on('ready', async function () {
     // Custom app variables
     app.ui = {}         // UI elements
     app.user = {}       // User variables
-    app.device = device // Current device
+    app.device = DEVICE // Current device
 
     // Start the engine and initialize components
-    const canvas = new Canvas()
-    await canvas.start()
-    app.contextManager = canvas.contextManager
-    app.context = await canvas.createContext()
+    //const canvas = new Canvas()
+    //await canvas.start()
+    //app.contextManager = canvas.contextManager
+    //app.context = await canvas.createContext()
 
 
     // Load Tray
@@ -127,22 +126,25 @@ app.on('ready', async function () {
 
     // Load Canvas
     app.ui.canvas = new BrowserWindow({
+        autoHideMenuBar: true,
+        frame: false,
         webPreferences: {
             nodeIntegration: true,
+            contextIsolation: false
         },
     });
 
+    app.ui.canvas.setTitle('Canvas UI | Add new note')
     app.ui.canvas.setVisibleOnAllWorkspaces(true)
-    app.ui.canvas.loadURL(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'));
-    app.ui.canvas.show()
-    app.ui.canvas.on('close', (event) => {
+    app.ui.canvas.loadFile(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'))
+    //app.ui.canvas.webContents.openDevTools()
+    /*app.ui.canvas.on('close', (event) => {
         event.preventDefault(); // Prevent the close
         app.ui.canvas.hide(); // Hide the window
-    });
+    });*/
 
-
-    app.ui.tray.on('click', () => app.ui.canvas.toggle())
-    globalShortcut.register('super+c', () => app.ui.canvas.toggle())
+    //app.ui.tray.on('click', () => app.ui.canvas.toggle())
+    //globalShortcut.register('super+c', () => app.ui.canvas.toggle())
 
 })
 

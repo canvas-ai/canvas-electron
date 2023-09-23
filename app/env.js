@@ -90,11 +90,11 @@ const env = {
 
     DEVICE: device,
 
-    transport: {
-        ipc: (process.platform === 'win32') ?
-            path.join('\\\\?\\pipe', process.cwd(), pkg.name) :
-            path.join(APP_VAR, 'run', `${pkg.name}-ipc.sock`)
-    }
+    PID: path.join(APP_VAR, 'run', 'canvas.pid'),
+    IPC: (process.platform === 'win32') ?
+        path.join('\\\\?\\pipe', process.cwd(), pkg.name) :
+        path.join(APP_VAR, 'run', 'canvas.sock')
+
 }
 
 
@@ -118,8 +118,9 @@ Object.assign(process.env, {
     CANVAS_USER_DATA: USER_DATA,
     CANVAS_USER_VAR: USER_VAR,
 
-    // Export main IPC socket
-    CANVAS_SOCK_IPC: env.transport.ipc
+    // System
+    CANVAS_PID: env.PID,
+    CANVAS_SOCK_IPC: env.IPC
 
 });
 

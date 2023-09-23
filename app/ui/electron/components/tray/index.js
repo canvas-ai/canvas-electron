@@ -27,21 +27,21 @@ class CanvasTray extends Tray {
 
   constructor(options) {
 
-    options = {
-      title: 'Tray',
-      icon: path.resolve(__dirname, '../../../assets/logo_1024x1024.png'),
-      ...options
-    }
+      options = {
+        title: 'Tray',
+        icon: path.resolve(__dirname, '../../../assets/logo_1024x1024.png'),
+        ...options
+      }
 
-    super(options.icon)
-    this.title = options.title
+      super(options.icon)
+      this.title = options.title
 
-    // https://github.com/electron/electron/issues/28131
-    this.setToolTip(options.title)
-    this.setTitle(options.title)
+      // https://github.com/electron/electron/issues/28131
+      this.setToolTip(options.title)
+      this.setTitle(options.title)
 
-    this.#updateTrayMenu()
-    this.setIgnoreDoubleClickEvents(true)
+      this.#updateTrayMenu()
+      this.setIgnoreDoubleClickEvents(true)
 
   }
 
@@ -130,6 +130,5 @@ class CanvasTray extends Tray {
   }
 
 }
-
 
 module.exports = CanvasTray

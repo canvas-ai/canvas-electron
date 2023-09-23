@@ -7,7 +7,6 @@ const { APP, USER, DEVICE } = require('../../env.js')
 
 // Utils
 const EventEmitter = require("eventemitter2");
-const path = require("path");
 const debug = require("debug")("canvas:context-manager")
 
 // Lib includes
@@ -39,13 +38,13 @@ class ContextManager extends EventEmitter {
             ignoreErrors: false         // disable throwing uncaughtException if an error event is emitted and it has no listeners
         })
 
-        // Initialize indexes
-        this.dbLayers = new LayerIndex(path.join(USER.paths.home, 'layers.json'))
-        this.dbTree = new TreeIndex(path.join(USER.paths.home, 'tree.json'))
+
         this.activeContexts = new Map()
 
         // Initialize the global context tree for our universe
-        this.tree = new Tree(this.dbLayers, this.dbTree)
+        this.tree = new Tree({
+            path: USER.paths.home
+        })
 
     }
 

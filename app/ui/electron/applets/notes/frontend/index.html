@@ -1,54 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Editor.js Demo</title>
-
-  <!-- Import Editor.js's CSS and JavaScript from a CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-</head>
-<body>
-
-    <h3>test</h3>
-  <!-- This is where Editor.js will load -->
-  <div id="editorjs"></div>
-
-  <script>
-    const editor = new EditorJS({
-      holder: 'editorjs',
-      tools: {
-        // Here you define the tools to include in the editor
-        // Since you're using a CDN, you'll need to also import these tools from a CDN
-      },
-      onReady: () => {
-        console.log('Editor.js is ready');
-      },
-      onChange: () => {
-        // Called whenever the contents of the editor change
-      },
-    });
-
-    // Add the logic to handle IPC messages for new-note, load-note, and save-note here
-    const { ipcRenderer } = require('electron');
-
-    ipcRenderer.on('new-note', (event) => {
-      // Logic to create a new note goes here
-      editor.clear();
-    });
-
-    ipcRenderer.on('load-note', (event, data) => {
-      // Logic to load a note's data goes here
-      editor.render(data);
-    });
-
-    ipcRenderer.on('save-note', (event) => {
-      // Logic to save the current note goes here
-      editor.save().then((outputData) => {
-        // Here you would write outputData to a file
-      }).catch((error) => {
-        console.log('Saving failed: ', error)
-      });
-    });
-  </script>
-</body>
+<html lang="en" dir="ltr">
+	<head>
+		<title>Canvas | Create new Note</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="styles.css">
+	</head>
+	<body data-editor="InlineEditor" data-collaboration="false" data-revision-history="false">
+		<div class="centered">
+			<div class="row row-editor">
+				<div class="editor-container">
+					<div class="editor">
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="build/ckeditor.js"></script>
+		<script src="script.js"></script>
+	</body>
 </html>

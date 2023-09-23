@@ -15,9 +15,13 @@ const debug = require('debug')('canvas-main'); // TODO: Replace with logger
 const Config = require('./utils/config')
 const Log = require('./utils/logger')
 
-// Core services
+// Core service backends
 const Db = require('./services/db')
 const Storage = require('./services/stored')
+
+// Core services
+const Index = require('./services/indexd')
+const Neural = require('./services/neurald')
 
 // Manager classes
 const AppManager = require('./managers/app');
@@ -57,7 +61,7 @@ class Canvas {
 
 
         /**
-         * Initialize core backends
+         * Initialize services
          */
 
         this.db = new Db({
@@ -65,19 +69,32 @@ class Canvas {
         })
 
         this.storage = new Storage({
-            dataPath: USER.paths.data,
-            cachePath: USER.paths.cache,
-            cachePolicy: 'remote'
-        }, this.db.createDataset('storage'))
+            paths: {
+                data: USER.paths.data,
+                cache: USER.paths.cache,
+            },
+            cachePolicy: 'pull-through',
+            // TODO: Add cache TTL support
+            // TODO: Rework
+            db: this.db.createDataset('storage'),
+            // TODO: Rework too :)
+            config: this.config,
+            logger: this.logger
+        })
+
+        this.index = new Index({
+            db: this.db.createDataset('index'),
+            config: this.config,
+            logger: this.logger
+        })
 
 
         // TODO: Implement a new Map() for bitmaps
         // TODO: Implement a proper backend for Layers
         // TODO: Implement a proper SessionManager
 
-        this.contextManager = new ContextManager({
-            //layerStore: this.db.createDataset('layers')
-        })
+        this.contextManager = new ContextManager()
+
 
         /**
          * Initialize the session manager
@@ -99,18 +116,15 @@ class Canvas {
         // Global context (focus)
         this.context = null
 
+        // NN Connector (vLLM+vector store)
+        this.neural = new Neural({
+            db: this.db.createDataset('neural'),
+            storage: this.storage,
+            index: this.index,
+            context: this.context
+        })
+
     }
-
-    // Getters
-    /*
-    get apps() { return this.appManager.list(); }
-    get roles() { return this.roleManager.list(); }
-    get services() { return this.serviceManager.list(); }
-    get identities() { return this.identitiesManager.list(); }
-    get peers() { return this.peerManager.list(); }
-    get contexts() { return this.contextManager.list(); }
-    */
-
 
     async start(contextUrl, options) {
 
@@ -174,6 +188,7 @@ class Canvas {
     }
 
     status() { return this.status; }
+    stats() { return []; }
 
 
     /**
