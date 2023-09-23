@@ -57,11 +57,6 @@ main .ck-editor[role='application'] .ck.ck-content,
 	width: calc( 100% - var(--ck-sample-sidebar-width) );
 }
 
-/* Ugly temp/test only */
-html, body {
-	padding-top: 32px!important;
-}
-
 /* --------- DECOUPLED (DOCUMENT) BUILD. ---------------------------------------------*/
 body[data-editor='DecoupledEditor'] .document-editor__toolbar {
 	width: 100%;

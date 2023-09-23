@@ -127,23 +127,24 @@ app.on('ready', async function () {
     // Load Canvas
     app.ui.canvas = new BrowserWindow({
         autoHideMenuBar: true,
+        frame: false,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         },
     });
 
+    app.ui.canvas.setTitle('Canvas UI | Add new note')
     app.ui.canvas.setVisibleOnAllWorkspaces(true)
     app.ui.canvas.loadFile(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'))
-    app.ui.canvas.webContents.openDevTools()
-    app.ui.canvas.on('close', (event) => {
+    //app.ui.canvas.webContents.openDevTools()
+    /*app.ui.canvas.on('close', (event) => {
         event.preventDefault(); // Prevent the close
         app.ui.canvas.hide(); // Hide the window
-    });
+    });*/
 
-    
-    app.ui.tray.on('click', () => app.ui.canvas.toggle())
-    globalShortcut.register('super+c', () => app.ui.canvas.toggle())
+    //app.ui.tray.on('click', () => app.ui.canvas.toggle())
+    //globalShortcut.register('super+c', () => app.ui.canvas.toggle())
 
 })
 
