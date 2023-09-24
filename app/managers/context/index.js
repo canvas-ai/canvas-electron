@@ -11,8 +11,6 @@ const debug = require("debug")("canvas:context-manager")
 
 // Lib includes
 const Tree = require('./lib/Tree.js')
-const LayerIndex = require('./lib/LayerIndex.js')
-const TreeIndex = require('./lib/TreeIndex.js')
 const Context = require('./lib/Context.js')
 
 
@@ -23,7 +21,7 @@ const Context = require('./lib/Context.js')
 class ContextManager extends EventEmitter {
 
 
-    constructor() {
+    constructor(index, storage, options = {}) {
 
         debug('Initializing Context Manager')
 
@@ -41,6 +39,10 @@ class ContextManager extends EventEmitter {
 
         this.activeContexts = new Map()
 
+        // TODO: Rework?
+        this.index = index
+        this.storage = storage
+
         // Initialize the global context tree for our universe
         this.tree = new Tree({
             path: USER.paths.home
@@ -48,13 +50,13 @@ class ContextManager extends EventEmitter {
 
     }
 
-    createContext(url, tree = this.tree, options = {}) {
-        let context = new Context(url, tree, options)
+    createContext(url, options = {}) {
+        let context = new Context(url, this, options)
         this.activeContexts.set(context.id, context)
         return context
     }
 
-    async removeContext(id) {
+    removeContext(id) {
         let context = this.activeContexts.get(id)
         if (context) {
             context.destroy()

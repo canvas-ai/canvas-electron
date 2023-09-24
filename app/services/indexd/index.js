@@ -14,21 +14,6 @@ const Db = require('../db')
 const BitmapManager = require('./lib/BitmapManager')
 const Bitmap = require('./lib/Bitmap')
 
-// Temporary
-const Document = require('./schemas/Document');
-
-
-// Schemas
-// TODO: Use JSON Schema and a proper validator instead
-const DOCUMENT_SCHEMAS = {
-    // Generic document schema
-    default: require('./schemas/Document').toJSON(),
-    // Data abstraction schemas
-    file: require('./schemas/data/abstraction/File').toJSON(),
-    tab: require('./schemas/data/abstraction/Tab').toJSON(),
-    note: require('./schemas/data/abstraction/Note').toJSON()
-}
-
 
 /**
  * Canvas Index

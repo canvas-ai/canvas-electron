@@ -29,7 +29,7 @@
     "fs-extra": "^11.1.1",
     "ip": "^2.0.0",
     "is-electron": "^2.2.2",
-    "lmdb": "^2.8.1",
+    "lmdb": "^2.8.5",
     "lru-ttl-cache": "^2.4.7",
     "magic-bytes.js": "^1.0.14",
     "mime-types": "^2.1.35",
@@ -50,6 +50,6 @@
     "jsdoc": "^4.0.2"
   },
   "engines": {
-	"node": "=18.16.1"
+    "node": "=18.16.1"
   }
 }

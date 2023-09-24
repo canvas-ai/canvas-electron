@@ -74,10 +74,7 @@ class Canvas {
                 cache: USER.paths.cache,
             },
             cachePolicy: 'pull-through',
-            // TODO: Add cache TTL support
             // TODO: Rework
-            db: this.db.createDataset('storage'),
-            // TODO: Rework too :)
             config: this.config,
             logger: this.logger
         })
@@ -88,13 +85,12 @@ class Canvas {
             logger: this.logger
         })
 
+        this.documents = this.db.createDataset('documents')
+
 
         // TODO: Implement a new Map() for bitmaps
         // TODO: Implement a proper backend for Layers
         // TODO: Implement a proper SessionManager
-
-        this.contextManager = new ContextManager()
-
 
         /**
          * Initialize the session manager
@@ -112,6 +108,13 @@ class Canvas {
         this.isInitialized = false
         this.isMaster = true
         this.status = 'stopped'
+
+        // Managers
+        this.contextManager = new ContextManager()
+        // this.serviceManager = new ServiceManager()
+        // this.roleManager = new RoleManager()
+        // this.appManager = new AppManager()
+        // this.userManager = new UserManager()
 
         // Global context (focus)
         this.context = null

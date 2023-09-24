@@ -10,6 +10,8 @@
 <h1 align="center">Canvas</h1>
 <h2 align="center">AI-powered context layer on top of your unstructured universe!</h2>
 
+<br />
+
 ## Basic Concepts | What is Canvas
 
 Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** - regardless of its type and location - into separate "contexts".
@@ -108,10 +110,10 @@ Before diving too deep into integrating Canvas with a ML framework(presumably a 
 
 Sounds fairly easy but the above implies:  
 - Having some core design questions sorted
-  - how much to integrate stored with indexd and the rest of the app(given bitmaps are at the core of the design and may be used to optimize interaction with the underlying LLM model)
-  - where and in what way to store activity data/bitmaps so that it would be possible to run a qlora-type fine tunning process on all documents(emails, tabs, notes etc) of a given work day during the night
+  - ~~how much to integrate stored with indexd and the rest of the app(given bitmaps are at the core of the design and may be used to optimize interaction with the underlying LLM model)~~
+  - ~~where and in what way to store activity data/bitmaps~~ so that it would be possible to run a qlora-type fine tunning process on all documents(emails, tabs, notes etc) of a given work day during the night
   - How to implement full-text search (popular framework like flexsearch, elasticlunr, lunr or a/with a combination of bloom filters and bitmap index kung-fu)
-- having stored with at least file-json and lmdb backends ready, blocked by the previous point
+- ~~having stored with at least file-json and lmdb backends ready, blocked by the previous point~~
 - Having a working ff extension ready. Here the work is maybe 70% completed
 
 <br />

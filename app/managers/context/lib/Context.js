@@ -26,11 +26,14 @@ class Context extends EE {
     #layerIndex;
     #tree;
 
+    #index
+    #storage
+
     #contextArray = [];
     #featureArray = [];
     #filterArray = [];
 
-    constructor(url, tree, options) {
+    constructor(url, cm, options) {
 
         // Initialize event emitter
         super({
@@ -46,10 +49,11 @@ class Context extends EE {
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
 
-        // TODO: Temporary
-        if (!tree) throw new Error('Context tree not set')
-        this.#tree = tree
-        this.#layerIndex = this.#tree.layers
+        // TODO: Rework?
+        this.#index = cm.index
+        this.#storage = cm.storage
+        this.#tree = cm.tree
+        this.#layerIndex = cm.tree.layers
 
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
@@ -200,7 +204,12 @@ class Context extends EE {
      * Data store methods
      */
 
-    insertDocument(doc, ftArr) {
+    insertDocument(doc) {
+        if (!doc) throw new Error('Document must be provided')
+        if (!doc.type) throw new Error('Document type must be provided')
+        if (!doc.data) throw new Error('Document data must be provided')
+
+
 
     }
 
@@ -216,8 +225,6 @@ class Context extends EE {
     removeDocuments(doc, ctxArr, ftArr) {
         if (!ctxArr) ctxArr = this.#contextArray
     }
-
-
 
 
     /**
