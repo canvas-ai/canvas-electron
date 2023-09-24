@@ -14,6 +14,19 @@ const Db = require('../db')
 const BitmapManager = require('./lib/BitmapManager')
 const Bitmap = require('./lib/Bitmap')
 
+// Temporary
+const Document = require('../../schemas/Document');
+
+// Schemas
+const DOCUMENT_SCHEMAS = {
+    // Generic document schema
+    default: require('../../schemas/Document').toJSON(),
+    // Data abstraction schemas
+    file: require('../../schemas/abstr/File').toJSON(),
+    tab: require('../../schemas/abstr/Tab').toJSON(),
+    note: require('../../schemas/abstr/Note').toJSON()
+}
+
 
 /**
  * Canvas Index
@@ -60,6 +73,7 @@ class Index extends EE {
 
         // Main indexes (TODO: Rework)
         this.hash2oid = this.#db.createDataset('hash2oid')
+
         this.tIndexed2oid = this.#db.createDataset('tIndexed2oid')
         this.tUpdated2oid = this.#db.createDataset('tUpdated2oid')
 

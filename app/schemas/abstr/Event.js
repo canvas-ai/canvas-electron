@@ -2,7 +2,7 @@
  * Data abstraction to store Events
  */
 
-const Document = require('../../Document')
+const Document = require('../Document')
 const DOCUMENT_SCHEMA_VERSION = '2.0'
 const DOCUMENT_SCHEMA_TYPE = 'event';
 

@@ -1,9 +1,9 @@
 
 /**
- * Data abstraction to store browser tab data
+ * Data abstraction for storing browser tab data
  */
 
-const Document = require('../../Document')
+const Document = require('../Document')
 const DOCUMENT_SCHEMA_VERSION = '2.0'
 const DOCUMENT_SCHEMA_TYPE = 'tab';
 
@@ -15,9 +15,14 @@ class Tab extends Document {
             type: DOCUMENT_SCHEMA_TYPE,
         })
 
+        if (!params.url) {
+            throw new Error('Tab URL is a mandatory parameter');
+        }
+
         // Set document defaults
-        data.url = params.url || null;
-        data.title = params.title || null;
+        data.url = params.url
+        data.title = params.title || 'Canvas | Tab';
+
     }
 
     static toJSON() {
@@ -28,10 +33,10 @@ class Tab extends Document {
         // Set schema version and type
         base.schemaVersion = DOCUMENT_SCHEMA_VERSION;
         base.type = DOCUMENT_SCHEMA_TYPE;
-        base.data = {
-            url: null,
-            title: null,
-        }
+
+        // Set document data
+        base.data.url = 'test';
+        base.data.title = 'Canvas | Tab';
 
         return base;
     }

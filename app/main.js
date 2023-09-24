@@ -110,7 +110,11 @@ class Canvas {
         this.status = 'stopped'
 
         // Managers
-        this.contextManager = new ContextManager()
+        this.contextManager = new ContextManager(
+            this.index,
+            this.storage
+        )
+
         // this.serviceManager = new ServiceManager()
         // this.roleManager = new RoleManager()
         // this.appManager = new AppManager()

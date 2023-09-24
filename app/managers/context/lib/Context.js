@@ -58,6 +58,7 @@ class Context extends EE {
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
         debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
+
     }
 
     /**
@@ -204,12 +205,12 @@ class Context extends EE {
      * Data store methods
      */
 
-    insertDocument(doc) {
+    async insertDocument(doc) {
         if (!doc) throw new Error('Document must be provided')
         if (!doc.type) throw new Error('Document type must be provided')
         if (!doc.data) throw new Error('Document data must be provided')
 
-
+        await this.#index.insertDocument(doc)
 
     }
 

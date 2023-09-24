@@ -1,16 +1,14 @@
 /**
- * Data abstraction to store Notes
+ * Data abstraction to store File metadata
  */
 
-const Document = require('../../Document')
+const Document = require('../Document')
 const DOCUMENT_SCHEMA_VERSION = '2.0'
-const DOCUMENT_SCHEMA_TYPE = 'note';
+const DOCUMENT_SCHEMA_TYPE = 'log';
 
-class Note extends Document {
+class Log extends Document {
 
-    constructor() {
-
-    }
+    constructor() {}
 
     static toJSON() {
 
@@ -26,4 +24,4 @@ class Note extends Document {
 
 }
 
-module.exports = Note;
+module.exports = Log;
