@@ -2,6 +2,7 @@
  * Canvas main()
  */
 
+
 // Environment variables
 const {
     APP,
@@ -17,19 +18,22 @@ const Log = require('./utils/logger')
 
 // Core service backends
 const Db = require('./services/db')
-const Storage = require('./services/stored')
-
-// Core services
-const Index = require('./services/indexd')
-const Neural = require('./services/neurald')
+const StoreD = require('./services/stored')
+const IndexD = require('./services/indexd')
+const NeuralD = require('./services/neurald')
 
 // Manager classes
 const AppManager = require('./managers/app');
-const ContextManager = require('./managers/context');
 const PeerManager = require('./managers/peer');
 const RoleManager = require('./managers/role');
 const ServiceManager = require('./managers/service');
+const SessionManager = require('./managers/session');
 const UserManager = require('./managers/user');
+const IdentityManager = require('./managers/peer');
+
+// Context
+const ContextTree = require('./context/lib/Tree.js')
+const Context = require('./context')
 
 
 /**
@@ -38,7 +42,6 @@ const UserManager = require('./managers/user');
 
 class Canvas {
 
-
     constructor(options = {
         sessionEnabled: true,
         enableUserApps: false,
@@ -46,6 +49,10 @@ class Canvas {
     }) {
 
         debug('Initializing Canvas')
+
+        /**
+         * Utils
+         */        
 
         this.config = Config({
             userConfigDir: USER.paths.config,
@@ -59,43 +66,50 @@ class Canvas {
             logPath: path.join(USER.paths.var, 'log')
         })
 
-
         /**
-         * Initialize services
+         * Core services
          */
 
         this.db = new Db({
             path: path.join(USER.paths.home, 'db'),
         })
 
-        this.storage = new Storage({
+        this.storage = new StoreD({
             paths: {
                 data: USER.paths.data,
                 cache: USER.paths.cache,
             },
             cachePolicy: 'pull-through',
-            // TODO: Rework
-            config: this.config,
-            logger: this.logger
         })
-
-        this.index = new Index({
+      
+        this.index = new IndexD({
             db: this.db.createDataset('index'),
             config: this.config,
             logger: this.logger
         })
 
-        this.documents = this.db.createDataset('documents')
-
-
-        // TODO: Implement a new Map() for bitmaps
-        // TODO: Implement a proper backend for Layers
-        // TODO: Implement a proper SessionManager
-
         /**
-         * Initialize the session manager
+         * App
          */
+        
+        // Canvas globals
+        this.services = new ServiceManager()
+        this.roles = new RoleManager()
+        this.apps = new AppManager()
+        //this.devices = new DeviceManager()
+        this.identities = new IdentityManager()
 
+        // Context modules
+        this.contexts = new Map()
+        this.tree = new ContextTree({
+            path: USER.paths.home
+        })
+
+        // Data
+        this.documents = this.db.createDataset('documents')
+        
+
+        // TODO: Replace with session manager
         this.session = (options.sessionEnabled) ?
             this.db.createDataset('session') :
             null
@@ -109,29 +123,11 @@ class Canvas {
         this.isMaster = true
         this.status = 'stopped'
 
-        // Managers
-        this.contextManager = new ContextManager(
-            this.index,
-            this.storage
-        )
-
-        // this.serviceManager = new ServiceManager()
-        // this.roleManager = new RoleManager()
-        // this.appManager = new AppManager()
-        // this.userManager = new UserManager()
-
-        // Global context (focus)
-        this.context = null
-
-        // NN Connector (vLLM+vector store)
-        this.neural = new Neural({
-            db: this.db.createDataset('neural'),
-            storage: this.storage,
-            index: this.index,
-            context: this.context
-        })
-
     }
+
+    /**
+     * Canvas service controls 
+     */
 
     async start(contextUrl, options) {
 
@@ -139,17 +135,8 @@ class Canvas {
         if (this.isInitialized && this.isMaster) throw new Error('Application already running')
         this.setupProcessEventListeners()
 
-        // Initialize Services
-        this.services = {}
-
-        // Initialize Roles
-        this.roles = {}
-
-        // Initialize Apps
-        this.apps = {}
-
-        // Initialize the user class
-        this.user = {}
+        // TODO: Rework
+        this.#initializeServices()
 
         // Try to restore previous contexts from session
         let savedContexts = (this.session) ?
@@ -197,60 +184,39 @@ class Canvas {
     status() { return this.status; }
     stats() { return []; }
 
-
     /**
-     * Context manager
+     * Service
      */
 
-    createContext(url) {
-        if (!this.isInitialized) {
-            throw new Error("Application must be initialized before creating a context.");
+    #initializeServices(arr) {
+        arr.forEach((name) => {
+            this.services.initializeService(name)
+        })
+    }
+
+
+    /**
+     * Context
+     */
+
+    createContext(url, options = {}) {
+        let context = new Context(url, this, options)
+        this.contexts.set(context.id, context)
+        return context
+    }
+
+    removeContext(id) {
+        let context = this.contexts.get(id)
+        if (context) {
+            context.destroy()
+            this.contexts.delete(id)
         }
-        return this.contextManager.createContext(url);
     }
 
-    getCurrentContext() { return this.context; }
-
-
-    /**
-     * AppManager Facade
-     */
-
-    listApps(type) {}
-    registerApp() {}
-    unregisterApp() {}
-    startApp() {}
-    stopApp() {}
-    shutdownApps() {
-        debug('Stopping apps');
+    listContexts() {
+        return this.contexts.values()
     }
-
-
-    /**
-     * RoleManager Facade
-     */
-
-    listRoles(type) { return this.rm.listRoles(type); }
-    registerRole() {}
-    unregisterRole() {}
-    startRole() {}
-    stopRole() {}
-    restartRole() {}
-    getRoleStatus() {}
-    shutdownRoles() {
-        debug('Stopping roles');
-    }
-
-
-    /**
-     * ServiceManager Facade
-     */
-
-    listServices(type) { return this.sm.listServices(type); }
-    shutdownServices() {
-        debug('Stopping services');
-    }
-
+    
 
     /**
      * Process

@@ -6,7 +6,7 @@
  * to be able to easily edit individual layers in a text editor
  * This is subject to change though
  */
-const JsonMap = require('../../../utils/JsonMap')
+const JsonMap = require('../../utils/JsonMap')
 const Layer = require('./Layer')
 
 

@@ -7,8 +7,6 @@ const os = require('os')
 const Cache = require('./cache')
 const debug = require('debug')('canvas-stored')
 
-// Includes
-const Db = require('../db')
 
 // TODO: Generate dynamically based on the ./abstractions folder
 const STORAGE_ABSTRACTIONS = [
@@ -61,10 +59,12 @@ class Stored {
         this.dataPath = options.paths.data
         this.cachePath = options.paths.cache
 
+        /* 
         this.metadata = (options.db) ?
             options.db : new Db({
                     path: path.join(this.dataPath, 'db')
-                })
+                }) 
+        */
 
         this.cache = (options.cachePolicy != 'none') ?
             new Cache(this.cachePath) : false;

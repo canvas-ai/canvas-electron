@@ -1,10 +1,10 @@
 // Utils
 const debug = require('debug')('canvas-context')
 const EE = require('eventemitter2')
-const { uuid12 } = require('../../../utils/uuid')
+const { uuid12 } = require('../utils/uuid')
 
 // App includes
-const Url = require('./Url')
+const Url = require('./lib/Url')
 
 // Constants
 const CONTEXT_AUTOCREATE_LAYERS = true
@@ -33,7 +33,7 @@ class Context extends EE {
     #featureArray = [];
     #filterArray = [];
 
-    constructor(url, cm, options) {
+    constructor(url, canvas, options) {
 
         // Initialize event emitter
         super({
@@ -49,11 +49,19 @@ class Context extends EE {
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
 
+        this.canvas = canvas
+
         // TODO: Rework?
         this.#index = cm.index
         this.#storage = cm.storage
         this.#tree = cm.tree
         this.#layerIndex = cm.tree.layers
+
+        // Per context 
+        this.apps = {}
+        this.device = {}
+        this.user = {}
+        this.identity  ={}
 
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
@@ -205,13 +213,11 @@ class Context extends EE {
      * Data store methods
      */
 
-    async insertDocument(doc) {
+    insertDocument(doc) {
         if (!doc) throw new Error('Document must be provided')
         if (!doc.type) throw new Error('Document type must be provided')
         if (!doc.data) throw new Error('Document data must be provided')
-
-        await this.#index.insertDocument(doc)
-
+        return this.#index.insertDocument(doc)
     }
 
     listDocuments(ctxArr, ftArr, filArr) {

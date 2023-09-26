@@ -105,7 +105,7 @@ class ServiceManager extends EventEmitter {
         }
     }
 
-    initializeService(name, options = {}, ...args) {
+    initializeService(name, options = {}) {
 
         // If the service is already initialized, don't initialize it again
         if (this.initializedServices.has(name)) {

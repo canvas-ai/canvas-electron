@@ -3,7 +3,7 @@
 
 // Utils
 const EventEmitter = require('eventemitter2')
-const debug = require('debug')('cotext-tree')
+const debug = require('debug')('context-tree')
 const path = require('path')
 const os = require('os')
 
@@ -16,8 +16,7 @@ const TreeIndex = require('./TreeIndex')
 const TreeNode = require('./TreeNode')
 
 // Layers
-const Universe = require('../layers/Universe')
-const rootLayer = Universe
+const rootLayer = require('../layers/Universe')
 
 
 /**
@@ -27,25 +26,25 @@ const rootLayer = Universe
 
 class Tree extends EventEmitter {
 
-    #indexPath;
     #layers;
     #db;
 
-    constructor(options) {
+    constructor(options = {}) {
+
+        options = {
+            path: DEFAULT_USERDATA_PATH, 
+            ...options
+        };
 
         // Initialize event emittter
         super()
-
-        // Set the index path
-        if (!options.path) throw new Error('No index path supplied')
-        this.#indexPath = options.path
 
         // Initialize the root node
         this.root = new TreeNode('/', rootLayer)
 
         // Initialize indexes
-        this.#layers = new LayerIndex(path.join(this.#indexPath, 'layers.json'))
-        this.#db = new TreeIndex(path.join(this.#indexPath, 'tree.json'))
+        this.#layers = new LayerIndex(path.join(options.path, 'layers.json'))
+        this.#db = new TreeIndex(path.join(options.path, 'tree.json'))
 
         // Load tree from the database
         if (this.load()) {
@@ -57,6 +56,7 @@ class Tree extends EventEmitter {
         // Emit the ready event
         debug('Context tree initialized')
         debug(JSON.stringify(this.#buildJsonTree(), null, 2))
+
         this.emit('ready')
 
     }

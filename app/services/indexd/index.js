@@ -56,6 +56,20 @@ class Index extends EE {
                                     //and it has no listeners
         })
 
+
+        // Documents
+
+        // Indexes
+            // Bitmaps
+                // Context
+                // Feature
+                // Filter
+                // NeuralD
+            // FTS
+            // hash2oid
+            // 
+
+
         if (options.db) {
             this.#db = options.db
         } else {
@@ -67,9 +81,6 @@ class Index extends EE {
                 maxDbs: options.maxDbs || 32
             })
         }
-
-        // Main object (document) dataset
-        this.universe = this.#db.createDataset('documents')
 
         // Main indexes (TODO: Rework)
         this.hash2oid = this.#db.createDataset('hash2oid')
@@ -112,7 +123,7 @@ class Index extends EE {
      * Document management
      */
 
-    async insertDocument(doc, contextArray = [], featureArray = []) {
+    insertDocument(doc, contextArray = [], featureArray = []) {
 
         debug('insertDocument()', doc, contextArray, featureArray)
 
@@ -120,11 +131,16 @@ class Index extends EE {
         let parsed = this.#validateDocument(doc)
         debug('Document validated', parsed)
 
+
+
         // Add document type to the featureArray if not present
         if (!featureArray.includes(parsed.type)) featureArray.push(parsed.type)
 
+
+
         // Update existing document if already present
-        let res = this.hash2oid.get(parsed.hashes.sha1) // TODO: Primary hash algo should be set by a config value
+        // TODO: Primary hash algo should be set by a config value
+        let res = this.hash2oid.get(parsed.hashes.sha1)
         if (res) {
             debug('Document already present, updating..')
             return this.updateDocument(parsed, contextArray, featureArray)
@@ -132,14 +148,14 @@ class Index extends EE {
 
         // Update internal indexes
         let updateHash2oid = this.hash2oid.put(parsed.hashes.sha1, parsed.id)
-        let updateUniverse = this.universe.put(parsed.id, parsed)
+        let updateUniverse = this.#db.put(parsed.id, parsed)
 
         // Update bitmaps
-        let tickContextArrayBitmaps = this.#tickContextArrayBitmaps(contextArray, parsed.id)
-        let tickFeatureArrayBitmaps = this.#tickFeatureArrayBitmaps(featureArray, parsed.id)
+        let tickContextArrayBitmaps = this.#tickContextArrayBitmapsSync(contextArray, parsed.id)
+        let tickFeatureArrayBitmaps = this.#tickFeatureArrayBitmapsSync(featureArray, parsed.id)
 
         // Execute in parallel
-        await Promise.all([
+        Promise.all([
             updateHash2oid,
             updateUniverse,
             tickContextArrayBitmaps,
@@ -156,9 +172,9 @@ class Index extends EE {
 
         let res;
         if (ids.length === 1) {
-            res = this.universe.get(ids[0]); //sync
+            res = this.#db.get(ids[0]); //sync
         } else {
-            res = await this.universe.getMany(ids);
+            res = await this.#db.getMany(ids);
         }
 
         if (cb) { cb(null, res); }
@@ -169,7 +185,7 @@ class Index extends EE {
     getDocumentByHash(hash) {
         let id = this.hash2oid.get(hash)
         if (!id) return null
-        return this.universe.get(id)
+        return this.#db.get(id)
     }
 
     async listDocuments(contextArray = [], featureArray = []) {
@@ -178,7 +194,7 @@ class Index extends EE {
         let documents = []
 
         if (!contextArray.length && !featureArray.length) {
-            documents = this.universe.list()
+            documents = this.#db.list()
             return documents
         }
 
@@ -191,7 +207,7 @@ class Index extends EE {
         let result = BitmapManager.addBitmaps([calculatedContextBitmap, calculatedFeatureBitmap])
         debug('Result IDs', result.toArray())
 
-        documents = await this.universe.getMany(result.toArray())
+        documents = await this.#db.getMany(result.toArray())
         debug('Documents', documents)
 
         return documents
@@ -282,9 +298,23 @@ class Index extends EE {
 
     // Generate a new document ID
     #genDocumentID() {
-        let id = this.universe.count() + 1000
+        let id = this.#db.getKeysCount() + 1000
         return id++
     }
+
+    #tickContextArrayBitmapsSync(bitmapIdArray = [], id) {
+        for (const context of bitmapIdArray) {
+            debug(`Updating bitmap for context ID "${context}"`);
+            this.contextBitmaps.tick(context, id);
+        }
+    }
+
+    #tickFeatureArrayBitmapsSync(bitmapIdArray = [], id) {
+        for (const feature of bitmapIdArray) {
+            debug(`Updating bitmap for feature ID "${feature}"`)
+            this.featureBitmaps.tick(feature, id)
+        }
+    }    
 
     async #tickContextArrayBitmaps(bitmapIdArray = [], id) {
         for (const context of bitmapIdArray) {
