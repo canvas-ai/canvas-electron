@@ -19,8 +19,7 @@ const Log = require('./utils/logger')
 // Core service backends
 const Db = require('./services/db')
 const StoreD = require('./services/stored')
-const IndexD = require('./services/indexd')
-const NeuralD = require('./services/neurald')
+const SynapsD = require('./services/synapsd')
 
 // Manager classes
 const AppManager = require('./managers/app');
@@ -52,7 +51,7 @@ class Canvas {
 
         /**
          * Utils
-         */        
+         */
 
         this.config = Config({
             userConfigDir: USER.paths.config,
@@ -72,6 +71,13 @@ class Canvas {
 
         this.db = new Db({
             path: path.join(USER.paths.home, 'db'),
+            compression: false,
+        })
+
+        this.synapsd = new SynapsD({
+            db: this.db,
+            config: this.config,
+            logger: this.logger
         })
 
         this.storage = new StoreD({
@@ -81,23 +87,17 @@ class Canvas {
             },
             cachePolicy: 'pull-through',
         })
-      
-        this.index = new IndexD({
-            db: this.db.createDataset('index'),
-            config: this.config,
-            logger: this.logger
-        })
 
         /**
          * App
          */
-        
+
         // Canvas globals
         this.services = new ServiceManager()
         this.roles = new RoleManager()
         this.apps = new AppManager()
         //this.devices = new DeviceManager()
-        this.identities = new IdentityManager()
+        //this.identities = new IdentityManager()
 
         // Context modules
         this.contexts = new Map()
@@ -107,7 +107,7 @@ class Canvas {
 
         // Data
         this.documents = this.db.createDataset('documents')
-        
+
 
         // TODO: Replace with session manager
         this.session = (options.sessionEnabled) ?
@@ -126,7 +126,7 @@ class Canvas {
     }
 
     /**
-     * Canvas service controls 
+     * Canvas service controls
      */
 
     async start(contextUrl, options) {
@@ -135,21 +135,17 @@ class Canvas {
         if (this.isInitialized && this.isMaster) throw new Error('Application already running')
         this.setupProcessEventListeners()
 
-        // TODO: Rework
-        this.#initializeServices()
-
         // Try to restore previous contexts from session
         let savedContexts = (this.session) ?
             this.session.get('contexts') : []
 
-        // Oook lets implement a single url-based global context for now
-        // till a proper SessionManager is ready
+        // Temporary
         let url = contextUrl || this.session.get('url') || null
-        this.context = this.contextManager.createContext(url, options)
+        let context = this.createContext(url, options)
 
         // Setup context event listeners to update the session
         if (this.session) {
-            this.context.on('url', (url) => {
+            context.on('url', (url) => {
                 debug(`Context URL of context "${this.context.id}" changed, updating session`)
                 this.session.set('url', url)
             })
@@ -194,7 +190,6 @@ class Canvas {
         })
     }
 
-
     /**
      * Context
      */
@@ -216,7 +211,7 @@ class Canvas {
     listContexts() {
         return this.contexts.values()
     }
-    
+
 
     /**
      * Process

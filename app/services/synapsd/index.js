@@ -29,14 +29,14 @@ const DOCUMENT_SCHEMAS = {
 
 
 /**
- * Canvas Index
+ * Canvas SynapsD
  */
 
-class Index extends EE {
+class SynapsD extends EE {
 
 
     #db
-    #epoch = "e0"   // Epoch functionality in the TODO list
+    #epoch = "e0"   // 2^32 bitmap limit
 
     constructor(options = {}) {
 
@@ -56,19 +56,36 @@ class Index extends EE {
                                     //and it has no listeners
         })
 
+        tickBitmap(key, idArray) {}
+        tickFeature(fArray, idArray) {
+
+        }
 
         // Documents
 
         // Indexes
             // Bitmaps
-                // Context
-                // Feature
-                // Filter
-                // NeuralD
+                // Objects
+
+                // Contexts
+                // Features
+                // Filters
+                // Devices
+                // Contacts
+                // Identities
+                // Internals
+                    // App
+                    // Role
+                    // Timeline
+                    // Metadata
+                    // Tag
             // FTS
             // hash2oid
-            // 
+            //
 
+
+
+        this.cleanupQueue = new Bitmap()
 
         if (options.db) {
             this.#db = options.db
@@ -314,7 +331,7 @@ class Index extends EE {
             debug(`Updating bitmap for feature ID "${feature}"`)
             this.featureBitmaps.tick(feature, id)
         }
-    }    
+    }
 
     async #tickContextArrayBitmaps(bitmapIdArray = [], id) {
         for (const context of bitmapIdArray) {
@@ -332,4 +349,4 @@ class Index extends EE {
 
 }
 
-module.exports = Index
+module.exports = SynapsD

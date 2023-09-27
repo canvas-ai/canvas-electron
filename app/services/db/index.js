@@ -27,11 +27,11 @@ class Db {
         // Parse input arguments
         if (options.open === undefined) {
             options = {
-                ...options,
                 path: options.path || path.join(os.homedir(), '.canvas/db'),
                 readOnly: options.readOnly || false,
                 logLevel: options.logLevel || 'info',
                 compression: options.compression || true,
+                ...options
             }
 
             this.db = new open(options)
