@@ -13,6 +13,7 @@ const Db = require('../db')
 // App includes
 const BitmapManager = require('./lib/BitmapManager')
 const Bitmap = require('./lib/Bitmap')
+const BitmapSet = require('./lib/BitmapSet')
 
 // Temporary
 const Document = require('../../schemas/Document');
@@ -56,19 +57,43 @@ class SynapsD extends EE {
                                     //and it has no listeners
         })
 
-        tickBitmap(key, idArray) {}
-        tickFeature(fArray, idArray) {
-
+        if (options.db) {
+            this.#db = options.db
+        } else {
+            // Validate options
+            if (!options.path) throw new Error('Database path is required')
+            // Initialize the database backend
+            this.#db = new Db({
+                path: options.path,
+                maxDbs: options.maxDbs || 32
+            })
         }
 
-        // Documents
+        // KV Stores
+        this.dbDocuments = this.db.createDataset('documents')
+        this.dbBitmaps = this.db.createDataset('bitmaps')
 
+        // Bitmaps
+        this.bDocuments = new Bitmap('documents', this.dbDocuments)
+        this.bContexts = new BitmapSet(this.dbBitmaps)
+        this.bFeatures = new Bitmap('features', this.dbBitmaps)
+
+        /*
+        this.tickFeatures(featureArray, id)
+        featurerray.forEach(feature => {
+            this.bFeatures.tick(feature, id)
+        })*/
+
+        //
+        // objCleanupQueue
+1
         // Indexes
             // Bitmaps
                 // Objects
 
                 // Contexts
                 // Features
+
                 // Filters
                 // Devices
                 // Contacts
@@ -87,17 +112,7 @@ class SynapsD extends EE {
 
         this.cleanupQueue = new Bitmap()
 
-        if (options.db) {
-            this.#db = options.db
-        } else {
-            // Validate options
-            if (!options.path) throw new Error('Database path is required')
-            // Initialize the database backend
-            this.#db = new Db({
-                path: options.path,
-                maxDbs: options.maxDbs || 32
-            })
-        }
+
 
         // Main indexes (TODO: Rework)
         this.hash2oid = this.#db.createDataset('hash2oid')

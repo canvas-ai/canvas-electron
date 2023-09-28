@@ -134,6 +134,7 @@ app.on('ready', async function () {
         },
     });
 
+    //window border color based on context/workspace color!
     app.ui.canvas.setTitle('Canvas UI | Add new note')
     app.ui.canvas.setVisibleOnAllWorkspaces(true)
     app.ui.canvas.loadFile(path.join(__dirname, 'applets', 'notes', 'frontend', 'index.html'))
