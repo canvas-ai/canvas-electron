@@ -101,6 +101,25 @@ There are 5 layer types:
 
 <br />
 
+## Architecture
+
+The main database backend for Canvas is a in-process LMDB database(previously LevelDB), but I wanted to keep part of the data easily readable and editable, hence implemented some of the indexes based on plain JSON files - as of 10/23 using nedb.
+
+Some of the technologies used(in no particular order):
+
+- Roaring bitmaps
+- lmdb
+- nedb
+- FlexSearch
+- express.js
+- socket.io
+- webdavd
+- cacache
+- vLLM
+- electron
+
+<br />
+
 ## Status update 09/2023
 
 Before diving too deep into integrating Canvas with a ML framework(presumably a small fine-tuned locally-run foundation model with vLLM/mlc/whatever performant framework the future brings), the following functionality has to be implemented and working:
