@@ -1,3 +1,4 @@
+// Office assistant agent
 
 const Agent = require('../lib/Agent')
 
