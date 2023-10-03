@@ -25,15 +25,11 @@ const defaultOptions = {
 
 class RoleManager extends EventEmitter {
 
-    constructor(params = {
-        rootPath: path.join(APP.home, 'roles')
-    }) {
+    constructor(params = {}) {
 
         debug('Initializing Canvas Role Manager')
         super();
-
-        this.root = params.rootPath;
-
+        
         this.loadedRoles = new Map();
         this.initializedRoles = new Map();
 

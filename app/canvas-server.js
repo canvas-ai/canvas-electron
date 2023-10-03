@@ -30,11 +30,11 @@ console.log(context.insertDocument({
     title: "canvas test /foo/baz/bar",
   },
 }))
+
 console.log(context.listDocuments());
 
 context.set('/foo')
 console.log(context.listDocuments());
-
 
 //canvas.shutdown();
 

@@ -1,0 +1,18 @@
+{
+  "name": "canvas-synapsd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "idnc_sk",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "date-fns": "^2.29.3",
+    "stored-map": "^1.0.6"
+  }
+}

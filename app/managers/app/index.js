@@ -23,14 +23,10 @@ const defaultOptions = {
 
 class AppManager extends EventEmitter {
 
-    constructor(params = {
-        rootPath: path.join(app.home, 'apps')
-    }) {
+    constructor(params = {}) {
 
         debug('Initializing Canvas App Manager')
         super();
-
-        this.root = params.rootPath;
 
         this.loadedApps = new Map();
         this.initializedApps = new Map();
