@@ -4,6 +4,7 @@ const {
     globalShortcut,
     protocol,
     BrowserWindow,
+    screen
 } = require('electron');
 
 // Utils
@@ -97,6 +98,9 @@ registerProtocols()
 
 app.on('ready', async function () {
 
+    // To be moved to window manager
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
     // Register process signal handlers
     registerProcessSignalHandlers()
 
@@ -124,15 +128,49 @@ app.on('ready', async function () {
         title: app.getName()
     })
 
+
+    /*
+    On Linux, possible types are desktop, dock, toolbar, splash, notification.
+    - The desktop type places the window at the desktop background window level 
+      (kCGDesktopWindowLevel - 1). However, note that a desktop window will not receive 
+      focus, keyboard, or mouse events. You can still use globalShortcut to receive 
+      input sparingly.
+    - The dock type creates a dock-like window behavior.
+    - The toolbar type creates a window with a toolbar appearance.
+    - The splash type behaves in a specific way. It is not draggable, even if the CSS 
+      styling of the window's body contains -webkit-app-region: drag. This type is commonly 
+      used for splash screens.        
+    - The notification type creates a window that behaves like a system notification.    
+    */
+
     // Load Canvas
     app.ui.canvas = new BrowserWindow({
+        width: 1024,
+        height: Math.round(height * 0.8),
         autoHideMenuBar: true,
         frame: false,
+        type: 'toolbar',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         },
     });
+
+    app.ui.canvas.setPosition(width - 1204, Math.round(height * 0.1));
+
+    app.ui.toolbox = new BrowserWindow({
+        width: 128,
+        height: Math.round(height * 0.8),
+        type: 'toolbar',
+        autoHideMenuBar: true,
+        frame: false,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        },        
+    })
+
+    app.ui.toolbox.setPosition(width - 160, Math.round(height * 0.1));
 
     //window border color based on context/workspace color!
     app.ui.canvas.setTitle('Canvas UI | Add new note')
