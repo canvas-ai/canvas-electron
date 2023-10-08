@@ -16,7 +16,7 @@
 
 Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** - regardless of its type and location - into separate "contexts".
 
-Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all the unstructured information fighting for my attention on a default desktop setup(emails, notifications, chat messages, always growing number of random browser tabs and ad-hoc download-extract-test-forget activities).  
+Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all the unstructured information fighting for my attention on a default desktop setup(emails, notifications, chat messages, always growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).  
 
 A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate whatever structure is needed to get more productive:
 
@@ -26,7 +26,7 @@ universe://
         /AirBnB
             /Atlas Apartment
             /Fountainhead Apartment
-        /My favorite cu$tomer
+        /Cu$tomer A 
                 /Dev
                     /JIRA-1234
                     /JIRA-1237
@@ -63,28 +63,29 @@ universe://
                     /Shinnoki
                     /Egger
                     /.. 
-            /Project docs
+            /Project docs            
                 /Archicad
                 /Sketchup
                 /Twinmotion
     /Edu
-        /Medicine
+        /AIT
         /Physics
 ```
-The context URL  
+Context URL  
 ``universe://work/customer-a/reports``  
-will (presumably) return all reports for customer-a,  
+will (presumably) return all reports for Customer A,  
 
 ``universe://reports``  
 will return all reports indexed ("linked") by the bitmap index of the "reports" layer for your entire universe.  
 
-You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer fe "reports", leaving the larger context(layer order) handle the filtering for you.  
+You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer ("reports" for example), leaving the larger context(layer order) handle the filtering for you.  
 
-This enables to have the same data accessible through different "filesystem-like" context trees:  
+This setup enables having the same data accessible through different, even ad-hoc and/or temporary "filesystem-like" context trees:  
 ``universe://photos/2023/06``  
 ``universe://home/inspirations/kitchens``  
 ``universe://travel/Spain/2023``  
-where all 3 contexts above return (aot) the same file `IMG_1234.jpg` (in this example a picture of a nice kitchen from the airbnb we stayed at), as a bonus - regardless of where it is stored(the storage part is abstracted away via storeD). Same goes for tabs, notes or any other documents - including the entropy-rich content of your ~/Downloads and ~/Desktop folders.
+``universe://tasks/data-cleanup/2023/09``  
+For the above example, all contexts return (among other data) the same file `IMG_1234.jpg` - a picture of a nice kitchen from an airbnb we stayed at. As a bonus - regardless of where it is stored(the storage part is abstracted away via storeD). Same goes for tabs, notes or any other documents - including the entropy-rich content of your ~/Downloads and ~/Desktop folders.
 
 
 There are 5 layer types:
@@ -103,64 +104,48 @@ There are 5 layer types:
 
 ## Architecture
 
-The main database backend for Canvas is LMDB(previously LevelDB), but I wanted to keep part of the data easily readable and editable, hence implemented some of the indexes as plain JSON files - as of 10/23 using nedb.
-
-Some of the technologies used(in no particular order):
+Some of the technologies used in no particular order:
 
 - Roaring bitmaps
 - lmdb
-- nedb
+- nedb (to keep part of the data easily readable and editable as local JSON files)
 - FlexSearch
 - express.js
 - socket.io
-- webdavd
+- webdavd 
 - cacache
 - vLLM
 - electron
 
 <br />
 
-## Status update 09/2023
-
-Before diving too deep into integrating Canvas with a ML framework(presumably a small fine-tuned locally-run foundation model with vLLM/mlc/whatever performant framework the future brings), the following functionality has to be implemented and working:
-- Tabs (electron + command-line)
-- Notes (electron + command-line)
-- Todo (electron + command-line)
-
-Sounds fairly easy but the above implies:  
-- Having some core design questions sorted
-  - ~~how much to integrate stored with indexd and the rest of the app(given bitmaps are at the core of the design and may be used to optimize interaction with the underlying LLM model)~~
-  - ~~where and in what way to store activity data/bitmaps~~ so that it would be possible to run a qlora-type fine tunning process on all documents(emails, tabs, notes etc) of a given work day during the night
-  - How to implement full-text search (popular framework like flexsearch, elasticlunr, lunr or a/with a combination of bloom filters and bitmap index kung-fu)
-- ~~having stored with at least file-json and lmdb backends ready, blocked by the previous point~~
-- Having a working ff extension ready. Here the work is maybe 70% completed
-
-<br />
-
 ## Installation instructions
 
-Install the developer-friendly and currently the only  version
-```
+Install the developer-friendly and currently the only version
+
+```bash
 $ git clone git@github.com:idncsk/canvas.git
 $ cd canvas/app
 $ npm install
-$ npm run canvas
-# Optionally, add canvas/bin to your $PATH
+$ npm run canvas # Electron UI
+$ npm run server # Server backend only
+$ npm run repl
 ```
 
-For **portable** use, download and extract nodejs and electron into the canvas/runtime folder
-- Symlink electron-vNN-linux-x64 to electron-linux-x64
-- Symlink node-vNN-linux-x64 to node-linux-x64
-
-To install the firefox browser extension:
+(Optional): Add ``canvas/bin`` to your ``$PATH``  
+(Optional): For a bare-bones bash client, source ``extensions/shell/context.sh``  
+(Optional): To install the firefox browser extension:  
 
 - Open your browser and navigate to
 **about:debugging#/runtime/this-firefox**
 - Click on "Load Temporary Add-on"
 - Navigate to canvas/ext/browser/firefox
 
-To install the bashrc wrapper:
-- Update your ~/.bashrc to source ``/path/to/canvas/ext/bash/context.sh``
+For **portable** use, download and extract nodejs and electron into the canvas/runtime folder
+
+- Symlink electron-vNN-linux-x64 to electron-linux-x64
+- Symlink node-vNN-linux-x64 to node-linux-x64
+- Remove user/.ignore
 
 <br />
 
@@ -168,7 +153,17 @@ To install the bashrc wrapper:
 
 Global app config: ``canvas/config``
 Default user home for portable use: ``canvas/user``
-default user home: ``$HOME/.canvas``
+default user home: ``$HOME/.canvas``  
+
+Environment variables:
+
+- CANVAS_USER_HOME
+- CANVAS_USER_CACHE: Remnant from my custom linux distro times [iolinux]portable containerized "roaming" user env you'd "dock" to a iolinux host system with an optional per-user zfs data-set for cache
+- CANVAS_USER_CONFIG
+- CANVAS_USER_DATA
+- CANVAS_USER_VAR
+- NODE_ENV
+- LOG_LEVEL
 
 <br />
 
@@ -187,9 +182,9 @@ TODO
 
 ## Social
 
-I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions(usually ~5AM - 6AM CEST). Wouldn't watch any of the existing videos _yet_, mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless.
+I'm trying to motivate myself to do daily code updates by doing not-yet-but-soon-to-be live coding sessions(~~usually ~5AM - 6AM CEST~~). Wouldn't watch any of the existing videos _yet_, mostly OBS audio tests and a showcase of sleep deprivation, but you can subscribe for updates nevertheless.
 
-YT Channel + Some (royalty-free) music
+YT Channel + Some (royalty-free) music used in my videos
 - https://www.youtube.com/@idnc.streams
 - https://soundcloud.com/idnc-sk/sets
 
@@ -201,13 +196,14 @@ YT Channel + Some (royalty-free) music
 - **By contributing to the codebase**
 - **By testing the application and reporting bugs**
 - By subscribing to the YT channel above
+- By sponsoring some quality coffee via
+  - <https://opencollective.com/idncsk>
+  - <https://www.buymeacoffee.com/idncsk>
+- **Or**, since I need ~200EUR/MD to work on this project in a official part-time setup, by a monthly recurring payment of 10EUR (I tolerate some margin of error:) to IBAN: SK95 8330 0000 0023 0250 2806
 
-  **or**, by sponsoring some quality coffee via
-- <https://opencollective.com/idncsk>
-- <https://www.buymeacoffee.com/idncsk>
-- A monthly recurring payment of 1EUR (I tolerate some margin of error:) to IBAN SK95 8330 0000 0023 0250 2806
+For enterprise features (AAD integration, custom storage backends, integration with github, jira, msteams) there is always a one-time setup + a monthly maintenance cost involved to cover the added overhead.
 
-Any suggestions welcome ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a non-programmer this is really appreciated!
+**Any suggestions welcome** ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a non-programmer this is really appreciated!
 
 
 Thank you!
