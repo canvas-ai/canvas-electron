@@ -97,32 +97,41 @@ const env = {
 
 }
 
-
-// Update process env vars
-process.title = `${pkg.productName} | v${pkg.version}`
-Object.assign(process.env, {
-
+// Generate ini file (needed for non-nodejs processes)
+// TODO: Rework
+const INI = {
+    // App
+    CANVAS_APP_NAME: env.APP.name,
+    CANVAS_APP_VERSION: env.APP.version,
+    CANVAS_APP_DESCRIPTION: env.APP.description,
+    CANVAS_APP_LICENSE: env.APP.license,
+    CANVAS_APP_PORTABLE: env.APP.isPortable,
+    CANVAS_PATHS_ROOT: env.APP.paths.root,
+    CANVAS_PATHS_HOME: env.APP.paths.home,
+    CANVAS_PATHS_CONFIG: env.APP.paths.config,
+    CANVAS_PATHS_VAR: env.APP.paths.var,
+    // User
+    CANVAS_PATHS_USER_HOME: env.USER.paths.home,
+    CANVAS_PATHS_USER_CONFIG: env.USER.paths.config,
+    CANVAS_PATHS_USER_CACHE: env.USER.paths.cache,
+    CANVAS_PATHS_USER_DATA: env.USER.paths.data,
+    CANVAS_PATHS_USER_VAR: env.USER.paths.var,
+    // Process PID
+    CANVAS_PID: env.PID,
+    // Transport
+    CANVAS_SOCK_IPC: env.IPC,
     // Developer settings
     NODE_ENV: process.env.NODE_ENV || 'development',
     LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
+}
 
-    // App
-    CANVAS_APP_ROOT: APP_ROOT,
-    CANVAS_APP_CONFIG: APP_CONFIG,
-    CANVAS_APP_VAR: APP_VAR,
+// Updates .env
+generateDotenvFile(INI, path.join(APP_HOME, '.env'))
 
-    // User
-    CANVAS_USER_HOME: USER_HOME,
-    CANVAS_USER_CONFIG: USER_CONFIG,
-    CANVAS_USER_CACHE: USER_CACHE,
-    CANVAS_USER_DATA: USER_DATA,
-    CANVAS_USER_VAR: USER_VAR,
-
-    // System
-    CANVAS_PID: env.PID,
-    CANVAS_SOCK_IPC: env.IPC
-
-});
+// Update process env vars
+// We could just run require('dotenv').config() at this point
+process.title = `${pkg.productName} | v${pkg.version}`
+Object.assign(process.env, {...INI});
 
 module.exports = env
 
@@ -133,4 +142,37 @@ module.exports = env
 
 function getUserHome() {
     return (isPortable) ? path.join(APP_ROOT, 'user') : path.join(os.homedir(), ".canvas");
+}
+
+async function ensureDirExists(dirPath) {
+    try {
+        await fs.mkdir(dirPath, { recursive: true });
+    } catch (err) {
+        if (err.code !== 'EEXIST') throw err;
+    }
+}
+
+/*
+// Usage
+ensureDirExists(dirPath).then(() => {
+    // Directory created
+}).catch(err => {
+    console.error('Failed to create directory', err);
+});
+*/
+
+function generateDotenvFile(iniVars, filePath) {
+
+    let iniContent = '';
+
+    Object.keys(iniVars).forEach((key) => {
+        let value = iniVars[key];
+        if (typeof value === 'object') {
+            value = JSON.stringify(value);
+        }
+
+        iniContent += `${key}="${value}"\n`;
+    });
+
+    fs.writeFileSync(filePath, iniContent);
 }

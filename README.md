@@ -151,14 +151,14 @@ For **portable** use, download and extract nodejs and electron into the canvas/r
 
 ## Configuration paths
 
-Global app config: ``canvas/config``
-Default user home for portable use: ``canvas/user``
+Global app config: ``canvas/config``  
+Default user home for portable use: ``canvas/user``  
 default user home: ``$HOME/.canvas``  
 
 Environment variables:
 
 - CANVAS_USER_HOME
-- CANVAS_USER_CACHE: Remnant from my custom linux distro times [iolinux]portable containerized "roaming" user env you'd "dock" to a iolinux host system with an optional per-user zfs data-set for cache
+- CANVAS_USER_CACHE: Remnant from my custom linux distro times [iolinux] - a portable containerized "roaming" iolinux user env that you'd "dock" to a iolinux host system with an (optional) per-user zfs data-set for cache
 - CANVAS_USER_CONFIG
 - CANVAS_USER_DATA
 - CANVAS_USER_VAR
