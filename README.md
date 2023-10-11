@@ -199,7 +199,7 @@ YT Channel + Some (royalty-free) music used in my videos
 - By sponsoring some quality coffee via
   - <https://opencollective.com/idncsk>
   - <https://www.buymeacoffee.com/idncsk>
-- **Or**, since I need ~200EUR/MD to work on this project in a official part-time setup, by a monthly recurring payment of 10EUR (I tolerate some margin of error:) to IBAN: SK95 8330 0000 0023 0250 2806
+- **Or**, since I need ~200EUR/MD to work on this project in a official part-time setup(stop saying open-source is free, it's not), by a monthly recurring payment of 10EUR (I tolerate some margin of error:) to IBAN: SK95 8330 0000 0023 0250 2806
 
 For enterprise features (AAD integration, custom storage backends, integration with github, jira, msteams) there is always a one-time setup + a monthly maintenance cost involved to cover the added overhead.
 
