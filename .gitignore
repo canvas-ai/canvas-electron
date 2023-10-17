@@ -7,9 +7,11 @@
 !/config/.keep
 
 ## Var directories
-/var/log/**
-/var/run/**
-/var/tmp/**
+/var/**
+!/var/.keep
+#/var/log/**
+#/var/run/**
+#/var/tmp/**
 
 ## Portable runtimes
 /runtime/**

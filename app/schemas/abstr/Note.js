@@ -13,14 +13,6 @@ class Note extends Document {
             ...params,
             type: DOCUMENT_SCHEMA_TYPE,
         })
-
-        if (!params.content) {
-            throw new Error('Note content is a mandatory parameter');
-        }
-
-        // Set document defaults
-        data.title = params.title || 'Canvas | Note';
-        data.content = params.content || 'Note content';
     }
 
     static toJSON() {

@@ -18,9 +18,9 @@ Canvas is a cross-platform desktop overlay to help organize my work / workflows 
 
 Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all the unstructured information fighting for my attention on a default desktop setup(emails, notifications, chat messages, always growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).  
 
-A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate whatever structure is needed to get more productive:
+A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate whatever structure is needed to be productive:
 
-```
+```plain
 universe://
     /Work
         /AirBnB
@@ -80,7 +80,7 @@ will return all reports indexed ("linked") by the bitmap index of the "reports" 
 
 You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer ("reports" for example), leaving the larger context(layer order) handle the filtering for you.  
 
-This setup enables having the same data accessible through different, even ad-hoc and/or temporary "filesystem-like" context trees:  
+This setup enables having the same data accessible through different, ad-hoc "filesystem-like" context paths:  
 ``universe://photos/2023/06``  
 ``universe://home/inspirations/kitchens``  
 ``universe://travel/Spain/2023``  
@@ -106,16 +106,16 @@ There are 5 layer types:
 
 Some of the technologies used in no particular order:
 
-- Roaring bitmaps
-- lmdb
-- nedb (to keep part of the data easily readable and editable as local JSON files)
-- FlexSearch
-- express.js
-- socket.io
-- webdavd 
-- cacache
-- vLLM
-- electron
+- [Roaring bitmaps](https://roaringbitmap.org/)
+- [LMDB](https://www.npmjs.com/package/lmdb) - Main in-process KV db backend for storing document metadata and indexes(originally leveldb)
+- nedb - For keeping part of the index data(context tree, layers) easily readable and editable as local JSON files
+- FlexSearch - Fulltext search index, to-be replaced with ..bitmap indexes :)
+- express.js - RestAPI and some of the UI elements like shared Workspaces or Canvases
+- socket.io - Evaluated zeromq, wrote a custom nodejs net.ipc module(currently at services/\_old\_/net-ipc), currently socket.io
+- webdavd - Canvas based dynamic Desktop and Downloads folders
+- cacache - Integral part of storeD for caching remote data locally
+- vLLM - Currently evaluating as the LLM backend
+- electron - Well ..should be easy enough to migrate to a more lightweight solution later on
 
 <br />
 
@@ -151,16 +151,17 @@ For **portable** use, download and extract nodejs and electron into the canvas/r
 
 ## Configuration paths
 
-Global app config: ``canvas/config``
-Default user home for portable use: ``canvas/user``
+Global app config: ``canvas/config``  
+Default user home for portable use: ``canvas/user``  
 default user home: ``$HOME/.canvas``  
 
 Environment variables:
 
 - CANVAS_USER_HOME
-- CANVAS_USER_CACHE: Remnant from my custom linux distro times [iolinux]portable containerized "roaming" user env you'd "dock" to a iolinux host system with an optional per-user zfs data-set for cache
+- CANVAS_USER_CACHE: Remnant from my custom linux distro times ([iolinux](https://iolinux.org) - a portable containerized "roaming" iolinux user env that you'd "dock" to a iolinux host system with an (optional) per-user zfs data-set for cache)
 - CANVAS_USER_CONFIG
 - CANVAS_USER_DATA
+- CANVAS_USER_DB
 - CANVAS_USER_VAR
 - NODE_ENV
 - LOG_LEVEL
@@ -195,13 +196,11 @@ YT Channel + Some (royalty-free) music used in my videos
 
 - **By contributing to the codebase**
 - **By testing the application and reporting bugs**
-- By subscribing to the YT channel above
+- By subscribing to the YT channel above (motivation++)
 - By sponsoring some quality coffee via
   - <https://opencollective.com/idncsk>
   - <https://www.buymeacoffee.com/idncsk>
-- **Or**, since I need ~200EUR/MD to work on this project in a official part-time setup, by a monthly recurring payment of 10EUR (I tolerate some margin of error:) to IBAN: SK95 8330 0000 0023 0250 2806
-
-For enterprise features (AAD integration, custom storage backends, integration with github, jira, msteams) there is always a one-time setup + a monthly maintenance cost involved to cover the added overhead.
+- **Or**, since I'd like to work on this project in an official part-time setup(stop saying open-source is free, it's not), by a monthly recurring payment of 10EUR (I tolerate some margin of error:) to IBAN: SK95 8330 0000 0023 0250 2806
 
 **Any suggestions welcome** ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a non-programmer this is really appreciated!
 
