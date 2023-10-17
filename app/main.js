@@ -70,7 +70,7 @@ class Canvas {
          */
 
         this.db = new Db({
-            path: path.join(USER.paths.home, 'db'),
+            path: path.join(USER.paths.db),
             compression: false,
         })
 
@@ -179,16 +179,6 @@ class Canvas {
 
     status() { return this.status; }
     stats() { return []; }
-
-    /**
-     * Service
-     */
-
-    #initializeServices(arr) {
-        arr.forEach((name) => {
-            this.services.initializeService(name)
-        })
-    }
 
     /**
      * Context

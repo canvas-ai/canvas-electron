@@ -21,7 +21,7 @@ class Db {
     // Default "root" dataset
     #dataset = "/";
 
-    // TODO: Versioning support
+    // TODO: Wrap versioning support
     constructor(options, dataset) {
 
         // Parse input arguments
@@ -96,7 +96,7 @@ class Db {
 
     has(key) { return this.db.doesExist(key); } // always returns bool
 
-    keys() { return this.db.getKeys(); }
+    keys(...opts) { return this.db.getKeys(opts); }
 
     values() { return this.db.getValues(); }
 

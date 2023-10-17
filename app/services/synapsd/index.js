@@ -58,12 +58,12 @@ class SynapsD extends EE {
         })
 
         if (options.db) {
-            this.#db = options.db
+            this.db = options.db
         } else {
             // Validate options
             if (!options.path) throw new Error('Database path is required')
             // Initialize the database backend
-            this.#db = new Db({
+            this.db = new Db({
                 path: options.path,
                 maxDbs: options.maxDbs || 32
             })

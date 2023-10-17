@@ -59,6 +59,7 @@ const USER_HOME = process.env['CANVAS_USER_HOME'] || getUserHome()
 const USER_CACHE = process.env['CANVAS_USER_CACHE'] || path.join(USER_HOME, 'cache')
 const USER_CONFIG = process.env['CANVAS_USER_CONFIG'] || path.join(USER_HOME, 'config')
 const USER_DATA = process.env['CANVAS_USER_DATA'] || path.join(USER_HOME, 'data')
+const USER_DB = process.env['CANVAS_USER_DB'] || path.join(USER_HOME, 'db')
 const USER_VAR = process.env['CANVAS_USER_VAR'] || path.join(USER_HOME, 'var')
 
 // Collect all ENV constants
@@ -71,20 +72,21 @@ const env = {
         isElectron,
         isPortable,
         paths: {
-            root: APP_ROOT,
-            home: APP_HOME,
-            config: APP_CONFIG,
-            var: APP_VAR
+            root: APP_ROOT,         // Path/to/canvas
+            home: APP_HOME,         // APP_ROOT/app
+            config: APP_CONFIG,     // APP_ROOT/config
+            var: APP_VAR            // APP_ROOT/var
         }
     },
 
     USER: {
         paths: {
-            home: USER_HOME,
-            config: USER_CONFIG,
-            cache: USER_CACHE,
-            data: USER_DATA,
-            var: USER_VAR
+            home: USER_HOME,        // Path/to/canvas/user || ~/.canvas
+            config: USER_CONFIG,    // USER_HOME/config
+            cache: USER_CACHE,      // USER_HOME/cache
+            data: USER_DATA,        // USER_HOME/data
+            db: USER_DB,            // USER_HOME/db
+            var: USER_VAR           // USER_HOME/var
         }
     },
 
@@ -115,6 +117,7 @@ const INI = {
     CANVAS_PATHS_USER_CONFIG: env.USER.paths.config,
     CANVAS_PATHS_USER_CACHE: env.USER.paths.cache,
     CANVAS_PATHS_USER_DATA: env.USER.paths.data,
+    CANVAS_PATHS_USER_DB: env.USER.paths.db,
     CANVAS_PATHS_USER_VAR: env.USER.paths.var,
     // Process PID
     CANVAS_PID: env.PID,
@@ -152,14 +155,12 @@ async function ensureDirExists(dirPath) {
     }
 }
 
-/*
-// Usage
+/* 
 ensureDirExists(dirPath).then(() => {
-    // Directory created
+    // ..
 }).catch(err => {
     console.error('Failed to create directory', err);
-});
-*/
+}); */
 
 function generateDotenvFile(iniVars, filePath) {
 
