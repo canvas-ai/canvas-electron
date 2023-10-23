@@ -2,24 +2,25 @@
  * Canvas main()
  */
 
-
 // Environment variables
 const {
     APP,
     USER,
-    DEVICE
+    DEVICE,
+    PID,
+    IPC
 } = require('./env.js');
 
 // Utils
 const path = require('path');
 const debug = require('debug')('canvas-main'); // TODO: Replace with logger
-const Config = require('./utils/config')
-const Log = require('./utils/logger')
+const Config = require('./utils/config');
+const Log = require('./utils/logger');
 
 // Core service backends
-const Db = require('./services/db')
-const StoreD = require('./services/stored')
-const SynapsD = require('./services/synapsd')
+const Db = require('./services/db');
+const StoreD = require('./services/stored');
+const SynapsD = require('./services/synapsd');
 
 // Manager classes
 const AppManager = require('./managers/app');
@@ -31,8 +32,8 @@ const UserManager = require('./managers/user');
 const IdentityManager = require('./managers/peer');
 
 // Context
-const ContextTree = require('./context/lib/Tree.js')
-const Context = require('./context')
+const ContextTree = require('./context/lib/Tree.js');
+const Context = require('./context');
 
 
 /**
@@ -47,7 +48,7 @@ class Canvas {
         enableUserRoles: false
     }) {
 
-        debug('Initializing Canvas')
+        debug('Initializing Canvas');
 
         /**
          * Utils
@@ -93,9 +94,9 @@ class Canvas {
          */
 
         // Canvas globals
-        this.services = new ServiceManager()
-        this.roles = new RoleManager()
-        this.apps = new AppManager()
+        this.services = new ServiceManager();
+        this.roles = new RoleManager();
+        this.apps = new AppManager();
         //this.devices = new DeviceManager()
         //this.identities = new IdentityManager()
 

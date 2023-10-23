@@ -8,10 +8,9 @@
 // Utils
 const debug = require('debug')('canvas-svc-restapi')
 
-// Config
-const config = require('../../../config/jsonapi-server.json')
 // Canvas service "interface"
-const Service = require('../../base/Service');
+//const Service = require('../../base/Service');
+const Service = require('../../../managers/service/lib/Service');
 
 // Services
 const express = require('express');
@@ -44,10 +43,10 @@ const bitmapRoutes = require('./routes/bitmaps');
 
 
 // Constants, to be moved to config
-const DEFAULT_PROTOCOL = config.protocol || 'http'
-const DEFAULT_HOST = config.host || '127.0.0.1'
-const DEFAULT_PORT = config.port || 3000
-const API_KEY = config.key || 'canvas-json-api';
+const DEFAULT_PROTOCOL = 'http'
+const DEFAULT_HOST = '127.0.0.1'
+const DEFAULT_PORT = 3000
+const API_KEY = 'canvas-json-api'
 
 // Middleware function to validate the API key
 const validateApiKey = (req, res, next) => {
@@ -62,17 +61,21 @@ const validateApiKey = (req, res, next) => {
 
 class ExpressService extends Service {
 
+    #protocol;
+    #host;
+    #port;
+
     constructor(options = {}) {
         super(options);
-
         this.server = null;
+
+        this.#protocol = options.protocol || DEFAULT_PROTOCOL;
+        this.#host = options.host || DEFAULT_HOST;
+        this.#port = options.port || DEFAULT_PORT;        
 
         this.context = options.context;
         this.index = options.index;
 
-        this.options.protocol = options.protocol || DEFAULT_PROTOCOL;
-        this.options.host = options.host || DEFAULT_HOST;
-        this.options.port = options.port || DEFAULT_PORT;
     }
 
     async start() {
@@ -99,10 +102,10 @@ class ExpressService extends Service {
         }, schemasRoutes);
 
         await new Promise((resolve, reject) => {
-            this.server.listen(this.options.port, resolve).on('error', reject);
+            this.server.listen(this.#port, resolve).on('error', reject);
         });
 
-        console.log(`REST API listening at ${this.options.protocol}://${this.options.host}:${this.options.port}`);
+        console.log(`REST API listening at ${this.#protocol}://${this.#host}:${this.#port}`);
         super.start();
     }
 

@@ -1,12 +1,4 @@
-'use strict'
-
-
-/**
- * ws-gui-electron\Utils\WindowManager
- * wm needs to be called from within the electron master process
- * via remote.require()
- */
-
+// 
 const { 
     BrowserWindow,
     screen  
@@ -111,7 +103,9 @@ class WindowManager {
         return localShortcut.unregister(this.activeWindows.get(id), shortcut)
     }
 
-    unregisterAllShortcuts(id) { return localShortcut.unregisterAll(this.activeWindows.get(id))}
+    unregisterAllShortcuts(id) { 
+        return localShortcut.unregisterAll(this.activeWindows.get(id))
+    }
 
     enableAllShortcuts(id) { return localShortcut.enableAll(this.activeWindows.get(id)) }
 
