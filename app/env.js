@@ -8,7 +8,7 @@ const fs = require('fs')
 const os = require('os')
 const pkg = require('./package.json')
 const isElectron = require('is-electron')()
-const device = require('./managers/device')
+const device = require('./managers/device').getCurrentDevice()
 
 
 /**

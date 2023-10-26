@@ -52,10 +52,10 @@ class Context extends EE {
         this.canvas = canvas
 
         // TODO: Rework?
-        this.#index = cm.index
-        this.#storage = cm.storage
-        this.#tree = cm.tree
-        this.#layerIndex = cm.tree.layers
+        this.#index = canvas.synapsd
+        this.#storage = canvas.stored
+        this.#tree = canvas.tree
+        this.#layerIndex = canvas.tree.layers
 
         // Per context
         this.apps = {}

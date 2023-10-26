@@ -40,8 +40,8 @@ class Tree extends EventEmitter {
         this.root = new TreeNode('/', rootLayer)
 
         // Initialize indexes
-        this.#dbtree = new TreeIndex(treePath)
-        this.#dblayers = new LayerIndex(layerPath)
+        this.#dbtree = new TreeIndex(options.treePath)
+        this.#dblayers = new LayerIndex(options.layerPath)
 
         // Load tree from the database
         if (this.load()) {

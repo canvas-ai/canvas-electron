@@ -9,7 +9,6 @@ const ip = require("ip");
 
 class Device {
 
-
   constructor() {
     this.id = machineIdSync(true).substr(0, 11);
     this.endianness = os.endianness();
@@ -50,8 +49,18 @@ class Device {
 
 }
 
+class DeviceManager {
 
-module.exports = new Device();
+  constructor() {}
+
+  static getCurrentDevice() {
+    return new Device();
+  }
+
+}
+
+module.exports = DeviceManager;
+
 
 function getActiveIP() {
   let nets = require("os").networkInterfaces();
