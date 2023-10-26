@@ -31,7 +31,8 @@ const RoleManager = require('./managers/role');
 const ServiceManager = require('./managers/service');
 const SessionManager = require('./managers/session');
 const UserManager = require('./managers/user');
-//const IdentityManager = require('./managers/peer');
+const IdentityManager = require('./managers/peer');
+const DeviceManager = require('./managers/device');
 
 // Context
 const Tree = require('./context/lib/Tree');
@@ -110,7 +111,7 @@ class Canvas extends EventEmitter {
         //this.services = new ServiceManager();
         //this.roles = new RoleManager();
         //this.apps = new AppManager();
-        //this.devices = new DeviceManager();
+        this.devices = new DeviceManager();
         //this.users = new UserManager();
         //this.identities = new IdentityManager()
         //this.peers = new PeerManager();
@@ -155,6 +156,7 @@ class Canvas extends EventEmitter {
 
         // TODO: Return a IPC connection instead
         if (this.isInitialized && this.isMaster) throw new Error('Application already running')
+        this.status = 'starting'
 
         this.setupProcessEventListeners()
         await this.initializeServices()
@@ -166,17 +168,12 @@ class Canvas extends EventEmitter {
         this.status = 'running'
 
         this.emit('start')
-
-    }
-
-    async restart() {
-        debug('Restarting Canvas..');
-        await this.shutdown(false)
-        await this.start()
     }
 
     async shutdown(exit = true) {
         if (exit) debug('Shutting down Canvas');
+        this.emit('before-shutdown')
+        this.status = 'stopping'
 
         try {
             //if (this.session) await this.session.save();
@@ -190,6 +187,13 @@ class Canvas extends EventEmitter {
             console.error('Error during shutdown:', error);
             process.exit(1);
         }
+    }
+
+    async restart() {
+        debug('Restarting Canvas..');
+        this.emit('restart')
+        await this.shutdown(false)
+        await this.start()
     }
 
     status() { return this.status; }
@@ -250,20 +254,20 @@ class Canvas extends EventEmitter {
 
     createContext(url, options = {}) {
         let context = new Context(url, this, options)
-        this.contexts.set(context.id, context)
+        this.activeContexts.set(context.id, context)
         return context
     }
 
     removeContext(id) {
-        let context = this.contexts.get(id)
+        let context = this.activeContexts.get(id)
         if (context) {
             context.destroy()
-            this.contexts.delete(id)
+            this.activeContexts.delete(id)
         }
     }
 
     listContexts() {
-        return this.contexts.values()
+        return this.activeContexts.values()
     }
 
 

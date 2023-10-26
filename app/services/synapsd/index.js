@@ -180,7 +180,7 @@ class SynapsD extends EE {
 
         // Update internal indexes
         let updateHash2oid = this.hash2oid.put(parsed.hashes.sha1, parsed.id)
-        let updateUniverse = this.#db.put(parsed.id, parsed)
+        let updateUniverse = this.db.put(parsed.id, parsed)
 
         // Update bitmaps
         let tickContextArrayBitmaps = this.#tickContextArrayBitmapsSync(contextArray, parsed.id)
@@ -204,9 +204,9 @@ class SynapsD extends EE {
 
         let res;
         if (ids.length === 1) {
-            res = this.#db.get(ids[0]); //sync
+            res = this.db.get(ids[0]); //sync
         } else {
-            res = await this.#db.getMany(ids);
+            res = await this.db.getMany(ids);
         }
 
         if (cb) { cb(null, res); }
@@ -217,7 +217,7 @@ class SynapsD extends EE {
     getDocumentByHash(hash) {
         let id = this.hash2oid.get(hash)
         if (!id) return null
-        return this.#db.get(id)
+        return this.db.get(id)
     }
 
     async listDocuments(contextArray = [], featureArray = []) {
@@ -226,7 +226,7 @@ class SynapsD extends EE {
         let documents = []
 
         if (!contextArray.length && !featureArray.length) {
-            documents = this.#db.list()
+            documents = this.db.list()
             return documents
         }
 
@@ -239,7 +239,7 @@ class SynapsD extends EE {
         let result = BitmapManager.addBitmaps([calculatedContextBitmap, calculatedFeatureBitmap])
         debug('Result IDs', result.toArray())
 
-        documents = await this.#db.getMany(result.toArray())
+        documents = await this.db.getMany(result.toArray())
         debug('Documents', documents)
 
         return documents
@@ -330,21 +330,21 @@ class SynapsD extends EE {
 
     // Generate a new document ID
     #genDocumentID() {
-        let id = this.#db.getKeysCount() + 1000
+        let id = this.db.getKeysCount() + 1000
         return id++
     }
 
     #tickContextArrayBitmapsSync(bitmapIdArray = [], id) {
         for (const context of bitmapIdArray) {
             debug(`Updating bitmap for context ID "${context}"`);
-            this.contextBitmaps.tick(context, id);
+            //this.contextBitmaps.tick(context, id);
         }
     }
 
     #tickFeatureArrayBitmapsSync(bitmapIdArray = [], id) {
         for (const feature of bitmapIdArray) {
             debug(`Updating bitmap for feature ID "${feature}"`)
-            this.featureBitmaps.tick(feature, id)
+            //this.featureBitmaps.tick(feature, id)
         }
     }
 

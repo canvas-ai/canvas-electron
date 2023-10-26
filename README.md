@@ -2,7 +2,7 @@
 <br />
 
 <p align="center">
-    <img src="app/ui/assets/logo_1024x1024.png" alt="Canvas Logo" width="96px">
+    <img src="https://raw.githubusercontent.com/idncsk/canvas-ui-electron/main/assets/logo_256x256.png" alt="Canvas Logo" width="96px">
 </p>
 
 <br />
