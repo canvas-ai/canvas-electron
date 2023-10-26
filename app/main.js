@@ -142,11 +142,17 @@ class Canvas extends EventEmitter {
         this.activeContexts = new Map();
 
         // App State
-        this.isInitialized = false
         this.isMaster = true
         this.status = 'stopped'
 
     }
+
+    // getters
+    static get version() { return APP.version; }
+    static get paths() { return APP.paths; }
+    get pid() { return this.PID; }
+    get ipc() { return this.IPC; }
+
 
     /**
      * Canvas service controls
@@ -154,8 +160,7 @@ class Canvas extends EventEmitter {
 
     async start() {
 
-        // TODO: Return a IPC connection instead
-        if (this.isInitialized && this.isMaster) throw new Error('Application already running')
+        if (this.status == 'running' && this.isMaster) throw new Error('Application already running')
         this.status = 'starting'
 
         this.setupProcessEventListeners()
@@ -164,9 +169,7 @@ class Canvas extends EventEmitter {
         await this.initializeRoles()
         await this.initializeApps()
 
-        this.isInitialized = true
         this.status = 'running'
-
         this.emit('start')
     }
 
@@ -253,12 +256,16 @@ class Canvas extends EventEmitter {
      */
 
     createContext(url, options = {}) {
+        if (this.status != 'running') throw new Error('Application not running')
+
         let context = new Context(url, this, options)
         this.activeContexts.set(context.id, context)
         return context
     }
 
     removeContext(id) {
+        if (this.status != 'running') throw new Error('Application not running')
+
         let context = this.activeContexts.get(id)
         if (context) {
             context.destroy()
@@ -267,6 +274,7 @@ class Canvas extends EventEmitter {
     }
 
     listContexts() {
+        if (this.status != 'running') throw new Error('Application not running')
         return this.activeContexts.values()
     }
 
