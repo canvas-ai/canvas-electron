@@ -4,14 +4,17 @@
 const path = require('path')
 const Conf = require('conf') // Temporary
 
-// Trees are versioned in the database
+// TODO: Add tree versioning
 class TreeIndex extends Conf {
 
-    // TODO: Use a more sensible fallback location
-    constructor(userDataPath) {
+    constructor(filePath) {
 
-        let dataDir = path.dirname(userDataPath)
-        let configName = path.basename(userDataPath, ".json")
+        // Temporary leftover
+        if (!filePath) throw new Error('userDataPath is required')
+
+        // Conf workaround for now
+        let dataDir = path.dirname(filePath)
+        let configName = path.basename(filePath, ".json")
 
         super({
             configName: configName,
@@ -21,11 +24,15 @@ class TreeIndex extends Conf {
 
     putSync(key, value) { return this.set(key, value); }
 
-    next() {}
+    getSync(key) { return this.get(key); }
 
-    previous() {}
+    nextVersion() {}
+
+    previousVersion() {}
 
     listVersions() {}
+
+    diff(vID1, vID2) {}
 
 }
 

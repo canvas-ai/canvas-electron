@@ -110,15 +110,15 @@ class SynapsD extends EE {
 
 
 
-        this.cleanupQueue = new Bitmap()
+        //this.cleanupQueue = new Bitmap()
 
 
 
         // Main indexes (TODO: Rework)
-        this.hash2oid = this.#db.createDataset('hash2oid')
+        this.hash2oid = this.db.createDataset('hash2oid')
 
-        this.tIndexed2oid = this.#db.createDataset('tIndexed2oid')
-        this.tUpdated2oid = this.#db.createDataset('tUpdated2oid')
+        this.tIndexed2oid = this.db.createDataset('tIndexed2oid')
+        this.tUpdated2oid = this.db.createDataset('tUpdated2oid')
 
         // Bitmaps
         // [context]
@@ -145,7 +145,7 @@ class SynapsD extends EE {
         // Dynamic set (generated dynamically by the feature extracting functions
         // removed automatically if not used)
         // feature/d/data/abstr/email/somerandomfeature
-        this.bitmaps = this.#db.createDataset('bitmaps')
+        this.bitmaps = this.db.createDataset('bitmaps')
 
 
     }

@@ -7,9 +7,9 @@
 
 const Canvas = require("./main");
 const canvas = new Canvas();
-canvas.start('/');
+const context = canvas.createContext("/foo/bar/baz");
+console.log(context)
 
-const context = canvas.context;
 console.log(context.listDocuments());
 
 context.set('/foo/bar/baz')
