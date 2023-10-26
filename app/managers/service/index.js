@@ -5,9 +5,8 @@
  * Canvas Service manager
  *
  * TODO: This module should use fork() and some common IPC mechanism
- * to communicate with services(not node-ipc, maybe a custom one
- * or zeromq). To not get caught up in some custom node net-ipc
- * endeavor(again), I'll load all services in-process for now.
+ * OR pm2
+ * In general this is ugly and needs to be refactored
  */
 
 // Environment
@@ -19,33 +18,30 @@ const path = require("path");
 const fs = require('fs');
 const debug = require("debug")("canvas:service-manager")
 
-// Default options
-const defaultOptions = {
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
-};
-
 /**
  * Service Manager
  */
 
 class ServiceManager extends EventEmitter {
 
-    constructor(options = {
-        rootPath: path.join(APP.paths.home, 'services')
-    }) {
+    constructor(options = {}) {
 
         debug('Initializing Canvas Service Manager')
         super();
 
-        this.root = options.rootPath;
+        this.dirs = options.serviceDirs || [path.join(APP_ROOT, 'services')];
 
+        this.services = new Map();
         this.loadedServices = new Map();
         this.initializedServices = new Map();
+
+        this.scanServiceDirectories();
 
     }
 
     listServices() {
         return {
+            'all': Array.from(this.services.keys()),
             'loaded': this.listLoadedServices(),
             'initialized': this.listInitializedServices(),
             'running': this.listRunningServices()
@@ -73,7 +69,7 @@ class ServiceManager extends EventEmitter {
         }
 
         try {
-            let servicePath = path.join(this.root, name)
+            let servicePath = this.services.get(name);
             if (!fs.existsSync(servicePath)) throw new Error(`Service ${name} not found at path "${servicePath}"`)
             // Implement subfolder search for services/core
             const LoadedService = require(servicePath);
@@ -102,6 +98,20 @@ class ServiceManager extends EventEmitter {
             delete require.cache[modulePath];
         } catch (err) {
             console.error(`[unloadService] Failed to unload service '${name}': ${err}`);
+        }
+    }
+
+    scanServiceDirectories(dirs = this.dirs) {
+        for (let dir of dirs) {
+          debug(`[scanServices] Scanning services at path "${dir}"`);
+          const serviceDirs = fs.readdirSync(dir);
+          for (let svcDir of serviceDirs) {
+            const fullSvcDir = path.join(dir, svcDir); // get the full path
+            const stat = fs.statSync(fullSvcDir);
+            if (stat.isDirectory()) {
+              this.services.set(path.basename(fullSvcDir), fullSvcDir); // add to the Map
+            }
+          }
         }
     }
 
@@ -180,11 +190,11 @@ class ServiceManager extends EventEmitter {
 
     async reloadServiceFromDisk(name, ...options) {
         debug(`[reloadServiceFromDisk] Reloading service '${name}'`)
-        await this.stopService(name);  // Stop the service
-        this.unloadService(name);  // Unload the service
-        this.loadService(name);  // Load the service
-        this.initializeService(name, options);  // Initialize the service
-        this.startService(name);  // Start the service
+        await this.stopService(name);
+        this.unloadService(name);
+        this.loadService(name);
+        this.initializeService(name, options);
+        this.startService(name);
     }
 
     async loadInitializeAndStartService(name, ...options) {

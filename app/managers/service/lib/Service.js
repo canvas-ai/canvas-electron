@@ -30,19 +30,6 @@ class Service extends EventEmitter {
 
     }
 
-    async start() {
-        throw new Error("Method 'start' not implemented in subclass.");
-    }
-
-    async stop() {
-        throw new Error("Method 'stop' not implemented in subclass.");
-    }
-
-    async restart() {
-        await this.stop();
-        await this.start();
-    }
-
     // Added a setStatus to ensure only valid statuses can be set
     setStatus(status) {
         if (!SERVICE_STATUS_ARRAY.includes(status)) {

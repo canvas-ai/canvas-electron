@@ -58,7 +58,7 @@ if (args.help) {
   context.set('/foo')
   console.log(context.listDocuments());
 
-  canvas.shutdown();
+  //canvas.shutdown();
 
 })();
 
