@@ -6,6 +6,13 @@
 !/config/jsonapi-server.json
 !/config/.keep
 
+## App extensions
+/extensions/**
+!/extensions/.keep
+!/extensions/services/.keep
+!/extensions/roles/.keep
+!/extensions/apps/.keep
+
 ## Var directories
 /var/**
 !/var/.keep
@@ -30,6 +37,8 @@
 /.vscode
 /.fossil-settings
 /_SCRATCH_
+/_TODO_
+/_OLD_
 
 ## Documentation
 /docs/**

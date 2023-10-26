@@ -47,13 +47,6 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
-    "electron": "^26.2.2",
-    "electron-rebuild": "^3.2.9",
-    "electron-reload": "^2.0.0-alpha.1",
-    "electron-reloader": "^1.2.3",
     "jsdoc": "^4.0.2"
-  },
-  "engines": {
-    "node": ">=18.0.0 <21.0.0"
   }
 }
