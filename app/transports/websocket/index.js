@@ -1,74 +1,59 @@
-'use strict'
-
-
-/**
- * Simple socket.io server implementation
- * TODO: Rewrite all event listeners to "module:method", { data }, callback
- */
-
-
-// Canvas service interface
-const Service = require('../../base/Service');
+// Canvas service "interface"
+const Service = require('../../managers/service/lib/Service');
 
 // Utils
-const debug = require('debug')('canvas-service-socket.io')
+const debug = require('debug')('canvas-svc-websocket')
 const io = require('socket.io')
 
-// Config
-// TODO: Use canvas conf module
-const config = {}
-
 // Defaults
-const DEFAULT_PROTOCOL = config.protocol || 'http'
-const DEFAULT_HOST = config.host || '127.0.0.1'
-const DEFAULT_PORT = config.port || 3001
-const API_KEY = config.key || 'canvas-socket.io';
-
+const DEFAULT_PROTOCOL = 'http'
+const DEFAULT_HOST = '127.0.0.1'
+const DEFAULT_PORT = 3001
+const API_KEY = 'canvas-socketio';
 
 class SocketIoService extends Service {
 
+    #protocol;
+    #host;
+    #port;
+
     constructor(options = {}) {
         super(options);
-
         this.server = null;
+
+        this.#protocol = options.protocol || DEFAULT_PROTOCOL;
+        this.#host = options.host || DEFAULT_HOST;
+        this.#port = options.port || DEFAULT_PORT;
 
         this.context = options.context;
         this.index = options.index;
 
-        this.options.protocol = options.protocol || DEFAULT_PROTOCOL;
-        this.options.host = options.host || DEFAULT_HOST;
-        this.options.port = options.port || DEFAULT_PORT;
-
     }
 
     async start() {
-        return new Promise((resolve, reject) => {
+        this.server = io();
+        this.server.listen(this.#port, (err) => {
+            if (err) {
+                console.error("Error in server setup");
+                return;
+            }
 
-            this.server = io();
-            this.server.listen(this.options.port, (err) => {
-                if (err) {
-                    console.error("Error in server setup");
-                    reject(err);
-                    return;
-                }
+            console.log("Socket.io Server listening on Port", this.#port);
 
-                console.log("Socket.io Server listening on Port", this.options.port);
+            // Setup event listeners
+            this.server.on('connection', (socket) => {
+                console.log(`Client connected: ${socket.id}`);
+                setupSocketEventListeners(socket, this.context);
+                setupContextEventListeners(socket, this.context);
+                setupIndexEventListeners(socket, this.index, this.context);
 
-                // Setup event listeners
-                this.server.on('connection', (socket) => {
-                    console.log(`Client connected: ${socket.id}`);
-                    setupSocketEventListeners(socket, this.context);
-                    setupContextEventListeners(socket, this.context);
-                    setupIndexEventListeners(socket, this.index, this.context);
-
-                    socket.on('disconnect', () => {
-                        console.log(`Client disconnected: ${socket.id}`);
-                    });
+                socket.on('disconnect', () => {
+                    console.log(`Client disconnected: ${socket.id}`);
                 });
-
-                this.status = 'running';
-                resolve();
             });
+
+            this.status = 'running';
+
         });
     }
 
@@ -96,9 +81,9 @@ class SocketIoService extends Service {
         }
 
         return {
-            protocol: this.options.protocol,
-            host: this.options.host,
-            port: this.options.port,
+            protocol: this.#protocol,
+            host: this.#host,
+            port: this.#port,
             listening: true,
             connectedClients: clientsCount
         };

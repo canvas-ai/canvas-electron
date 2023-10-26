@@ -107,15 +107,41 @@ class Canvas extends EventEmitter {
          * Managers
          */
 
-        // Canvas globals
-        //this.services = new ServiceManager();
-        //this.roles = new RoleManager();
-        //this.apps = new AppManager();
-        this.devices = new DeviceManager();
-        //this.users = new UserManager();
-        //this.identities = new IdentityManager()
-        //this.peers = new PeerManager();
-        //this.session = new SessionManager();
+        this.services = new ServiceManager({
+            config: path.join(USER.paths.config, 'services.json'),
+            serviceDirs: [
+                path.join(APP.paths.home, 'services'),
+                path.join(APP.paths.home, 'transports')
+            ]
+        });
+
+        this.roles = new RoleManager({
+            config: path.join(USER.paths.config, 'roles.json')
+        });
+
+        this.apps = new AppManager({
+            config: path.join(USER.paths.config, 'apps.json')
+        });
+
+        this.devices = new DeviceManager({
+            config: path.join(USER.paths.config, 'devices.json')
+        });
+
+        /* this.users = new UserManager({
+            dbPath: path.join(USER.paths.db, 'users.json')
+        });
+
+        this.identities = new IdentityManager({
+            dbPath: path.join(USER.paths.config, 'identities.json')
+        });
+
+        this.peers = new PeerManager({
+            dbPath: path.join(USER.paths.db, 'peers.json')
+        });
+
+        this.session = new SessionManager({
+            dbPath: path.join(USER.paths.db, 'session.json')
+        }); */
 
         // TODO: Replace with session manager
         this.session = (options.sessionEnabled) ?
@@ -131,8 +157,8 @@ class Canvas extends EventEmitter {
 
         // Global objects shared with all contexts
         this.tree = new Tree({
-            treePath: path.join(USER.paths.home, 'tree.json'),
-            layerPath: path.join(USER.paths.home, 'layers.json')
+            treePath: path.join(USER.paths.db, 'tree.json'),
+            layerPath: path.join(USER.paths.db, 'layers.json')
         })
 
         this.layers = Tree.layers;
@@ -221,6 +247,17 @@ class Canvas extends EventEmitter {
      */
 
     async initializeTransports() {
+        // for (const transport of this.config.transports) {})
+        await this.services.loadInitializeAndStartService('rest', {
+            context: {},
+            index: this.synapsd
+        })
+
+        await this.services.loadInitializeAndStartService('websocket', {
+            context: {},
+            index: this.synapsd
+        })
+
         return true
     }
 

@@ -1,16 +1,8 @@
-'use strict'
-
-
-/**
- * Simple express.js JSON Rest API server
- */
+// Canvas service "interface"
+const Service = require('../../managers/service/lib/Service');
 
 // Utils
-const debug = require('debug')('canvas-svc-restapi')
-
-// Canvas service "interface"
-//const Service = require('../../base/Service');
-const Service = require('../../managers/service/lib/Service');
+const debug = require('debug')('canvas-svc-rest')
 
 // Services
 const express = require('express');
@@ -42,7 +34,7 @@ const indexRoutes = require('./routes/index');
 const bitmapRoutes = require('./routes/bitmaps');
 
 
-// Constants, to be moved to config
+// Defaults
 const DEFAULT_PROTOCOL = 'http'
 const DEFAULT_HOST = '127.0.0.1'
 const DEFAULT_PORT = 3000
@@ -106,7 +98,6 @@ class ExpressService extends Service {
         });
 
         console.log(`REST API listening at ${this.#protocol}://${this.#host}:${this.#port}`);
-        super.start();
     }
 
     async stop() {
@@ -122,7 +113,6 @@ class ExpressService extends Service {
             });
 
             this.server = null;
-            super.stop();
         }
     }
 
