@@ -10,7 +10,7 @@ const debug = require('debug')('canvas-svc-restapi')
 
 // Canvas service "interface"
 //const Service = require('../../base/Service');
-const Service = require('../../../managers/service/lib/Service');
+const Service = require('../../managers/service/lib/Service');
 
 // Services
 const express = require('express');
@@ -71,7 +71,7 @@ class ExpressService extends Service {
 
         this.#protocol = options.protocol || DEFAULT_PROTOCOL;
         this.#host = options.host || DEFAULT_HOST;
-        this.#port = options.port || DEFAULT_PORT;        
+        this.#port = options.port || DEFAULT_PORT;
 
         this.context = options.context;
         this.index = options.index;

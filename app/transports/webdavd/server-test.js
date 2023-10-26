@@ -4,7 +4,7 @@ const webdav = require('webdav-server').v2;
  * Canvas server
  */
 
-const Canvas = require("../../../main");
+const Canvas = require("../../main");
 const canvas = new Canvas();
 canvas.start();
 

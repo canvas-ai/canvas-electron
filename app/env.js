@@ -8,7 +8,7 @@ const fs = require('fs')
 const os = require('os')
 const pkg = require('./package.json')
 const isElectron = require('is-electron')()
-const device = require('./managers/Device')
+const device = require('./managers/device')
 
 
 /**
@@ -19,6 +19,7 @@ const device = require('./managers/Device')
  * ├── config
  * ├── user
  * ├── var
+ * |   ├── .env
  * |   ├── log
  * |   ├── run
  * |   |   ├── canvas-ipc.sock
@@ -129,7 +130,7 @@ const INI = {
 }
 
 // Updates .env
-generateDotenvFile(INI, path.join(APP_HOME, '.env'))
+generateDotenvFile(INI, path.join(APP_VAR, '.env'))
 
 // Update process env vars
 // We could just run require('dotenv').config() at this point
@@ -155,7 +156,7 @@ async function ensureDirExists(dirPath) {
     }
 }
 
-/* 
+/*
 ensureDirExists(dirPath).then(() => {
     // ..
 }).catch(err => {

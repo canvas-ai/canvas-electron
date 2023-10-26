@@ -1,28 +1,20 @@
 'use strict'
 
 
-/**
- * We are using JsonMap instead of LMDB/the Canvas DB backend
- * to be able to easily edit individual layers in a text editor
- * This is subject to change though
- */
+const path = require('path')
+//const Conf = require('conf')
 const JsonMap = require('../../utils/JsonMap')
 const Layer = require('./Layer')
 
+class LayerIndex  { //extends Conf {
 
-class LayerIndex {
-
-    // TODO: Use a more sensible fallback location
-    constructor(userDataPath) {
-        this.index = new JsonMap(userDataPath)
+    constructor(filePath) {
+        if (!filePath) throw new Error('filePath is required')
+        this.index = new JsonMap(filePath)
         this.nameToLayerMap = new Map()
         this.#initNameToLayerMap()
     }
 
-    // TODO: Update layer method, on that occasion
-    // #1 Remove 2 json maps, use only one + index
-    // #2 Integrate into #Tree
-    // #3 Eval integration with the main db backend
     has(id) { return this.hasLayerID(id); }
     hasLayerID(id) { return this.index.has(id); }
     hasLayerName(name) { return this.nameToLayerMap.has(name); }

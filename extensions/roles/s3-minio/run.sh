@@ -8,9 +8,8 @@ SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 # Load Canvas .env file
 set -o allexport
-source $SCRIPT_DIR/../../../app/.env
+source $SCRIPT_DIR/../../../var/.env
 set +o allexport
-
 
 
 # Prepare data and config directories for Minio

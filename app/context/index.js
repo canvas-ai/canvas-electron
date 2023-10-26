@@ -1,7 +1,7 @@
 // Utils
 const debug = require('debug')('canvas-context')
 const EE = require('eventemitter2')
-const { uuid12 } = require('../utils/uuid')
+const { uuid12 } = require('./lib/utils')
 
 // App includes
 const Url = require('./lib/Url')
@@ -57,7 +57,7 @@ class Context extends EE {
         this.#tree = cm.tree
         this.#layerIndex = cm.tree.layers
 
-        // Per context 
+        // Per context
         this.apps = {}
         this.device = {}
         this.user = {}

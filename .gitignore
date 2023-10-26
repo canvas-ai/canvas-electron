@@ -9,7 +9,6 @@
 ## App extensions
 /extensions/**
 !/extensions/.keep
-!/extensions/services/.keep
 !/extensions/roles/.keep
 !/extensions/apps/.keep
 
