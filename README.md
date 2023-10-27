@@ -16,35 +16,12 @@
 
 Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** - regardless of its type and location - into separate "contexts".
 
-Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all the unstructured information fighting for my attention on a default desktop setup(emails, notifications, chat messages, always growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).  
+Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all the unstructured information fighting for my attention on a default desktop setup(emails, notifications, chat messages, growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).  
 
 A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate whatever structure is needed to be productive:
 
 ```plain
 universe://
-    /Work
-        /AirBnB
-            /Atlas Apartment
-            /Fountainhead Apartment
-        /Cu$tomer A 
-                /Dev
-                    /JIRA-1234
-                    /JIRA-1237
-                /Reports
-                    /Compliance
-                        /2022
-                        /2023
-        /SaaS Startup FOO
-            /DC Frankfurt
-                /network
-                /hv
-        /Billing
-            /acme llc
-                /2022
-                /2023
-            /acme inc
-                /2023
-                    /08
     /Home
         /Music
         /Podcasts
@@ -70,7 +47,31 @@ universe://
     /Edu
         /AIT
         /Physics
+    /Work
+        /AirBnB
+            /Atlas Apartment
+            /Fountainhead Apartment
+        /Cu$tomer A 
+                /Dev
+                    /JIRA-1234
+                    /JIRA-1237
+                /Reports
+                    /Compliance
+                        /2022
+                        /2023
+        /SaaS Startup FOO
+            /DC Frankfurt
+                /network
+                /hv
+        /Billing
+            /acme llc
+                /2022
+                /2023
+            /acme inc
+                /2023
+                    /08        
 ```
+
 Context URL  
 ``universe://work/customer-a/reports``  
 will (presumably) return all reports for Customer A,  
@@ -85,12 +86,11 @@ This setup enables having the same data accessible through different, ad-hoc "fi
 ``universe://home/inspirations/kitchens``  
 ``universe://travel/Spain/2023``  
 ``universe://tasks/data-cleanup/2023/09``  
-For the above example, all contexts return (among other data) the same file `IMG_1234.jpg` - a picture of a nice kitchen from an airbnb we stayed at. As a bonus - regardless of where it is stored(the storage part is abstracted away via storeD). Same goes for tabs, notes or any other documents - including the entropy-rich content of your ~/Downloads and ~/Desktop folders.
-
+For the above example, all contexts return (among other data) the same file `IMG_1234.jpg` - a picture of a nice kitchen from an airbnb we stayed at. As a bonus - regardless of where it is stored(the storage part is abstracted away via storeD). Same goes for tabs, notes or any other documents - including the entropy-rich content of your ~/Downloads and ~/Desktop folders.  
 
 There are 5 layer types:
 
-- **Workspace**: Exportable, **shareable** collection of data sources and layers. By default, you start with an undifferentiated "universe". Workspaces in Canvas can have a primary color assigned. If they do, Canvas will automatically use gradients [of the primary workspace color] for individual data abstractions. This visual hint  makes searching through your universe easier .. and more fun. As you might have guessed, the default primary color of the universe is white(dispersive prisms are cool :)
+- **Workspace**: Exportable, **shareable** collection of data sources and layers. By default, you start with an undifferentiated "universe". Workspaces in Canvas can have a primary color assigned. If they do, Canvas will automatically use gradients [of the primary workspace color] for individual data abstractions. 
 
 - **Canvas**: A layer with multiple context, feature and/or filter bitmaps assigned that can optionally store Canvas UI layout and UI applet data.
 
@@ -99,6 +99,22 @@ There are 5 layer types:
 - **Filter**: Represents a single filter or feature bitmap*; example: ``universe://customer_a/:emails/:today``, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/datetime/today" filter.
 
 - **Label**: A noop layer with no context or feature bitmap links
+
+
+## Why Canvas you ask
+
+There are couple of motivating factors for this project:
+
+- I never really liked the "desktop" UI/UX, stacked nor tiled, and now [due to more mature libraries, better tooling in general, ai] it is finally feasible to experiment on my own implementation without burning 1/4 of an average human lifespan
+- I never liked the rigidness of a flat, "static" file system hierarchy, always wanted to have dynamic "views" on top of my data without unwanted duplication or too much manual symlinking effort(this dates back to 2007?, found out msft once worked on a similar - fs as a db - concept)
+- I kept collecting \_RESTORE\_ and \_TO\_SORT\_ folders within some random dirs of other \_TO\_SORT\_ folders, had data on a growing number of usb sticks, memory cards, <random cloud provider> instances and computers at work and in our household. I want to know where my rare-studio-recording-2008.mp3 is located("asus mp3 player", smb://nas.lan/some/random/folder, file://deviceid/foo/bar/baz/Downloads, timecapsule gps :)
+- I want to have a working "roaming profile" experience across all my devices running linux and windows. On linux, container-based applications I can freeze on logout/undock and unfreeze on a different linux machine(main motivation behind my iolinux distro experiment)
+- I want to easily discover peers, share files and collaborate on documents within a LAN
+- I want to use all my devices to work, export an application menu, toolbox or applet(music player of my HiFi-connected pc) to my phone or tablet, or a more practical example, have my Canvas timeline on my phone so that whenever I search for some emails or notes, I can easily use swipe and zoom gestures *on my phone* to zoom into the timeframe and filter out files I work on on my main workstation dynamically
+- Pin devices to specific workspaces or contexts(fe my work nb to universe://work) so I can trash my work-life balance even more
+- Related to a previous point, have all my data backed on multiple backends with fine-grained rules and policies with versioning support where I find necessary, have a working local cross-platform multi-backend caching solution
+- Have a personal AI assistant that can interact with the Canvas application, underlying OS and with my context-related data, that would learn and optimize to best cather for my workflows
+- Have the option to easily integrate other applications to make them context-aware(easier than to roll-out a custom browser, note taking app, todo app etc), kde/plasma activities were close but not close enough
 
 <br />
 
@@ -121,7 +137,17 @@ Some of the technologies used in no particular order:
 
 ## Installation instructions
 
-Install the developer-friendly and currently the only version
+### ! Current status: Bunch of modules most of them at most in a "draft" or test state
+
+### ! Slowly separating some of the modules into their own repos for easier maintainability
+
+- https://github.com/idncsk/canvas-ui-shell
+- https://github.com/idncsk/canvas-ui-node
+- https://github.com/idncsk/canvas-ui-firefox-ext
+- https://github.com/idncsk/canvas-ui-electron
+
+
+ #### Old *not working* Installation instructions:
 
 ```bash
 $ git clone git@github.com:idncsk/canvas.git
