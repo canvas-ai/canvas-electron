@@ -1,5 +1,5 @@
 {
-  "name": "canvas-service-stored",
+  "name": "canvas-role-stored",
   "version": "1.0.1",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,8 @@
   "dependencies": {
     "ajv": "^8.11.0",
     "cacache": "^17.0.2",
+    "chokidar": "^3.5.3",
+    "minio": "^7.1.3",
     "mmmagic": "^0.5.3",
     "tinybox": "0.0.0"
   }

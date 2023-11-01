@@ -30,10 +30,10 @@ const DOCUMENT_SCHEMAS = {
 
 
 /**
- * Canvas SynapsD
+ * Canvas IndexD
  */
 
-class SynapsD extends EE {
+class IndexD extends EE {
 
 
     #db
@@ -364,4 +364,4 @@ class SynapsD extends EE {
 
 }
 
-module.exports = SynapsD
+module.exports = IndexD

@@ -14,6 +14,11 @@ const Canvas = require('./main')
 const canvas = new Canvas();
 
 // Start
-(async () => {
+canvas.start()
+canvas.on('running', () => {
+  console.log('Canvas server started successfully.')
+})
+
+/*(async () => {
   await canvas.start();
-})();
+})();*/
