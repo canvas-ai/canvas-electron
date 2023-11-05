@@ -31,6 +31,7 @@ class Db {
                 readOnly: options.readOnly || false,
                 logLevel: options.logLevel || 'info',
                 compression: options.compression || true,
+                cache: options.cache || true,
                 ...options
             }
 
@@ -54,6 +55,14 @@ class Db {
 
     // Returns stats of the underlying database / dataset
     get stats() { return this.db.getStats(); }
+
+    list() {
+        let keys = [];
+        db.getKeys().forEach(element => {
+            keys.push(element)
+        });
+        return keys
+    }
 
     // Return the last inserted key-value pair
     last() {

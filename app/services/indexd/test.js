@@ -47,7 +47,7 @@ for (let i = 1; i <= 10000; i++) {
         },
         meta: {
             tags: ['test', i]
-        }    
+        }
     })
 
     fts.add(i, note)
@@ -56,8 +56,8 @@ for (let i = 1; i <= 10000; i++) {
 let text = 'note 33'
 
 console.log(fts.search(text));
-fts.export(function(key, data){ 
-    
+fts.export(function(key, data){
+
     // you need to store both the key and the data!
     // e.g. use the key for the filename and save your data
     console.log(key)

@@ -96,9 +96,11 @@ class Context extends EE {
     get featureArray() { return this.#featureArray; }
     get filterArray() { return this.#filterArray; }
 
-    get apps() { } // All apps | bitmap index | apps linked to context
+    // List all apps linked to this context
+    get apps() {}
+
+    // List all identities linked to this context
     get identities() {}
-    get devices() {}    
 
 
     /**
@@ -212,11 +214,11 @@ class Context extends EE {
      */
 
     query(
-        query, 
+        query,
         ctxArr = this.#contextArray,
-        ftArr = this.#featureArray, 
+        ftArr = this.#featureArray,
         filArr = this.#filterArray) {
-        
+
     }
 
 

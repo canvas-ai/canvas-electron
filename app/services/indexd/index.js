@@ -12,12 +12,10 @@ const Db = require('../db')
 
 // App includes
 const BitmapManager = require('./lib/BitmapManager')
-const Bitmap = require('./lib/Bitmap')
-const BitmapSet = require('./lib/BitmapSet')
 
 // Constants
 const MAX_DOCUMENTS = 4294967296 // 2^32
-const MAX_CONTEXTS = 65536 // 2^16
+const MAX_CONTEXTS = 1024 // 2^10
 const MAX_FEATURES = 65536 // 2^16
 const MAX_FILTERS = 65536 // 2^16
 const INTERNAL_BITMAP_ID_RANGE = 1000000
@@ -62,11 +60,10 @@ class IndexD extends EE {
                                     //and it has no listeners
         })
 
-        if (options.db) {
-            this.db = options.db
-        } else {
+        if (options.db) { this.db = options.db; } else {
             // Validate options
             if (!options.path) throw new Error('Database path is required')
+
             // Initialize the database backend
             this.db = new Db({
                 path: options.path,
@@ -74,29 +71,24 @@ class IndexD extends EE {
             })
         }
 
-        
         // Internal Bitmaps
-            // We reserve 2x 512k ID ranges for internal use
+        this.bmInternal = new BitmapManager(this.db, 'internal')
             // Apps
             // Roles
             // Devices
             // updateQueue
             // cleanupQueue
-            
-            this.bmInternal = new BitmapManager(this.db, 'internal')
-        
-        // Internal indexes 
+
+        // Internal indexes
         // Timeline <timestamp> | <action> | diff {path: [bitmap IDs]}
             // Action: create, update, delete
-        
+
         // HashMaps
         this.hash2oid = this.db.createDataset('hash2oid')
 
-        
-        
         // Contexts
-        this.bmContexts = new BitmapManager(this.db, 'contexts', { minID: 1000000 })
-        
+        this.bmContexts = new BitmapManager(this.db, 'contexts')
+
         // Features
         this.bmFeatures = new BitmapManager(this.db, 'features')
 
@@ -261,7 +253,7 @@ class IndexD extends EE {
 
     async getFeatureStats(feature) {}
 
-    async listFeatures() {}
+    async listFeatures() { return this.bmFeatures.list(); }
 
     async tickFeatures(featureArray, id) {
         this.#tickFeatureArrayBitmaps(featureArray, id)
