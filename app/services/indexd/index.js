@@ -15,10 +15,15 @@ const BitmapManager = require('./lib/BitmapManager')
 const Bitmap = require('./lib/Bitmap')
 const BitmapSet = require('./lib/BitmapSet')
 
-// Temporary
-const Document = require('../../schemas/Document');
+// Constants
+const MAX_DOCUMENTS = 4294967296 // 2^32
+const MAX_CONTEXTS = 65536 // 2^16
+const MAX_FEATURES = 65536 // 2^16
+const MAX_FILTERS = 65536 // 2^16
+const INTERNAL_BITMAP_ID_RANGE = 1000000
 
-// Schemas
+// Metadata document schemas
+const Document = require('../../schemas/Document');
 const DOCUMENT_SCHEMAS = {
     // Generic document schema
     default: require('../../schemas/Document').toJSON(),
@@ -69,56 +74,37 @@ class IndexD extends EE {
             })
         }
 
-        // KV Stores
-        this.dbDocuments = this.db.createDataset('documents')
-        this.dbBitmaps = this.db.createDataset('bitmaps')
+        
+        // Internal Bitmaps
+            // We reserve 2x 512k ID ranges for internal use
+            // Apps
+            // Roles
+            // Devices
+            // updateQueue
+            // cleanupQueue
+            
+            this.bmInternal = new BitmapManager(this.db, 'internal')
+        
+        // Internal indexes 
+        // Timeline <timestamp> | <action> | diff {path: [bitmap IDs]}
+            // Action: create, update, delete
+        
+        // HashMaps
+        this.hash2oid = this.db.createDataset('hash2oid')
 
-        // Bitmaps
-        this.bDocuments = new Bitmap('documents', this.dbDocuments)
-        this.bContexts = new BitmapSet(this.dbBitmaps)
-        this.bFeatures = new Bitmap('features', this.dbBitmaps)
+        
+        
+        // Contexts
+        this.bmContexts = new BitmapManager(this.db, 'contexts', { minID: 1000000 })
+        
+        // Features
+        this.bmFeatures = new BitmapManager(this.db, 'features')
 
-        /*
-        this.tickFeatures(featureArray, id)
-        featurerray.forEach(feature => {
-            this.bFeatures.tick(feature, id)
-        })*/
-
-        //
-        // objCleanupQueue
-1
-        // Indexes
-            // Bitmaps
-                // Objects
-
-                // Contexts
-                // Features
-
-                // Filters
-                // Devices
-                // Contacts
-                // Identities
-                // Internals
-                    // App
-                    // Role
-                    // Timeline
-                    // Metadata
-                    // Tag
-            // FTS
-            // hash2oid
-            //
-
-
-
-        //this.cleanupQueue = new Bitmap()
-
+        // Filters
+        this.bmFilters = new BitmapManager(this.db, 'filters')
 
 
         // Main indexes (TODO: Rework)
-        this.hash2oid = this.db.createDataset('hash2oid')
-
-        this.tIndexed2oid = this.db.createDataset('tIndexed2oid')
-        this.tUpdated2oid = this.db.createDataset('tUpdated2oid')
 
         // Bitmaps
         // [context]
@@ -145,8 +131,6 @@ class IndexD extends EE {
         // Dynamic set (generated dynamically by the feature extracting functions
         // removed automatically if not used)
         // feature/d/data/abstr/email/somerandomfeature
-        this.bitmaps = this.db.createDataset('bitmaps')
-
 
     }
 

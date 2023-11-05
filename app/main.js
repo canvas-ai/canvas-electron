@@ -24,7 +24,6 @@ const IndexD = require('./services/indexd');
 const NeuralD = require('./services/neurald');
 const StoreD = require('./services/stored');
 
-
 // Manager classes
 const AppManager = require('./managers/app');
 const PeerManager = require('./managers/peer');
@@ -179,6 +178,7 @@ class Canvas extends EventEmitter {
     // Getters
     static get version() { return APP.version; }
     static get paths() { return APP.paths; }
+    get apps() { return this.apps; }
     get pid() { return this.PID; }
     get ipc() { return this.IPC; }
 
