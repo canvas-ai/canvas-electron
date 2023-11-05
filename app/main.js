@@ -20,8 +20,8 @@ const EventEmitter = require('eventemitter2');
 
 // Core services
 const Db = require('./services/db');
+const IndexD = require('./services/indexd');
 const NeuralD = require('./services/neurald');
-const SynapsD = require('./services/synapsd');
 const StoreD = require('./services/stored');
 
 // Manager classes
@@ -54,6 +54,7 @@ class Canvas extends EventEmitter {
 
         debug('Initializing Canvas');
 
+
         /**
          * Utils
          */
@@ -82,13 +83,13 @@ class Canvas extends EventEmitter {
             compression: false,
         })
 
-        this.neurald = new NeuralD({
+        this.index = new IndexD({
             db: this.db,
             config: this.config,
             logger: this.logger
         })
 
-        this.synapsd = new SynapsD({
+        this.neurald = new NeuralD({
             db: this.db,
             config: this.config,
             logger: this.logger
@@ -115,6 +116,7 @@ class Canvas extends EventEmitter {
             ]
         });
 
+        /* 
         this.roles = new RoleManager({
             config: path.join(USER.paths.config, 'roles.json')
         });
@@ -127,7 +129,7 @@ class Canvas extends EventEmitter {
             config: path.join(USER.paths.config, 'devices.json')
         });
 
-        /* this.users = new UserManager({
+        this.users = new UserManager({
             dbPath: path.join(USER.paths.db, 'users.json')
         });
 
@@ -173,9 +175,10 @@ class Canvas extends EventEmitter {
 
     }
 
-    // getters
+    // Getters
     static get version() { return APP.version; }
     static get paths() { return APP.paths; }
+    get apps() { return this.apps; }
     get pid() { return this.PID; }
     get ipc() { return this.IPC; }
 
@@ -188,6 +191,7 @@ class Canvas extends EventEmitter {
 
         if (this.status == 'running' && this.isMaster) throw new Error('Application already running')
         this.status = 'starting'
+        this.emit('starting')
 
         this.setupProcessEventListeners()
         await this.initializeServices()
@@ -196,7 +200,7 @@ class Canvas extends EventEmitter {
         await this.initializeApps()
 
         this.status = 'running'
-        this.emit('start')
+        this.emit('running')
     }
 
     async shutdown(exit = true) {
@@ -247,15 +251,15 @@ class Canvas extends EventEmitter {
      */
 
     async initializeTransports() {
-        // for (const transport of this.config.transports) {})
+        // for (const transport of this.config.transports) { /* load, then init, then start, catch err */ })
         await this.services.loadInitializeAndStartService('rest', {
             context: {},
-            index: this.synapsd
+            index: this.index
         })
 
         await this.services.loadInitializeAndStartService('websocket', {
             context: {},
-            index: this.synapsd
+            index: this.index
         })
 
         return true

@@ -1,10 +1,5 @@
 'use strict'
 
-/*
- * This implementation of JSON Schema does
- * not conform with best practices, nor does it try to
- * Docu ref https://json-schema.org/
- */
 
 module.exports = {
     type: "object",

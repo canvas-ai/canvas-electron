@@ -26,14 +26,19 @@ class Context extends EE {
     #layerIndex;
     #tree;
 
-    #index
-    #storage
+    #db;
+    #index;
+    #neurald;
+    #stored;
 
     #contextArray = [];
     #featureArray = [];
     #filterArray = [];
+    #metaData = {};
 
-    constructor(url, canvas, options) {
+    // TODO: Implement a DI framework
+    constructor(url, canvas, options = {
+    }) {
 
         // Initialize event emitter
         super({
@@ -49,23 +54,21 @@ class Context extends EE {
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
 
-        this.canvas = canvas
-
         // TODO: Rework?
-        this.#index = canvas.synapsd
-        this.#storage = canvas.stored
-        this.#tree = canvas.tree
-        this.#layerIndex = canvas.tree.layers
+        this.#db = canvas.db
+        this.#index = canvas.index
+        this.#neurald = canvas.neurald
+        this.#stored = canvas.storage
 
-        // Per context
-        this.apps = {}
-        this.device = {}
-        this.user = {}
-        this.identity  ={}
+        this.#tree = canvas.tree
+        this.#layerIndex = canvas.layers
 
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
         debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
+
+
+        this.contextObjBitmap = null
 
     }
 
@@ -88,9 +91,16 @@ class Context extends EE {
             filters: this.#filterArray
         }
     }
+
     get contextArray() { return this.#contextArray; }
     get featureArray() { return this.#featureArray; }
     get filterArray() { return this.#filterArray; }
+
+    // List all apps linked to this context
+    get apps() {}
+
+    // List all identities linked to this context
+    get identities() {}
 
 
     /**
@@ -146,7 +156,6 @@ class Context extends EE {
         return this.#layerIndex.createLayer(name, options)
     }
 
-    // TODO: Not tested yet!
     updateLayer(name, options) {
         return this.#layerIndex.updateLayer(name, options)
     }
@@ -204,8 +213,12 @@ class Context extends EE {
      * neurald methods
      */
 
-    query(query, ctxArr, ftArr, filArr) {
-        if (!ctxArr) ctxArr = this.#contextArray
+    query(
+        query,
+        ctxArr = this.#contextArray,
+        ftArr = this.#featureArray,
+        filArr = this.#filterArray) {
+
     }
 
 

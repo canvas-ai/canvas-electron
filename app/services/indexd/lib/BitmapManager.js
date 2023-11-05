@@ -7,16 +7,248 @@ const debug = require('debug')('canvas-index-bitmapManager')
 
 class BitmapManager {
 
-    #db
-    #cache
+    #db;
+    #cache;
+    #range;
 
-    constructor(db, cache) {
+    constructor(db = new Map(), cache = new Map(), range = { min: 0, max: 4294967296 }) {
         this.#db = db
         this.#cache = cache
+        this.#range = range
+
+        // For now we'll use the LMDBs caching mechanism
+        // https://www.npmjs.com/package/lmdb#caching
+        this.activeBitmaps = new Set()
+        this.activeBitmapsAND = null // Precomputed AND of all active bitmaps
+        this.activateBitmapsOR = null // Precomputed OR of all active bitmaps
     }
 
-    list() { return this.#db.list(); }
+    get activeAND() { return this.getActiveAND; }
+    get activeOR() { return this.getActiveOR; }
 
+
+    /**
+     * List all bitmaps in the database/dataset
+     * @returns {Array} Array of bitmap keys
+     */
+    listBitmaps() {
+        // TODO: Temporary workaround for Map() support
+        if (this.#db instanceof Map) {
+            let bitmaps = [...this.#db.keys()]
+            return bitmaps
+        } else {
+            return this.#db.list();
+        }
+    }
+
+    getActiveBitmaps() { /* TODO */ }
+
+    clearActiveBitmaps() { /* TODO */ }
+
+    hasBitmap(key) { return this.#db.has(key); }
+
+    getBitmap(key) { return this.#db.get(key); }
+
+    activateBitmap(key) { /* TODO */ }
+
+    deactivateBitmap(key) { /* TODO */ }
+
+    removeBitmap(key) {
+        if (!this.#db.has(key)) {
+            debug(`Bitmap with key ID "${key}" not found`)
+            return false
+        }
+
+        debug(`Removing bitmap with key ID "${key}"`)
+        // Backward compatibility with Map()
+        return (this.#db instanceof Map) ? this.#db.delete(key) : this.#db.remove(key);
+    }
+
+    removeBitmapSync(key) {
+        if (!this.#db.has(key)) {
+            debug(`Bitmap with key ID "${key}" not found`)
+            return false
+        }
+
+        debug(`Removing bitmap with key ID "${key}"`)
+        return this.#db.delete(key);
+    }
+
+    /**
+     * Renames a bitmap synchronously.
+     *
+     * @param {string} key - The key of the bitmap to be renamed.
+     * @param {string} newKey - The new key for the bitmap.
+     * @returns {boolean} - Returns true if the bitmap was renamed successfully, false otherwise.
+     */
+    renameBitmapSync(key, newKey) {
+        let bitmap = this.getBitmap(key)
+        if (!bitmap) {
+            debug(`Bitmap with key ID "${key}" not found`)
+            return false
+        }
+
+        if (!this.createBitmapSync(newKey, bitmap)) {
+            debug(`Unable to create bitmap with key ID "${newKey}"`)
+            return false
+        }
+
+        if (!this.removeBitmapSync(key)) {
+            debug(`Unable to remove bitmap with key ID "${key}"`)
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * Creates a new bitmap with the given key and stores it in the database.
+     * @param {string} key - The key to use for the new bitmap.
+     * @param {RoaringBitmap32|Array<number>} [oidArrayOrBitmap] - The bitmap or array of numbers to use for the new bitmap.
+     * @returns {boolean} - Returns true if the bitmap was successfully created and stored, false otherwise.
+     */
+    createBitmapSync(key, oidArrayOrBitmap) {
+        if (this.hasBitmap(key)) {
+            debug(`Bitmap with key ID "${key}" already exists`);
+            return false;
+        }
+
+        let bitmap;
+
+        if (!oidArrayOrBitmap) {
+            debug(`Creating new empty bitmap with key ID "${key}"`);
+            bitmap = new RoaringBitmap32();
+        } else if (oidArrayOrBitmap instanceof RoaringBitmap32) {
+            debug(`Storing bitmap under new key ID "${key}"`);
+            bitmap = oidArrayOrBitmap;
+        } else if (Array.isArray(oidArrayOrBitmap)) {
+            debug(`Creating new bitmap with key ID "${key}" and ${oidArrayOrBitmap.length} elements`);
+            bitmap = new RoaringBitmap32(oidArrayOrBitmap);
+        } else {
+            debug(`Invalid input for bitmap with key ID "${key}"`);
+            return false;
+        }
+
+        this.#db.set(key, bitmap);
+        return bitmap;
+    }
+
+
+    // Ticks a single key with an ID array or a bitmap
+    tickSync(key, oidArrayOrBitmap, autoCreateBitmap = true, implicitSave = true) {
+        let bitmap = this.getBitmap(key)
+        if (!bitmap) {
+            debug(`Bitmap with key ID "${key}" not found`)
+            if (!autoCreateBitmap) return false
+
+            debug(`Creating new bitmap with key ID "${key}"`)
+            bitmap = new RoaringBitmap32()
+        }
+
+        bitmap = bitmap.addMany(oidArrayOrBitmap)
+        if (implicitSave) {
+            debug(`Implicit save for bitmap with key ID "${key}"`)
+            this.#db.set(key, bitmap)
+        }
+
+        return bitmap
+    }
+
+    /**
+     * Updates multiple bitmaps with the given array of keys and either an array of IDs or a RoaringBitmap32 instance.
+     * @param {string[]} keyArray - An array of bitmap keys to update.
+     * @param {number[]|RoaringBitmap32} oidArrayOrBitmap - An array of IDs or a RoaringBitmap32 instance to update the bitmaps with.
+     * @param {boolean} [autoCreateBitmaps=true] - Whether to automatically create the bitmaps if they don't exist.
+     * @param {boolean} [implicitSave=true] - Whether to implicitly save the changes made to the bitmaps.
+     * @returns {boolean} - Returns true if the update was successful.
+     * @throws {TypeError} - Throws a TypeError if keyArray is not an array or is empty, or if oidArrayOrBitmap is not an array of IDs or a RoaringBitmap32 instance.
+     */
+    tickManySync(keyArray, oidArrayOrBitmap, autoCreateBitmaps =  true, implicitSave = true) {
+        if (!Array.isArray(keyArray) || !keyArray.length) {
+            throw new TypeError(`keyArray must be an non-empty array of bitmap keys`);
+        }
+
+        if (!Array.isArray(oidArrayOrBitmap) && !(oidArrayOrBitmap instanceof RoaringBitmap32)) {
+            throw new TypeError(`oidArrayOrBitmap must be an array of IDs or a instance of RoaringBitmap32`);
+        }
+
+        keyArray.forEach(key => {
+            this.tickSync(key, oidArrayOrBitmap, autoCreateBitmaps, implicitSave)
+        })
+
+        return true
+
+    }
+
+    // Ticks all active bitmaps with an array of IDs or a bitmap
+    tickAllActiveSync(oidArrayOrBitmap) { /* TODO */ }
+
+    // Ticks all bitmaps with an array of IDs or a bitmap
+    tickAllSync(oidArrayOrBitmap) {
+
+    }
+
+
+    // Ticks a single key with an ID array or a bitmap
+    untickSync(key, oidArrayOrBitmap, implicitSave = true) {
+        let bitmap = this.getBitmap(key)
+        if (!bitmap) {
+            debug(`Bitmap with key ID "${key}" not found`)
+            return false
+        }
+
+        bitmap = bitmap.removeMany(oidArrayOrBitmap)
+        if (implicitSave) {
+            debug(`Implicit save for bitmap with key ID "${key}"`)
+            this.#db.set(key, bitmap)
+        }
+
+        return bitmap
+    }
+
+    // Ticks multiple keys with an array of IDs or a bitmap
+    untickManySync(keyArray, oidArrayOrBitmap) {
+        // Bulk operation logic
+        // ...
+    }
+
+    // Ticks all active bitmaps with an array of IDs or a bitmap
+    untickAllActiveSync(oidArrayOrBitmap) { /* TODO */ }
+
+    // Ticks all bitmaps with an array of IDs or a bitmap
+    untickAllSync(oidArrayOrBitmap) {
+        // Consider the performance impact of ticking all bitmaps
+        // ...
+    }
+
+    OR(keyArray, inputBitmap = null) {
+
+    }
+
+    AND(keyArray, inputBitmap = null) {
+
+    }
+
+    XOR(keyArray, inputBitmap = null) {
+
+    }
+
+
+    getActiveAND() {}
+    getActiveOR() {}
+
+    andCardinality() {}
+    orCardinality() {}
+    jaccardIndex() {}
+
+
+    #saveBitmapToDb(key) {}
+    #loadBitmapFromDb(key) {}
+    #saveAllBitmapsToDb() {}
+    #loadAllBitmapsToDb() {}
+
+
+    /*
     async openBitmapArray(bitmapIdArray) {
         let res = await this.#db.getMany(bitmapArray)
         // Return an array if initialized bitmaps
@@ -276,9 +508,9 @@ class BitmapManager {
 
     static orMany(bitmapArray) {
         return RoaringBitmap32.orMany(bitmapArray)
-    }
+    } */
 
 }
 
-
 module.exports = BitmapManager
+

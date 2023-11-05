@@ -1,16 +1,16 @@
 'use strict'
 
+
 /**
  * Cache interface
  */
 
 // Utils
 const log = console.log
-const debug = require('debug')('canvas-stored:cache')
+const debug = require('debug')('canvas-role-stored:cache')
 
 // Lib
 const cacache = require('cacache')
-const _merge = require('lodash/merge')
 
 // Default cache/cached configuration
 const defConfig = {

@@ -4,35 +4,17 @@
 // Utils
 const path = require('path')
 const os = require('os')
+const debug = require('debug')('canvas-role-stored')
+
+// Abstractions
+
+// Backends
+
+// Cache
 const Cache = require('./cache')
-const debug = require('debug')('canvas-stored')
 
-
-// TODO: Generate dynamically based on the ./abstractions folder
-const STORAGE_ABSTRACTIONS = [
-    'file',
-    'note',
-    'tab',
-    'event'
-];
-
-// TODO: Generate dynamically based on the ./backends folder
-const STORAGE_BACKENDS = {
-    fs: {
-        type: 'local',
-        path: path.join(os.homedir(), '.stored/data/fs')
-        // config: config.get('stored.backends.fs') || {}
-    },
-    smb: {
-        type: 'remote',
-        path: 'smb://nas.local/pub/stored',
-        // config: config.get('stored.backends.smb')
-    },
-    s3: {
-        // https://www.npmjs.com/package/minio
-        // config: config.get('stored.backends.s3')
-    }
-};
+// Schemas
+const metaSchema = require('./schemas/meta')
 
 
 /**
@@ -41,10 +23,9 @@ const STORAGE_BACKENDS = {
 
 class Stored {
 
+    constructor(options = {}) {
 
-    constructor(options) {
-
-        debug('Initializing Canvas StoreD')
+        debug('Initializing Canvas StoreD')        
         options = {
             paths: {
                 data: path.join(os.homedir(), '.stored/data'),
@@ -58,13 +39,6 @@ class Stored {
 
         this.dataPath = options.paths.data
         this.cachePath = options.paths.cache
-
-        /* 
-        this.metadata = (options.db) ?
-            options.db : new Db({
-                    path: path.join(this.dataPath, 'db')
-                }) 
-        */
 
         this.cache = (options.cachePolicy != 'none') ?
             new Cache(this.cachePath) : false;

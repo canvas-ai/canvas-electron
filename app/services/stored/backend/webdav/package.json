@@ -1,9 +1,0 @@
-{
-  "name": "contextd-data-backend-webdav",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "dependencies": {
-    "webdav": "^2.8.0"
-  }
-}

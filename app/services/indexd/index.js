@@ -12,13 +12,16 @@ const Db = require('../db')
 
 // App includes
 const BitmapManager = require('./lib/BitmapManager')
-const Bitmap = require('./lib/Bitmap')
-const BitmapSet = require('./lib/BitmapSet')
 
-// Temporary
+// Constants
+const MAX_DOCUMENTS = 4294967296 // 2^32
+const MAX_CONTEXTS = 1024 // 2^10
+const MAX_FEATURES = 65536 // 2^16
+const MAX_FILTERS = 65536 // 2^16
+const INTERNAL_BITMAP_ID_RANGE = 1000000
+
+// Metadata document schemas
 const Document = require('../../schemas/Document');
-
-// Schemas
 const DOCUMENT_SCHEMAS = {
     // Generic document schema
     default: require('../../schemas/Document').toJSON(),
@@ -30,10 +33,10 @@ const DOCUMENT_SCHEMAS = {
 
 
 /**
- * Canvas SynapsD
+ * Canvas IndexD
  */
 
-class SynapsD extends EE {
+class IndexD extends EE {
 
 
     #db
@@ -57,11 +60,10 @@ class SynapsD extends EE {
                                     //and it has no listeners
         })
 
-        if (options.db) {
-            this.db = options.db
-        } else {
+        if (options.db) { this.db = options.db; } else {
             // Validate options
             if (!options.path) throw new Error('Database path is required')
+
             // Initialize the database backend
             this.db = new Db({
                 path: options.path,
@@ -69,56 +71,32 @@ class SynapsD extends EE {
             })
         }
 
-        // KV Stores
-        this.dbDocuments = this.db.createDataset('documents')
-        this.dbBitmaps = this.db.createDataset('bitmaps')
+        // Internal Bitmaps
+        this.bmInternal = new BitmapManager(this.db, 'internal')
+            // Apps
+            // Roles
+            // Devices
+            // updateQueue
+            // cleanupQueue
 
-        // Bitmaps
-        this.bDocuments = new Bitmap('documents', this.dbDocuments)
-        this.bContexts = new BitmapSet(this.dbBitmaps)
-        this.bFeatures = new Bitmap('features', this.dbBitmaps)
+        // Internal indexes
+        // Timeline <timestamp> | <action> | diff {path: [bitmap IDs]}
+            // Action: create, update, delete
 
-        /*
-        this.tickFeatures(featureArray, id)
-        featurerray.forEach(feature => {
-            this.bFeatures.tick(feature, id)
-        })*/
+        // HashMaps
+        this.hash2oid = this.db.createDataset('hash2oid')
 
-        //
-        // objCleanupQueue
-1
-        // Indexes
-            // Bitmaps
-                // Objects
+        // Contexts
+        this.bmContexts = new BitmapManager(this.db, 'contexts')
 
-                // Contexts
-                // Features
+        // Features
+        this.bmFeatures = new BitmapManager(this.db, 'features')
 
-                // Filters
-                // Devices
-                // Contacts
-                // Identities
-                // Internals
-                    // App
-                    // Role
-                    // Timeline
-                    // Metadata
-                    // Tag
-            // FTS
-            // hash2oid
-            //
-
-
-
-        //this.cleanupQueue = new Bitmap()
-
+        // Filters
+        this.bmFilters = new BitmapManager(this.db, 'filters')
 
 
         // Main indexes (TODO: Rework)
-        this.hash2oid = this.db.createDataset('hash2oid')
-
-        this.tIndexed2oid = this.db.createDataset('tIndexed2oid')
-        this.tUpdated2oid = this.db.createDataset('tUpdated2oid')
 
         // Bitmaps
         // [context]
@@ -145,8 +123,6 @@ class SynapsD extends EE {
         // Dynamic set (generated dynamically by the feature extracting functions
         // removed automatically if not used)
         // feature/d/data/abstr/email/somerandomfeature
-        this.bitmaps = this.db.createDataset('bitmaps')
-
 
     }
 
@@ -277,7 +253,7 @@ class SynapsD extends EE {
 
     async getFeatureStats(feature) {}
 
-    async listFeatures() {}
+    async listFeatures() { return this.bmFeatures.list(); }
 
     async tickFeatures(featureArray, id) {
         this.#tickFeatureArrayBitmaps(featureArray, id)
@@ -364,4 +340,4 @@ class SynapsD extends EE {
 
 }
 
-module.exports = SynapsD
+module.exports = IndexD
