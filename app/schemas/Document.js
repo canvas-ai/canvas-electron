@@ -138,7 +138,6 @@ class Document {
 
         // Check for mandatory parameters
         return (
-            document.id &&
             document.type &&
             document.data) || false
     }

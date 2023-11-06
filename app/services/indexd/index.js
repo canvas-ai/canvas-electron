@@ -69,12 +69,16 @@ class IndexD extends EE {
             // Initialize the database backend
             this.db = new Db({
                 path: options.path,
-                maxDbs: options.maxDbs || 32
+                maxDbs: options.maxDbs || 32,
+                cache: true
             })
         }
 
         // Document dataset
         this.documents = this.db.createDataset('documents')
+
+        // In-memory caches
+        this.bitmapCache = new Map()
 
         // Bitmaps
         this.bitmaps = this.db.createDataset('bitmaps')
@@ -87,25 +91,33 @@ class IndexD extends EE {
         this.hash2oid = this.db.createDataset('hash2oid')
 
         // Internal Bitmaps
-        this.bmInternal = new BitmapManager(this.bitmaps, 'internal', {
-            min: INTERNAL_BITMAP_ID_MIN,
-            max: INTERNAL_BITMAP_ID_MAX
-        })
+        this.bmInternal = new BitmapManager(
+            this.bitmaps.createDataset('internal'),
+            this.bitmapCache, {
+                rangeMin: INTERNAL_BITMAP_ID_MIN,
+                rangeMax: INTERNAL_BITMAP_ID_MAX
+            })
 
         // Contexts
-        this.bmContexts = new BitmapManager(this.bitmaps, 'contexts', {
-            min: INTERNAL_BITMAP_ID_MAX,
-        })
+        this.bmContexts = new BitmapManager(
+            this.bitmaps.createDataset('contexts'),
+            this.bitmapCache, {
+                rangeMin: INTERNAL_BITMAP_ID_MAX,
+            })
 
         // Features
-        this.bmFeatures = new BitmapManager(this.bitmaps, 'features', {
-            min: INTERNAL_BITMAP_ID_MAX,
-        })
+        this.bmFeatures = new BitmapManager(
+            this.bitmaps.createDataset('features'),
+            this.bitmapCache, {
+                rangeMin: INTERNAL_BITMAP_ID_MAX,
+            })
 
         // Filters
-        this.bmFilters = new BitmapManager(this.bitmaps, 'filters', {
-            min: INTERNAL_BITMAP_ID_MAX,
-        })
+        this.bmFilters = new BitmapManager(
+            this.bitmaps.createDataset('filters'),
+            this.bitmapCache, {
+                rangeMin: INTERNAL_BITMAP_ID_MAX,
+            })
 
         // Queues
         // TODO
@@ -123,33 +135,42 @@ class IndexD extends EE {
      */
 
     async insertDocument(doc, contextArray = [], featureArray = []) {
-        debug('insertDocument()', doc, contextArray, featureArray)
+        debug(`insertDocument() Context: ${contextArray}; Features: ${featureArray}`)
 
-        // Validate
-        let parsed = this.#validateDocument(doc)
-        debug('Document validated', parsed)
+        if (!doc) throw new Error('Document is required')
+        if (!Array.isArray(contextArray)) throw new Error('Contexts must be an array')
+        if (!Array.isArray(featureArray)) throw new Error('Features must be an array')
+
+        // Validate document schema
+        if (!Document.validate(doc)) throw new Error('Document in invalid format')
+
+        // Initialize document
+        let parsed = new Document(doc)
+        if (!parsed.id) parsed.id = this.#genDocumentID()
 
         // Extract features
-        let extractedFeatures = this.#extractDocumentFeatures(parsed)
+        let extractedFeatures = this.#extractDocumentFeatures(doc)
         let combinedFeatureArray = [...featureArray, ...extractedFeatures]
         debug('Document feature array', combinedFeatureArray)
 
         // Update existing document if already present
-        let res = await this.hash2oid.get(parsed.hashes.sha1)
+        let res = this.hash2oid.get(parsed.hashes.sha1)
         if (res) {
             debug('Document already present, updating..')
-            return this.updateDocument(parsed, contextArray, combinedFeatureArray)
+            debug(`Document ID: ${res}`)
         }
 
         try {
-            // Update bitmaps and documents in parallel
-            let updateBitmapsAndDocs = Promise.all([
-                this.documents.put(parsed.id, parsed),
-                this.bmContexts.tickMany(contextArray, parsed.id),
-                this.bmFeatures.tickMany(combinedFeatureArray, parsed.id)
-            ]);
+            // Insert document
+            await this.documents.put(parsed.id, parsed)
 
-            await updateBitmapsAndDocs;
+            if (contextArray.length > 0) {
+                this.bmContexts.tickManySync(contextArray, parsed.id);
+            }
+
+            if (combinedFeatureArray.length > 0) {
+                this.bmFeatures.tickManySync(combinedFeatureArray, parsed.id)
+            }
 
             // Final step: update hash2oid
             await this.hash2oid.put(parsed.hashes.sha1, parsed.id);
@@ -181,6 +202,7 @@ class IndexD extends EE {
     }
 
     async getDocuments(ids = [], cb = null) {
+        debug('getDocuments()', ids, cb)
         if (!Array.isArray(ids)) { throw new TypeError('IDs must be an array'); }
 
         try {
@@ -192,30 +214,31 @@ class IndexD extends EE {
         }
     }
 
-    listDocuments(contextArray = [], featureArray = []) {
-
+    async listDocuments(contextArray = [], featureArray = []) {
         debug('listDocuments()', contextArray, featureArray)
-        let documents = []
+        if (contextArray === null) contextArray = []
+        if (featureArray === null) featureArray = []
+
+        let documents
 
         if (!contextArray.length && !featureArray.length) {
             documents = this.documents.listValues()
             return documents
         }
 
-        /*
-        let calculatedContextBitmap = this.contextBitmaps.addMany(contextArray)
+        let calculatedContextBitmap = this.bmContexts.AND(contextArray)
         debug('Context IDs', calculatedContextBitmap)
 
-        let calculatedFeatureBitmap = this.featureBitmaps.addMany(featureArray)
+        let calculatedFeatureBitmap = this.bmFeatures.AND(featureArray)
         debug('Feature IDs', calculatedFeatureBitmap)
 
-        let result = BitmapManager.addBitmaps([calculatedContextBitmap, calculatedFeatureBitmap])
+        let result = BitmapManager.AND([calculatedContextBitmap, calculatedFeatureBitmap])
         debug('Result IDs', result.toArray())
 
         documents = await this.documents.getMany(result.toArray())
         debug('Documents', documents)
 
-        return documents*/
+        return documents
     }
 
     async updateDocument(doc, contextArray = [], featureArray = []) {
@@ -252,13 +275,9 @@ class IndexD extends EE {
 
     async listFeatures() { return this.bmFeatures.list(); }
 
-    async tickFeatures(featureArray, id) {
-        this.#tickFeatureArrayBitmaps(featureArray, id)
-    }
+    async tickFeatures(featureArray, id) {}
 
-    async untickFeatures(featureArray, id) {
-
-    }
+    async untickFeatures(featureArray, id) {}
 
 
     /**
@@ -290,52 +309,23 @@ class IndexD extends EE {
      * Internal methods
      */
 
-    #validateDocument(doc, schema = DOCUMENT_SCHEMAS['default']) {
+    #validateDocument(doc) {
         if (typeof doc !== 'object') throw new Error('Document is not an object')
-        if (!doc.id) doc.id = this.#genDocumentID()
-
-        // This part needs some love
-
-        let initialized = new Document(doc)
-        return initialized
+        debug(this.documents.getKeysCount())
+        doc.id = this.#genDocumentID()
+        return doc
     }
 
     #genDocumentID() {
-        let id = this.db.getKeysCount() + 1000
-        return id++
+        let keysCount = this.documents.db.getKeysCount()
+        let id = INTERNAL_BITMAP_ID_MAX + keysCount + 1
+        if (id > MAX_DOCUMENTS) throw new Error('Maximum number of documents reached')
+        return id
     }
 
     #extractDocumentFeatures(doc) {
         let features = []
         return features
-    }
-
-    #tickContextArrayBitmapsSync(bitmapIdArray = [], id) {
-        for (const context of bitmapIdArray) {
-            debug(`Updating bitmap for context ID "${context}"`);
-            //this.contextBitmaps.tick(context, id);
-        }
-    }
-
-    #tickFeatureArrayBitmapsSync(bitmapIdArray = [], id) {
-        for (const feature of bitmapIdArray) {
-            debug(`Updating bitmap for feature ID "${feature}"`)
-            //this.featureBitmaps.tick(feature, id)
-        }
-    }
-
-    async #tickContextArrayBitmaps(bitmapIdArray = [], id) {
-        for (const context of bitmapIdArray) {
-            debug(`Updating bitmap for context ID "${context}"`);
-            await this.contextBitmaps.tick(context, id);
-        }
-    }
-
-    async #tickFeatureArrayBitmaps(bitmapIdArray = [], id) {
-        for (const feature of bitmapIdArray) {
-            debug(`Updating bitmap for feature ID "${feature}"`)
-            await this.featureBitmaps.tick(feature, id)
-        }
     }
 
 }

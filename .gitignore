@@ -120,6 +120,7 @@ packer_cache/
 *.tar
 *.tsbuildinfo
 *.zip
+_test*
 
 ## Runtime
 *.pid

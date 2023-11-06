@@ -56,10 +56,6 @@ class Db {
     // Returns stats of the underlying database / dataset
     get stats() { return this.db.getStats(); }
 
-    /**
-     * Returns an array of all the keys in the database.
-     * @returns {Array} An array of all the keys in the database.
-     */
     listKeys() {
         let keys = [];
         this.db.getKeys().forEach(element => {
@@ -68,11 +64,6 @@ class Db {
         return keys
     }
 
-    /**
-     * Returns an array of all the values in the database.
-     * @returns {Array} An array of all the values in the database.
-     * TODO: Fixme
-     */
     listValues() {
         let values = []
         this.db.getRange().forEach(element => {
@@ -81,10 +72,6 @@ class Db {
         return values
     }
 
-    /**
-     * Returns an array of all the entries in the database.
-     * @returns {Array} An array of all the entries in the database.
-     */
     listEntries() {
         let entries = [];
         this.db.getRange().forEach(element => {
@@ -94,10 +81,7 @@ class Db {
     }
 
     // Returns the last inserted key-value pair
-    lastTx() {
-        /* TODO */
-        throw new Error("Not implemented");
-    }
+    lastTx() { throw new Error("Not implemented"); }
 
     // Creates a new dataset using the same wrapper class
     createDataset(dataset, options = {}) {
@@ -114,17 +98,17 @@ class Db {
 
     delete(key) { return this.db.removeSync(key); }
 
-    entries() { /* TODO */ throw new Error("Not implemented"); }
+    entries() { return this.db.getRange(); }    // Iterator
 
-    forEach() { /* TODO */ throw new Error("Not implemented"); }
+    forEach() { /* TODO */ }
 
-    // get(key) { return this.db.get(key); }   // Using native LMDB method
+    // get(key) { return this.db.get(key); }    // Using native LMDB method
 
-    has(key) { return this.db.doesExist(key); } // Returns bool
+    has(key) { return this.db.doesExist(key); } // bool
 
-    keys() { return this.db.getKeys(opts); }  /* TODO */
+    keys() { return this.db.getKeys(); }        // Iterator
 
-    values() { return this.db.getRange(); } /* TODO */
+    values() { return this.db.getEntries(); }   // TODO: Fixme
 
     set(key, value) { return this.db.putSync(key, value); }
 
@@ -161,15 +145,15 @@ class Db {
     getMany(keys, cb){ return this.db.getMany(keys, cb); }
 
     /**
-    * Store the provided value, using the provided id/key
+    * (async) Store the provided value, using the provided id/key
     * @param key The key for the entry
     * @param value The value to store
     * @param version The version number to assign to this entry
     **/
-    put(key, value, version) { this.db.put(key, value, version); }
+    put(key, value, version) { return this.db.put(key, value, version); }
 
     /**
-    * Remove the entry with the provided id/key, conditionally based on the provided existing version number
+    * (async) Remove the entry with the provided id/key, conditionally based on the provided existing version number
     * @param key The key for the entry to remove
     **/
     remove(key) { return this.db.remove(key); }
@@ -310,7 +294,7 @@ class Db {
     * @param path Path to store the backup
     * @param compact Apply compaction while making the backup (slower and smaller)
     **/
-    backup(path, compact) { return this.db.backup(path, compact); }
+    backup(path, compact = true) { return this.db.backup(path, compact); }
 
     /**
     * Close the current database.
