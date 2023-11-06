@@ -1,5 +1,5 @@
 /**
- * Canvas Index
+ * Canvas IndexD
  */
 
 
@@ -18,7 +18,8 @@ const MAX_DOCUMENTS = 4294967296 // 2^32
 const MAX_CONTEXTS = 1024 // 2^10
 const MAX_FEATURES = 65536 // 2^16
 const MAX_FILTERS = 65536 // 2^16
-const INTERNAL_BITMAP_ID_RANGE = 1000000
+const INTERNAL_BITMAP_ID_MIN = 1000
+const INTERNAL_BITMAP_ID_MAX = 1000000
 
 // Metadata document schemas
 const Document = require('../../schemas/Document');
@@ -60,6 +61,7 @@ class IndexD extends EE {
                                     //and it has no listeners
         })
 
+        // Initialize database
         if (options.db) { this.db = options.db; } else {
             // Validate options
             if (!options.path) throw new Error('Database path is required')
@@ -71,58 +73,47 @@ class IndexD extends EE {
             })
         }
 
-        // Internal Bitmaps
-        this.bmInternal = new BitmapManager(this.db, 'internal')
-            // Apps
-            // Roles
-            // Devices
-            // updateQueue
-            // cleanupQueue
-
-        // Internal indexes
-        // Timeline <timestamp> | <action> | diff {path: [bitmap IDs]}
-            // Action: create, update, delete
-
-        // HashMaps
-        this.hash2oid = this.db.createDataset('hash2oid')
-
-        // Contexts
-        this.bmContexts = new BitmapManager(this.db, 'contexts')
-
-        // Features
-        this.bmFeatures = new BitmapManager(this.db, 'features')
-
-        // Filters
-        this.bmFilters = new BitmapManager(this.db, 'filters')
-
-
-        // Main indexes (TODO: Rework)
+        // Document dataset
+        this.documents = this.db.createDataset('documents')
 
         // Bitmaps
-        // [context]
-        // context/uuid #customers
-        // context/uuid #customera
-        // context/uuid #dev
-        // context/uuid #jira-1234
+        this.bitmaps = this.db.createDataset('bitmaps')
 
-        // []
+        // HashMap(s)
+        // To decide whether to use a single dataset
+        // sha1/<hash> | oid
+        // md5/<hash> | oid
+        // or a separate dataset per hash type
+        this.hash2oid = this.db.createDataset('hash2oid')
 
-        // [features]
-        // Static set (predefined/hardcoded, not removable)
-        // feature/data/abstr/file
-        // feature/data/abstr/file/ext/txt
-        // feature/data/abstr/contact
-        // feature/data/abstr/contact/foo@bar.baz
-        // feature/data/abstr/email
-        // feature/data/abstr/email/attachment
-        // feature/data/abstr/email/flag
-        // feature/data/abstr/email/priority/low
-        // feature/data/mime/application/pdf
-        // feature/data/encoding/utf8
-        // feature/data/versions/1.0.0
-        // Dynamic set (generated dynamically by the feature extracting functions
-        // removed automatically if not used)
-        // feature/d/data/abstr/email/somerandomfeature
+        // Internal Bitmaps
+        this.bmInternal = new BitmapManager(this.bitmaps, 'internal', {
+            min: INTERNAL_BITMAP_ID_MIN,
+            max: INTERNAL_BITMAP_ID_MAX
+        })
+
+        // Contexts
+        this.bmContexts = new BitmapManager(this.bitmaps, 'contexts', {
+            min: INTERNAL_BITMAP_ID_MAX,
+        })
+
+        // Features
+        this.bmFeatures = new BitmapManager(this.bitmaps, 'features', {
+            min: INTERNAL_BITMAP_ID_MAX,
+        })
+
+        // Filters
+        this.bmFilters = new BitmapManager(this.bitmaps, 'filters', {
+            min: INTERNAL_BITMAP_ID_MAX,
+        })
+
+        // Queues
+        // TODO
+
+        // Timeline
+        // <timestamp> | <action> | diff {path: [bitmap IDs]}
+        // Action: create, update, delete
+        // TODO
 
     }
 
@@ -131,81 +122,87 @@ class IndexD extends EE {
      * Document management
      */
 
-    insertDocument(doc, contextArray = [], featureArray = []) {
-
+    async insertDocument(doc, contextArray = [], featureArray = []) {
         debug('insertDocument()', doc, contextArray, featureArray)
 
-        // Validate document
+        // Validate
         let parsed = this.#validateDocument(doc)
         debug('Document validated', parsed)
 
-
-
-        // Add document type to the featureArray if not present
-        if (!featureArray.includes(parsed.type)) featureArray.push(parsed.type)
-
-
+        // Extract features
+        let extractedFeatures = this.#extractDocumentFeatures(parsed)
+        let combinedFeatureArray = [...featureArray, ...extractedFeatures]
+        debug('Document feature array', combinedFeatureArray)
 
         // Update existing document if already present
-        // TODO: Primary hash algo should be set by a config value
-        let res = this.hash2oid.get(parsed.hashes.sha1)
+        let res = await this.hash2oid.get(parsed.hashes.sha1)
         if (res) {
             debug('Document already present, updating..')
-            return this.updateDocument(parsed, contextArray, featureArray)
+            return this.updateDocument(parsed, contextArray, combinedFeatureArray)
         }
 
-        // Update internal indexes
-        let updateHash2oid = this.hash2oid.put(parsed.hashes.sha1, parsed.id)
-        let updateUniverse = this.db.put(parsed.id, parsed)
+        try {
+            // Update bitmaps and documents in parallel
+            let updateBitmapsAndDocs = Promise.all([
+                this.documents.put(parsed.id, parsed),
+                this.bmContexts.tickMany(contextArray, parsed.id),
+                this.bmFeatures.tickMany(combinedFeatureArray, parsed.id)
+            ]);
 
-        // Update bitmaps
-        let tickContextArrayBitmaps = this.#tickContextArrayBitmapsSync(contextArray, parsed.id)
-        let tickFeatureArrayBitmaps = this.#tickFeatureArrayBitmapsSync(featureArray, parsed.id)
+            await updateBitmapsAndDocs;
 
-        // Execute in parallel
-        Promise.all([
-            updateHash2oid,
-            updateUniverse,
-            tickContextArrayBitmaps,
-            tickFeatureArrayBitmaps
-        ])
+            // Final step: update hash2oid
+            await this.hash2oid.put(parsed.hashes.sha1, parsed.id);
+            debug('Document insert and indexes update complete');
 
-        return parsed
+            // Return the parsed document, id, meta + bling-bling included
+            return parsed;
 
+        } catch (error) {
+            debug('Error during document insert:', error);
+            // TODO: Implement a rollback for bitmap updates, maybe split this
+            // method into separate methods for document insert and bitmap updates
+            throw error;
+        }
     }
 
-    // TODO: Evaluate if a separate method to retrieve multiple documents is needed
+    getDocument(id) { return this.documents.get(id); }
+
+    getDocumentByHash(hash, hashType = '') {
+        if (typeof hash !== 'string') { throw new TypeError('Hash must be a string'); }
+        if (hashType && typeof hashType !== 'string') { throw new TypeError('Hash type must be a string'); }
+
+        let fullHash = hashType ? `${hashType}/${hash}` : hash;
+
+        let id = this.hash2oid.get(fullHash);
+        if (!id) return null;
+
+        return this.documents.get(id);
+    }
+
     async getDocuments(ids = [], cb = null) {
-        if (!Array.isArray(ids)) { ids = [ids]; }
+        if (!Array.isArray(ids)) { throw new TypeError('IDs must be an array'); }
 
-        let res;
-        if (ids.length === 1) {
-            res = this.db.get(ids[0]); //sync
-        } else {
-            res = await this.db.getMany(ids);
+        try {
+            const res = await this.documents.getMany(ids);
+            if (cb) { cb(null, res); }
+            return res;
+        } catch (err) {
+            if (cb) { cb(err); } else { throw err; }
         }
-
-        if (cb) { cb(null, res); }
-        return res;
     }
 
-    // TODO: Rewrite to support an array of hashes
-    getDocumentByHash(hash) {
-        let id = this.hash2oid.get(hash)
-        if (!id) return null
-        return this.db.get(id)
-    }
-
-    async listDocuments(contextArray = [], featureArray = []) {
+    listDocuments(contextArray = [], featureArray = []) {
 
         debug('listDocuments()', contextArray, featureArray)
         let documents = []
 
         if (!contextArray.length && !featureArray.length) {
-            documents = this.db.list()
+            documents = this.documents.listValues()
             return documents
         }
 
+        /*
         let calculatedContextBitmap = this.contextBitmaps.addMany(contextArray)
         debug('Context IDs', calculatedContextBitmap)
 
@@ -215,10 +212,10 @@ class IndexD extends EE {
         let result = BitmapManager.addBitmaps([calculatedContextBitmap, calculatedFeatureBitmap])
         debug('Result IDs', result.toArray())
 
-        documents = await this.db.getMany(result.toArray())
+        documents = await this.documents.getMany(result.toArray())
         debug('Documents', documents)
 
-        return documents
+        return documents*/
     }
 
     async updateDocument(doc, contextArray = [], featureArray = []) {
@@ -293,7 +290,6 @@ class IndexD extends EE {
      * Internal methods
      */
 
-
     #validateDocument(doc, schema = DOCUMENT_SCHEMAS['default']) {
         if (typeof doc !== 'object') throw new Error('Document is not an object')
         if (!doc.id) doc.id = this.#genDocumentID()
@@ -304,10 +300,14 @@ class IndexD extends EE {
         return initialized
     }
 
-    // Generate a new document ID
     #genDocumentID() {
         let id = this.db.getKeysCount() + 1000
         return id++
+    }
+
+    #extractDocumentFeatures(doc) {
+        let features = []
+        return features
     }
 
     #tickContextArrayBitmapsSync(bitmapIdArray = [], id) {

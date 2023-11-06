@@ -56,28 +56,45 @@ class Db {
     // Returns stats of the underlying database / dataset
     get stats() { return this.db.getStats(); }
 
-    list() {
+    /**
+     * Returns an array of all the keys in the database.
+     * @returns {Array} An array of all the keys in the database.
+     */
+    listKeys() {
         let keys = [];
-        db.getKeys().forEach(element => {
+        this.db.getKeys().forEach(element => {
             keys.push(element)
         });
         return keys
     }
 
-    // Return the last inserted key-value pair
-    last() {
-        /* TODO */
-        throw new Error("Not implemented");
+    /**
+     * Returns an array of all the values in the database.
+     * @returns {Array} An array of all the values in the database.
+     * TODO: Fixme
+     */
+    listValues() {
+        let values = []
+        this.db.getRange().forEach(element => {
+            values.push(element.value)
+        });
+        return values
     }
 
-    // Return the last inserted key
-    lastKey() {
-        /* TODO */
-        throw new Error("Not implemented");
+    /**
+     * Returns an array of all the entries in the database.
+     * @returns {Array} An array of all the entries in the database.
+     */
+    listEntries() {
+        let entries = [];
+        this.db.getRange().forEach(element => {
+            entries.push(element)
+        });
+        return entries
     }
 
-    // Return the last inserted value
-    lastValue() {
+    // Returns the last inserted key-value pair
+    lastTx() {
         /* TODO */
         throw new Error("Not implemented");
     }
@@ -103,11 +120,11 @@ class Db {
 
     // get(key) { return this.db.get(key); }   // Using native LMDB method
 
-    has(key) { return this.db.doesExist(key); } // always returns bool
+    has(key) { return this.db.doesExist(key); } // Returns bool
 
-    keys(...opts) { return this.db.getKeys(opts); }
+    keys() { return this.db.getKeys(opts); }  /* TODO */
 
-    values() { return this.db.getValues(); }
+    values() { return this.db.getRange(); } /* TODO */
 
     set(key, value) { return this.db.putSync(key, value); }
 
