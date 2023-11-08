@@ -4,11 +4,14 @@
 // Utils
 const os = require('os')
 const path = require('path')
+const fs = require('fs')
+const mkdirp = require('mkdirp')
 const debug = require('debug')('canvas-db')
 
 // Database backend
 const { open } = require('lmdb')
 
+// TODO: Rework extending using openAsClass()
 
 /**
  * Canvas DB wrapper
@@ -19,7 +22,7 @@ class Db {
 
 
     // Default "root" dataset
-    #dataset = "/";
+    #dataset;
 
     // TODO: Wrap versioning support
     constructor(options, dataset) {
@@ -27,21 +30,50 @@ class Db {
         // Parse input arguments
         if (options.open === undefined) {
             options = {
+                // Database
                 path: options.path || path.join(os.homedir(), '.canvas/db'),
+                
+                // Backup options
+                backupOnOpen: options.backupOnOpen || false,
+                backupOnClose: options.backupOnClose || false,
+                
+                // Internals
+                maxDbs: options.maxDbs || 32,
                 readOnly: options.readOnly || false,
                 logLevel: options.logLevel || 'info',
                 compression: options.compression || true,
                 cache: options.cache || true,
+                // keyEncoding: options.keyEncoding || 'uint32',// ?ordered-binary
+                // encoding: options.encoding || 'binary',
+                // useVersions: options.useVersions || false,
+
                 ...options
             }
 
             this.db = new open(options)
-            debug(`Initialized database "${options.path}"`)
+            debug(`Initialized database at "${options.path}"`)
 
         } else {
             this.db = options
             this.#dataset = dataset
             debug(`Initialized dataset "${dataset}"`)
+        }
+
+        // Set the db path in the wrapper class
+        this.path = options.path
+
+        // This is unfortunate
+        this.backupOptions = {
+            backupPath: path.join(options.path, 'backup'),
+            backupOnOpen: options.backupOnOpen,
+            backupOnClose: options.backupOnClose,
+            compact: options.backupCompact
+        }
+
+        // This is even more so
+        if (this.backupOptions.backupOnOpen) {
+            // TODO: Check if the database changed from the last backup
+            this.#backupDatabase( /* we always compact the db */ )
         }
 
     }
@@ -79,9 +111,6 @@ class Db {
         });
         return entries
     }
-
-    // Returns the last inserted key-value pair
-    lastTx() { throw new Error("Not implemented"); }
 
     // Creates a new dataset using the same wrapper class
     createDataset(dataset, options = {}) {
@@ -300,6 +329,43 @@ class Db {
     * Close the current database.
     **/
     close() { return this.db.close(); }
+
+
+    /**
+     * Internal methods
+     */
+
+    #backupDatabase(compact = true) {        
+        const backupPath = this.#generateBackupFolderPath();
+        
+        // Create the backup folder
+        try {
+            mkdirp.sync(backupPath);
+            debug(`Created backup folder "${backupPath}"`)
+        } catch (error) {
+            console.error(`Error occured while creating backup folder: ${error.message}`);
+            throw error;
+        }
+
+        debug(`Backing up database "${this.path}" to "${backupPath}"`);
+        // TODO: Rework, backup() is async
+        this.db.backup(backupPath, compact);
+    }    
+
+    #generateBackupFolderPath() {
+        const dateString = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        let backupFolderName = dateString;
+        let backupFolderPath = path.join(this.backupOptions.backupPath, backupFolderName);
+    
+        let counter = 1;
+        while (fs.existsSync(backupFolderPath)) {
+            backupFolderName = `${dateString}.${counter}`;
+            backupFolderPath = path.join(this.backupOptions.backupPath, backupFolderName);
+            counter++;
+        }
+    
+        return backupFolderPath;
+      }
 
 }
 

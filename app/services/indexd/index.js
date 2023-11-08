@@ -135,7 +135,7 @@ class IndexD extends EE {
      */
 
     async insertDocument(doc, contextArray = [], featureArray = []) {
-        debug(`insertDocument() Context: ${contextArray}; Features: ${featureArray}`)
+        debug(`insertDocument(): ContextArray: ${contextArray}; FeaturesArray: ${featureArray}`)
 
         if (!doc) throw new Error('Document is required')
         if (!Array.isArray(contextArray)) throw new Error('Contexts must be an array')
@@ -165,10 +165,12 @@ class IndexD extends EE {
             await this.documents.put(parsed.id, parsed)
 
             if (contextArray.length > 0) {
+                debug(`Updating context array ${contextArray}`)
                 this.bmContexts.tickManySync(contextArray, parsed.id);
             }
 
             if (combinedFeatureArray.length > 0) {
+                debug(`Updating feature array ${combinedFeatureArray}`)
                 this.bmFeatures.tickManySync(combinedFeatureArray, parsed.id)
             }
 
@@ -215,29 +217,31 @@ class IndexD extends EE {
     }
 
     async listDocuments(contextArray = [], featureArray = []) {
-        debug('listDocuments()', contextArray, featureArray)
+        debug(`listDocuments(): ContextArray: ${contextArray}; FeaturesArray: ${featureArray}`)
         if (contextArray === null) contextArray = []
         if (featureArray === null) featureArray = []
 
         let documents
-
         if (!contextArray.length && !featureArray.length) {
             documents = this.documents.listValues()
             return documents
         }
 
-        let calculatedContextBitmap = this.bmContexts.AND(contextArray)
-        debug('Context IDs', calculatedContextBitmap)
+        let bitmaps = []
+        if (contextArray.length) {
+            bitmaps.push(this.bmContexts.AND(contextArray))
+        }
 
-        let calculatedFeatureBitmap = this.bmFeatures.AND(featureArray)
-        debug('Feature IDs', calculatedFeatureBitmap)
+        if (featureArray.length) {
+            bitmaps.push(this.bmFeatures.AND(featureArray))
+        }
 
-        let result = BitmapManager.AND([calculatedContextBitmap, calculatedFeatureBitmap])
+        if (bitmaps.length === 0) return []
+
+        let result = BitmapManager.AND(bitmaps)
         debug('Result IDs', result.toArray())
 
         documents = await this.documents.getMany(result.toArray())
-        debug('Documents', documents)
-
         return documents
     }
 
@@ -263,21 +267,41 @@ class IndexD extends EE {
      * Feature management
      */
 
-    async createFeature(feature) {}
+    async createFeature(feature, idArray = []) {
+        if (!feature) throw new Error('Feature is required')
+        return this.bmFeatures.createBitmap(feature, idArray)
+    }
 
-    async hasFeature(feature) {}
+    async removeFeature(feature) {}    
 
-    async getFeature(feature) {}
+    async tickFeatures(featureArray, idArray) {}
 
-    async removeFeature(feature) {}
+    async untickFeatures(featureArray, idArray) {}
 
-    async getFeatureStats(feature) {}
+    createFeatureSync(feature, idArray = []) {
+        if (!feature) throw new Error('Feature is required')
+        return this.bmFeatures.createBitmapSync(feature, idArray)
+    }
 
-    async listFeatures() { return this.bmFeatures.list(); }
+    removeFeatureSync(feature) {}
 
-    async tickFeatures(featureArray, id) {}
+    tickFeaturesSync(featureArray, idArray) {}
 
-    async untickFeatures(featureArray, id) {}
+    untickFeaturesSync(featureArray, idArray) {}
+
+    listFeatures() { 
+        return this.bmFeatures.listBitmaps(); 
+    }
+
+    hasFeature(feature) {
+        return this.bmFeatures.hasBitmap(feature)
+    }
+
+    getFeatureBitmap(feature) {
+        return this.bmFeatures.getBitmap(feature)
+    }
+
+    getFeatureStats(feature) { /* TODO */ }
 
 
     /**
@@ -325,6 +349,7 @@ class IndexD extends EE {
 
     #extractDocumentFeatures(doc) {
         let features = []
+        features.push(doc.type)
         return features
     }
 

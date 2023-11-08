@@ -79,7 +79,10 @@ class Canvas extends EventEmitter {
          */
 
         this.db = new Db({
-            path: path.join(USER.paths.db),
+            path: USER.paths.db,
+            backupPath: path.join(USER.paths.db, 'backup'),
+            backupOnOpen: true,
+            backupOnClose: false,
             compression: false,
         })
 

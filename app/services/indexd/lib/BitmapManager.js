@@ -30,6 +30,7 @@ class BitmapManager {
 
     AND(keyArray) {
         if (keyArray.length === 0) {
+            // TODO: Maybe we should return null here
             return new RoaringBitmap32();
         }
 
@@ -83,7 +84,14 @@ class BitmapManager {
         // Return partial or an empty bitmap if it was never assigned
         return partial || new RoaringBitmap32();
 
-      }
+    }
+
+    static OR(roaringBitmapArray) {
+        return RoaringBitmap32.orMany(roaringBitmapArray)
+    }
+
+    static XOR(roaringBitmapArray) {}
+
 
     //getActiveAND() {}
     //getActiveOR() {}
