@@ -8,7 +8,11 @@
 
 class NeuralD {
 
-    constructor(options) {
+    constructor(options = {
+        
+    }) {
+
+
 
 
         // Timestamp | bitmap

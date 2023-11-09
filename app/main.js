@@ -171,6 +171,7 @@ class Canvas extends EventEmitter {
 
         // Contexts
         this.activeContexts = new Map();
+        this.focusedContext = null;
 
         // App State
         this.isMaster = true
@@ -184,13 +185,13 @@ class Canvas extends EventEmitter {
     get apps() { return this.apps; }
     get pid() { return this.PID; }
     get ipc() { return this.IPC; }
-
+    get context() { return this.focusedContext; }
 
     /**
      * Canvas service controls
      */
 
-    async start() {
+    async start(url, options = {}) {
 
         if (this.status == 'running' && this.isMaster) throw new Error('Application already running')
         this.status = 'starting'
@@ -198,6 +199,8 @@ class Canvas extends EventEmitter {
 
         this.setupProcessEventListeners()
         await this.initializeServices()
+
+        this.createContext(url, options)
         await this.initializeTransports()
         await this.initializeRoles()
         await this.initializeApps()
@@ -256,12 +259,12 @@ class Canvas extends EventEmitter {
     async initializeTransports() {
         // for (const transport of this.config.transports) { /* load, then init, then start, catch err */ })
         await this.services.loadInitializeAndStartService('rest', {
-            context: {},
+            context: this.focusedContext,
             index: this.index
         })
 
         await this.services.loadInitializeAndStartService('websocket', {
-            context: {},
+            context: this.focusedContext,
             index: this.index
         })
 
@@ -300,10 +303,18 @@ class Canvas extends EventEmitter {
      */
 
     createContext(url, options = {}) {
-        if (this.status != 'running') throw new Error('Application not running')
-
         let context = new Context(url, this, options)
         this.activeContexts.set(context.id, context)
+        if (this.focusedContext == null) this.focusedContext = context
+        return context
+    }
+
+    switchContext(id) {
+        let context = this.activeContexts.get(id)
+        if (!context) return false
+
+        this.focusedContext = context
+        this.emit('context-switched', context)
         return context
     }
 

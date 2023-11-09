@@ -59,7 +59,7 @@ class BitmapManager {
         return validBitmaps.length ? RoaringBitmap32.orMany(validBitmaps) : new RoaringBitmap32();
     }
 
-    XOR(keyArray, inputBitmap = null) { return result; }
+    XOR(keyArray, inputBitmap = null) { throw new Error('Not implemented'); }
 
     static AND(roaringBitmapArray) {
 

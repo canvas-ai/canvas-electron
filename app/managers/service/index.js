@@ -130,7 +130,6 @@ class ServiceManager extends EventEmitter {
             }
 
             const serviceInstance = new Service(options);
-            console.log(serviceInstance)
             //this.loadedServices.delete(name);
             this.initializedServices.set(name, serviceInstance);
             return serviceInstance;
@@ -188,7 +187,7 @@ class ServiceManager extends EventEmitter {
         await Promise.all(stopPromises);
     }
 
-    async reloadServiceFromDisk(name, ...options) {
+    async reloadServiceFromDisk(name, options) {
         debug(`[reloadServiceFromDisk] Reloading service '${name}'`)
         await this.stopService(name);
         this.unloadService(name);
@@ -197,7 +196,7 @@ class ServiceManager extends EventEmitter {
         this.startService(name);
     }
 
-    async loadInitializeAndStartService(name, ...options) {
+    async loadInitializeAndStartService(name, options) {
         debug(`[loadInitializeAndStartService] Loading, initializing and starting service '${name}'`)
         this.loadService(name);
         this.initializeService(name, options);
