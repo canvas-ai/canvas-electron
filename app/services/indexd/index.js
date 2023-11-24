@@ -1,5 +1,5 @@
 /**
- * Canvas Index
+ * Canvas IndexD
  */
 
 
@@ -18,7 +18,8 @@ const MAX_DOCUMENTS = 4294967296 // 2^32
 const MAX_CONTEXTS = 1024 // 2^10
 const MAX_FEATURES = 65536 // 2^16
 const MAX_FILTERS = 65536 // 2^16
-const INTERNAL_BITMAP_ID_RANGE = 1000000
+const INTERNAL_BITMAP_ID_MIN = 1000
+const INTERNAL_BITMAP_ID_MAX = 1000000
 
 // Metadata document schemas
 const Document = require('../../schemas/Document');
@@ -60,6 +61,7 @@ class IndexD extends EE {
                                     //and it has no listeners
         })
 
+        // Initialize database
         if (options.db) { this.db = options.db; } else {
             // Validate options
             if (!options.path) throw new Error('Database path is required')
@@ -67,62 +69,63 @@ class IndexD extends EE {
             // Initialize the database backend
             this.db = new Db({
                 path: options.path,
-                maxDbs: options.maxDbs || 32
+                maxDbs: options.maxDbs || 32,
+                cache: true
             })
         }
 
-        // Internal Bitmaps
-        this.bmInternal = new BitmapManager(this.db, 'internal')
-            // Apps
-            // Roles
-            // Devices
-            // updateQueue
-            // cleanupQueue
+        // Document dataset
+        this.documents = this.db.createDataset('documents')
 
-        // Internal indexes
-        // Timeline <timestamp> | <action> | diff {path: [bitmap IDs]}
-            // Action: create, update, delete
-
-        // HashMaps
-        this.hash2oid = this.db.createDataset('hash2oid')
-
-        // Contexts
-        this.bmContexts = new BitmapManager(this.db, 'contexts')
-
-        // Features
-        this.bmFeatures = new BitmapManager(this.db, 'features')
-
-        // Filters
-        this.bmFilters = new BitmapManager(this.db, 'filters')
-
-
-        // Main indexes (TODO: Rework)
+        // In-memory caches
+        this.bitmapCache = new Map()
 
         // Bitmaps
-        // [context]
-        // context/uuid #customers
-        // context/uuid #customera
-        // context/uuid #dev
-        // context/uuid #jira-1234
+        this.bitmaps = this.db.createDataset('bitmaps')
 
-        // []
+        // HashMap(s)
+        // To decide whether to use a single dataset
+        // sha1/<hash> | oid
+        // md5/<hash> | oid
+        // or a separate dataset per hash type
+        this.hash2oid = this.db.createDataset('hash2oid')
 
-        // [features]
-        // Static set (predefined/hardcoded, not removable)
-        // feature/data/abstr/file
-        // feature/data/abstr/file/ext/txt
-        // feature/data/abstr/contact
-        // feature/data/abstr/contact/foo@bar.baz
-        // feature/data/abstr/email
-        // feature/data/abstr/email/attachment
-        // feature/data/abstr/email/flag
-        // feature/data/abstr/email/priority/low
-        // feature/data/mime/application/pdf
-        // feature/data/encoding/utf8
-        // feature/data/versions/1.0.0
-        // Dynamic set (generated dynamically by the feature extracting functions
-        // removed automatically if not used)
-        // feature/d/data/abstr/email/somerandomfeature
+        // Internal Bitmaps
+        this.bmInternal = new BitmapManager(
+            this.bitmaps.createDataset('internal'),
+            this.bitmapCache, {
+                rangeMin: INTERNAL_BITMAP_ID_MIN,
+                rangeMax: INTERNAL_BITMAP_ID_MAX
+            })
+
+        // Contexts
+        this.bmContexts = new BitmapManager(
+            this.bitmaps.createDataset('contexts'),
+            this.bitmapCache, {
+                rangeMin: INTERNAL_BITMAP_ID_MAX,
+            })
+
+        // Features
+        this.bmFeatures = new BitmapManager(
+            this.bitmaps.createDataset('features'),
+            this.bitmapCache, {
+                rangeMin: INTERNAL_BITMAP_ID_MAX,
+            })
+
+        // Filters
+        this.bmFilters = new BitmapManager(
+            this.bitmaps.createDataset('filters'),
+            this.bitmapCache, {
+                rangeMin: INTERNAL_BITMAP_ID_MAX,
+            })
+
+        // Queues
+        // TODO
+
+        // Timeline
+        // <timestamp> | <action> | diff {path: [bitmap IDs]}
+        // Action: create, update, delete
+        // TODO
 
     }
 
@@ -131,93 +134,114 @@ class IndexD extends EE {
      * Document management
      */
 
-    insertDocument(doc, contextArray = [], featureArray = []) {
+    async insertDocument(doc, contextArray = [], featureArray = []) {
+        debug(`insertDocument(): ContextArray: ${contextArray}; FeaturesArray: ${featureArray}`)
 
-        debug('insertDocument()', doc, contextArray, featureArray)
+        if (!doc) throw new Error('Document is required')
+        if (!Array.isArray(contextArray)) throw new Error('Contexts must be an array')
+        if (!Array.isArray(featureArray)) throw new Error('Features must be an array')
 
-        // Validate document
-        let parsed = this.#validateDocument(doc)
-        debug('Document validated', parsed)
+        // Validate document schema
+        if (!Document.validate(doc)) throw new Error('Document in invalid format')
 
+        // Initialize document
+        let parsed = new Document(doc)
+        if (!parsed.id) parsed.id = this.#genDocumentID()
 
-
-        // Add document type to the featureArray if not present
-        if (!featureArray.includes(parsed.type)) featureArray.push(parsed.type)
-
-
+        // Extract features
+        let extractedFeatures = this.#extractDocumentFeatures(doc)
+        let combinedFeatureArray = [...featureArray, ...extractedFeatures]
+        debug('Document feature array', combinedFeatureArray)
 
         // Update existing document if already present
-        // TODO: Primary hash algo should be set by a config value
         let res = this.hash2oid.get(parsed.hashes.sha1)
         if (res) {
             debug('Document already present, updating..')
-            return this.updateDocument(parsed, contextArray, featureArray)
+            debug(`Document ID: ${res}`)
         }
 
-        // Update internal indexes
-        let updateHash2oid = this.hash2oid.put(parsed.hashes.sha1, parsed.id)
-        let updateUniverse = this.db.put(parsed.id, parsed)
+        try {
+            // Insert document
+            await this.documents.put(parsed.id, parsed)
 
-        // Update bitmaps
-        let tickContextArrayBitmaps = this.#tickContextArrayBitmapsSync(contextArray, parsed.id)
-        let tickFeatureArrayBitmaps = this.#tickFeatureArrayBitmapsSync(featureArray, parsed.id)
+            if (contextArray.length > 0) {
+                debug(`Updating context array ${contextArray}`)
+                this.bmContexts.tickManySync(contextArray, parsed.id);
+            }
 
-        // Execute in parallel
-        Promise.all([
-            updateHash2oid,
-            updateUniverse,
-            tickContextArrayBitmaps,
-            tickFeatureArrayBitmaps
-        ])
+            if (combinedFeatureArray.length > 0) {
+                debug(`Updating feature array ${combinedFeatureArray}`)
+                this.bmFeatures.tickManySync(combinedFeatureArray, parsed.id)
+            }
 
-        return parsed
+            // Final step: update hash2oid
+            await this.hash2oid.put(parsed.hashes.sha1, parsed.id);
+            debug('Document insert and indexes update complete');
 
+            // Return the parsed document, id, meta + bling-bling included
+            return parsed;
+
+        } catch (error) {
+            debug('Error during document insert:', error);
+            // TODO: Implement a rollback for bitmap updates, maybe split this
+            // method into separate methods for document insert and bitmap updates
+            throw error;
+        }
     }
 
-    // TODO: Evaluate if a separate method to retrieve multiple documents is needed
+    getDocument(id) { return this.documents.get(id); }
+
+    getDocumentByHash(hash, hashType = '') {
+        if (typeof hash !== 'string') { throw new TypeError('Hash must be a string'); }
+        if (hashType && typeof hashType !== 'string') { throw new TypeError('Hash type must be a string'); }
+
+        let fullHash = hashType ? `${hashType}/${hash}` : hash;
+
+        let id = this.hash2oid.get(fullHash);
+        if (!id) return null;
+
+        return this.documents.get(id);
+    }
+
     async getDocuments(ids = [], cb = null) {
-        if (!Array.isArray(ids)) { ids = [ids]; }
+        debug('getDocuments()', ids, cb)
+        if (!Array.isArray(ids)) { throw new TypeError('IDs must be an array'); }
 
-        let res;
-        if (ids.length === 1) {
-            res = this.db.get(ids[0]); //sync
-        } else {
-            res = await this.db.getMany(ids);
+        try {
+            const res = await this.documents.getMany(ids);
+            if (cb) { cb(null, res); }
+            return res;
+        } catch (err) {
+            if (cb) { cb(err); } else { throw err; }
         }
-
-        if (cb) { cb(null, res); }
-        return res;
-    }
-
-    // TODO: Rewrite to support an array of hashes
-    getDocumentByHash(hash) {
-        let id = this.hash2oid.get(hash)
-        if (!id) return null
-        return this.db.get(id)
     }
 
     async listDocuments(contextArray = [], featureArray = []) {
+        debug(`listDocuments(): ContextArray: ${contextArray}; FeaturesArray: ${featureArray}`)
+        if (contextArray === null) contextArray = []
+        if (featureArray === null) featureArray = []
 
-        debug('listDocuments()', contextArray, featureArray)
-        let documents = []
-
+        let documents
         if (!contextArray.length && !featureArray.length) {
-            documents = this.db.list()
+            documents = this.documents.listValues()
             return documents
         }
 
-        let calculatedContextBitmap = this.contextBitmaps.addMany(contextArray)
-        debug('Context IDs', calculatedContextBitmap)
+        let bitmaps = []
+        if (contextArray.length) {
+            bitmaps.push(this.bmContexts.AND(contextArray))
+        }
 
-        let calculatedFeatureBitmap = this.featureBitmaps.addMany(featureArray)
-        debug('Feature IDs', calculatedFeatureBitmap)
+        if (featureArray.length) {
+            bitmaps.push(this.bmFeatures.AND(featureArray))
+        }
 
-        let result = BitmapManager.addBitmaps([calculatedContextBitmap, calculatedFeatureBitmap])
+        if (bitmaps.length === 0) return []
+
+        let result = BitmapManager.AND(bitmaps)
         debug('Result IDs', result.toArray())
 
-        documents = await this.db.getMany(result.toArray())
-        debug('Documents', documents)
-
+        documents = await this.documents.getMany(result.toArray())
         return documents
     }
 
@@ -243,25 +267,41 @@ class IndexD extends EE {
      * Feature management
      */
 
-    async createFeature(feature) {}
-
-    async hasFeature(feature) {}
-
-    async getFeature(feature) {}
-
-    async removeFeature(feature) {}
-
-    async getFeatureStats(feature) {}
-
-    async listFeatures() { return this.bmFeatures.list(); }
-
-    async tickFeatures(featureArray, id) {
-        this.#tickFeatureArrayBitmaps(featureArray, id)
+    async createFeature(feature, idArray = []) {
+        if (!feature) throw new Error('Feature is required')
+        return this.bmFeatures.createBitmap(feature, idArray)
     }
 
-    async untickFeatures(featureArray, id) {
+    async removeFeature(feature) {}    
 
+    async tickFeatures(featureArray, idArray) {}
+
+    async untickFeatures(featureArray, idArray) {}
+
+    createFeatureSync(feature, idArray = []) {
+        if (!feature) throw new Error('Feature is required')
+        return this.bmFeatures.createBitmapSync(feature, idArray)
     }
+
+    removeFeatureSync(feature) {}
+
+    tickFeaturesSync(featureArray, idArray) {}
+
+    untickFeaturesSync(featureArray, idArray) {}
+
+    listFeatures() { 
+        return this.bmFeatures.listBitmaps(); 
+    }
+
+    hasFeature(feature) {
+        return this.bmFeatures.hasBitmap(feature)
+    }
+
+    getFeatureBitmap(feature) {
+        return this.bmFeatures.getBitmap(feature)
+    }
+
+    getFeatureStats(feature) { /* TODO */ }
 
 
     /**
@@ -293,49 +333,24 @@ class IndexD extends EE {
      * Internal methods
      */
 
-
-    #validateDocument(doc, schema = DOCUMENT_SCHEMAS['default']) {
+    #validateDocument(doc) {
         if (typeof doc !== 'object') throw new Error('Document is not an object')
-        if (!doc.id) doc.id = this.#genDocumentID()
-
-        // This part needs some love
-
-        let initialized = new Document(doc)
-        return initialized
+        debug(this.documents.getKeysCount())
+        doc.id = this.#genDocumentID()
+        return doc
     }
 
-    // Generate a new document ID
     #genDocumentID() {
-        let id = this.db.getKeysCount() + 1000
-        return id++
+        let keysCount = this.documents.db.getKeysCount()
+        let id = INTERNAL_BITMAP_ID_MAX + keysCount + 1
+        if (id > MAX_DOCUMENTS) throw new Error('Maximum number of documents reached')
+        return id
     }
 
-    #tickContextArrayBitmapsSync(bitmapIdArray = [], id) {
-        for (const context of bitmapIdArray) {
-            debug(`Updating bitmap for context ID "${context}"`);
-            //this.contextBitmaps.tick(context, id);
-        }
-    }
-
-    #tickFeatureArrayBitmapsSync(bitmapIdArray = [], id) {
-        for (const feature of bitmapIdArray) {
-            debug(`Updating bitmap for feature ID "${feature}"`)
-            //this.featureBitmaps.tick(feature, id)
-        }
-    }
-
-    async #tickContextArrayBitmaps(bitmapIdArray = [], id) {
-        for (const context of bitmapIdArray) {
-            debug(`Updating bitmap for context ID "${context}"`);
-            await this.contextBitmaps.tick(context, id);
-        }
-    }
-
-    async #tickFeatureArrayBitmaps(bitmapIdArray = [], id) {
-        for (const feature of bitmapIdArray) {
-            debug(`Updating bitmap for feature ID "${feature}"`)
-            await this.featureBitmaps.tick(feature, id)
-        }
+    #extractDocumentFeatures(doc) {
+        let features = []
+        features.push(doc.type)
+        return features
     }
 
 }

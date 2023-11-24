@@ -4,11 +4,14 @@
 // Utils
 const os = require('os')
 const path = require('path')
+const fs = require('fs')
+const mkdirp = require('mkdirp')
 const debug = require('debug')('canvas-db')
 
 // Database backend
 const { open } = require('lmdb')
 
+// TODO: Rework extending using openAsClass()
 
 /**
  * Canvas DB wrapper
@@ -19,7 +22,7 @@ class Db {
 
 
     // Default "root" dataset
-    #dataset = "/";
+    #dataset;
 
     // TODO: Wrap versioning support
     constructor(options, dataset) {
@@ -27,21 +30,50 @@ class Db {
         // Parse input arguments
         if (options.open === undefined) {
             options = {
+                // Database
                 path: options.path || path.join(os.homedir(), '.canvas/db'),
+                
+                // Backup options
+                backupOnOpen: options.backupOnOpen || false,
+                backupOnClose: options.backupOnClose || false,
+                
+                // Internals
+                maxDbs: options.maxDbs || 32,
                 readOnly: options.readOnly || false,
                 logLevel: options.logLevel || 'info',
                 compression: options.compression || true,
                 cache: options.cache || true,
+                // keyEncoding: options.keyEncoding || 'uint32',// ?ordered-binary
+                // encoding: options.encoding || 'binary',
+                // useVersions: options.useVersions || false,
+
                 ...options
             }
 
             this.db = new open(options)
-            debug(`Initialized database "${options.path}"`)
+            debug(`Initialized database at "${options.path}"`)
 
         } else {
             this.db = options
             this.#dataset = dataset
             debug(`Initialized dataset "${dataset}"`)
+        }
+
+        // Set the db path in the wrapper class
+        this.path = options.path
+
+        // This is unfortunate
+        this.backupOptions = {
+            backupPath: path.join(options.path, 'backup'),
+            backupOnOpen: options.backupOnOpen,
+            backupOnClose: options.backupOnClose,
+            compact: options.backupCompact
+        }
+
+        // This is even more so
+        if (this.backupOptions.backupOnOpen) {
+            // TODO: Check if the database changed from the last backup
+            this.#backupDatabase( /* we always compact the db */ )
         }
 
     }
@@ -56,30 +88,28 @@ class Db {
     // Returns stats of the underlying database / dataset
     get stats() { return this.db.getStats(); }
 
-    list() {
+    listKeys() {
         let keys = [];
-        db.getKeys().forEach(element => {
+        this.db.getKeys().forEach(element => {
             keys.push(element)
         });
         return keys
     }
 
-    // Return the last inserted key-value pair
-    last() {
-        /* TODO */
-        throw new Error("Not implemented");
+    listValues() {
+        let values = []
+        this.db.getRange().forEach(element => {
+            values.push(element.value)
+        });
+        return values
     }
 
-    // Return the last inserted key
-    lastKey() {
-        /* TODO */
-        throw new Error("Not implemented");
-    }
-
-    // Return the last inserted value
-    lastValue() {
-        /* TODO */
-        throw new Error("Not implemented");
+    listEntries() {
+        let entries = [];
+        this.db.getRange().forEach(element => {
+            entries.push(element)
+        });
+        return entries
     }
 
     // Creates a new dataset using the same wrapper class
@@ -97,17 +127,17 @@ class Db {
 
     delete(key) { return this.db.removeSync(key); }
 
-    entries() { /* TODO */ throw new Error("Not implemented"); }
+    entries() { return this.db.getRange(); }    // Iterator
 
-    forEach() { /* TODO */ throw new Error("Not implemented"); }
+    forEach() { /* TODO */ }
 
-    // get(key) { return this.db.get(key); }   // Using native LMDB method
+    // get(key) { return this.db.get(key); }    // Using native LMDB method
 
-    has(key) { return this.db.doesExist(key); } // always returns bool
+    has(key) { return this.db.doesExist(key); } // bool
 
-    keys(...opts) { return this.db.getKeys(opts); }
+    keys() { return this.db.getKeys(); }        // Iterator
 
-    values() { return this.db.getValues(); }
+    values() { return this.db.getEntries(); }   // TODO: Fixme
 
     set(key, value) { return this.db.putSync(key, value); }
 
@@ -144,15 +174,15 @@ class Db {
     getMany(keys, cb){ return this.db.getMany(keys, cb); }
 
     /**
-    * Store the provided value, using the provided id/key
+    * (async) Store the provided value, using the provided id/key
     * @param key The key for the entry
     * @param value The value to store
     * @param version The version number to assign to this entry
     **/
-    put(key, value, version) { this.db.put(key, value, version); }
+    put(key, value, version) { return this.db.put(key, value, version); }
 
     /**
-    * Remove the entry with the provided id/key, conditionally based on the provided existing version number
+    * (async) Remove the entry with the provided id/key, conditionally based on the provided existing version number
     * @param key The key for the entry to remove
     **/
     remove(key) { return this.db.remove(key); }
@@ -293,12 +323,49 @@ class Db {
     * @param path Path to store the backup
     * @param compact Apply compaction while making the backup (slower and smaller)
     **/
-    backup(path, compact) { return this.db.backup(path, compact); }
+    backup(path, compact = true) { return this.db.backup(path, compact); }
 
     /**
     * Close the current database.
     **/
     close() { return this.db.close(); }
+
+
+    /**
+     * Internal methods
+     */
+
+    #backupDatabase(compact = true) {        
+        const backupPath = this.#generateBackupFolderPath();
+        
+        // Create the backup folder
+        try {
+            mkdirp.sync(backupPath);
+            debug(`Created backup folder "${backupPath}"`)
+        } catch (error) {
+            console.error(`Error occured while creating backup folder: ${error.message}`);
+            throw error;
+        }
+
+        debug(`Backing up database "${this.path}" to "${backupPath}"`);
+        // TODO: Rework, backup() is async
+        this.db.backup(backupPath, compact);
+    }    
+
+    #generateBackupFolderPath() {
+        const dateString = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        let backupFolderName = dateString;
+        let backupFolderPath = path.join(this.backupOptions.backupPath, backupFolderName);
+    
+        let counter = 1;
+        while (fs.existsSync(backupFolderPath)) {
+            backupFolderName = `${dateString}.${counter}`;
+            backupFolderPath = path.join(this.backupOptions.backupPath, backupFolderName);
+            counter++;
+        }
+    
+        return backupFolderPath;
+      }
 
 }
 

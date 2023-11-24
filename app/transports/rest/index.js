@@ -67,7 +67,6 @@ class ExpressService extends Service {
 
         this.context = options.context;
         this.index = options.index;
-
     }
 
     async start() {

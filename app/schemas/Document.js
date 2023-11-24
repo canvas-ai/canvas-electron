@@ -13,7 +13,6 @@ const DOCUMENT_SCHEMA_TYPE = 'generic';
 // Document class
 class Document {
 
-
     constructor({
         id,
         type,
@@ -26,12 +25,7 @@ class Document {
         dataChecksumAlgorithm = DOCUMENT_DATA_CHECKSUM_ALGO,
     }) {
 
-        // Check and set document ID
-        if (!id) { throw new Error('Document ID is a mandatory parameter'); }
         this.id = id;
-
-        // Check and set document type
-        if (!type) { throw new Error('Document type is a mandatory parameter'); }
         this.type = type;
 
         // Set meta information
@@ -144,7 +138,6 @@ class Document {
 
         // Check for mandatory parameters
         return (
-            document.id &&
             document.type &&
             document.data) || false
     }
