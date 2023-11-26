@@ -12,7 +12,22 @@ class NeuralD {
         
     }) {
 
+        // Inputs
+        //canvas(context changes, documents, ui events, etc)
+        //os (notifications, events, etc)
+        //text prompts (chat/cli etc)
+        //audio
 
+        // Outputs
+        //text
+        //notifier
+        //audio
+
+
+        // Actions
+        //os
+        //canvas
+        //
 
 
         // Timestamp | bitmap

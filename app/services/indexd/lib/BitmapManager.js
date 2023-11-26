@@ -20,13 +20,28 @@ class BitmapManager {
         // https://www.npmjs.com/package/lmdb#caching
     }
 
-    get activeAND() { return this.getActiveAND; }
-    get activeOR() { return this.getActiveOR; }
-
 
     /**
      * Logical operators
      */
+
+    andBitmapArray(bitmapArray) {}
+
+    andBitmapArraySync(bitmapArray) {}
+
+    andBitmapKeyArray(bitmapKeyArray) {}
+
+    andBitmapKeyArraySync(bitmapKeyArray) {}
+
+    orBitmapArray(bitmapArray) {}
+
+    orBitmapArraySync(bitmapArray) {}
+
+    orBitmapKeyArray(bitmapKeyArray) {}
+
+    orBitmapKeyArraySync(bitmapKeyArray) {}
+
+
 
     AND(keyArray) {
         if (keyArray.length === 0) {
