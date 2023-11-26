@@ -63,6 +63,10 @@ class Context extends EE {
         this.#tree = canvas.tree
         this.#layerIndex = canvas.layers
 
+        console.log('-----------------------------')
+        console.log(canvas.layers)
+        console.log('-----------------------------')
+
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
         debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
