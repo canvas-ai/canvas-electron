@@ -25,9 +25,6 @@ const rootLayer = require('../layers/Universe')
 
 class Tree extends EventEmitter {
 
-    #dblayers;
-    #dbtree;
-
     constructor(options = {
         treePath: path.join(os.homedir(), '.canvas', 'tree.json'),
         layerPath: path.join(os.homedir(), '.canvas', 'layers.json')
@@ -40,8 +37,8 @@ class Tree extends EventEmitter {
         this.root = new TreeNode('/', rootLayer)
 
         // Initialize indexes
-        this.#dbtree = new TreeIndex(options.treePath)
-        this.#dblayers = new LayerIndex(options.layerPath)
+        this.dbtree = new TreeIndex(options.treePath)
+        this.dblayers = new LayerIndex(options.layerPath)
 
         // Load tree from the database
         if (this.load()) {
@@ -63,7 +60,7 @@ class Tree extends EventEmitter {
      */
 
     get paths() { return this.#buildPathArray(); }
-    get layers() { return this.#dblayers; }
+    get layers() { return this.dblayers; }
 
 
     /**
@@ -90,10 +87,10 @@ class Tree extends EventEmitter {
         const layerNames = path.split('/').filter(Boolean);
         for (const layerName of layerNames) {
 
-            let layer = this.#dblayers.getLayerByName(layerName)
+            let layer = this.dblayers.getLayerByName(layerName)
             if (!layer) {
                 if (autoCreateLayers) {
-                    layer = this.#dblayers.createLayer(layerName)
+                    layer = this.dblayers.createLayer(layerName)
                 } else {
                     debug(`Layer "${layerName}" not found at path "${path}"`)
                     return false
@@ -102,7 +99,7 @@ class Tree extends EventEmitter {
 
             child = currentNode.getChild(layer.id);
             if (!child) {
-                child = new TreeNode(layer.id, this.#dblayers.getLayerByID(layer.id))
+                child = new TreeNode(layer.id, this.dblayers.getLayerByID(layer.id))
                 currentNode.addChild(child)
             }
 
@@ -227,19 +224,19 @@ class Tree extends EventEmitter {
     }
 
     renameLayer(name, newName) {
-        return this.#dblayers.renameLayer(name, newName)
+        return this.dblayers.renameLayer(name, newName)
     }
 
     // Store tree as JSON to the database
     save() {
         debug('Saving current in-memory tree to database')
         let data = this.#buildJsonIndexTree()
-        this.#dbtree.set('tree', data)//if (!this.#dbtree.set('tree', data)) throw new Error('Unable to save tree to database')
+        this.dbtree.set('tree', data)//if (!this.dbtree.set('tree', data)) throw new Error('Unable to save tree to database')
         return true
     }
 
     // Load JSON tree from the database
-    load(json = this.#dbtree.get('tree')) {
+    load(json = this.dbtree.get('tree')) {
         debug('Loading JSON data from database')
         if (!json) {
             debug('No persistent JSON data found')
@@ -278,7 +275,7 @@ class Tree extends EventEmitter {
         let currentNode = this.root;
 
         for (const layerName of layerNames) {
-            let layer = this.#dblayers.getLayerByName(layerName)
+            let layer = this.dblayers.getLayerByName(layerName)
             if (!layer) {
                 debug(`Layer "${layerName}" not found in index`)
                 return false
@@ -365,20 +362,20 @@ class Tree extends EventEmitter {
             let node;
             let layer;
 
-            layer = (nodeData.id === '/' || nodeData.name === '/') ?  rootLayer : this.#dblayers.getLayerByID(nodeData.id);
+            layer = (nodeData.id === '/' || nodeData.name === '/') ?  rootLayer : this.dblayers.getLayerByID(nodeData.id);
             if ((!layer && !nodeData.name) || (!layer && !autoCreateLayers)) {
                 throw new Error(`Unable to find layer by ID "${nodeData.id}", can not create a tree node`);
             }
 
             if (!layer && autoCreateLayers) {
                 console.log('Not here')
-                layer = this.#dblayers.createLayer(nodeData.name);
+                layer = this.dblayers.createLayer(nodeData.name);
             }
 
             if (layer.id === '/') {
                 node = new TreeNode('/', rootLayer)
             } else {
-                node = new TreeNode(layer.id, this.#dblayers.getLayerByID(layer.id));
+                node = new TreeNode(layer.id, this.dblayers.getLayerByID(layer.id));
             }
 
             for (const childData of nodeData.children) {
@@ -417,7 +414,7 @@ class Tree extends EventEmitter {
                 .filter(child => child instanceof TreeNode)
                 .map(child => child.hasChildren ? buildTree(child) : createLayerInfo(child.payload));
 
-            return createLayerInfo(this.#dblayers.getLayerByID(currentNode.id) || rootLayer, children);
+            return createLayerInfo(this.dblayers.getLayerByID(currentNode.id) || rootLayer, children);
         };
 
         const createLayerInfo = (payload, children = []) => ({

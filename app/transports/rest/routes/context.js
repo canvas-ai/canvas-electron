@@ -15,8 +15,9 @@ router.put('/url', (req, res) => {
     try {
         debug(`[PUT] Got context url "${req.body.url}`)
         req.context.set(req.body.url, req.body.autoCreateLayers);
-        res.sendStatus(200);conte
+        res.sendStatus(200);
     } catch (error) {
+        console.error(error)
         res.status(400).send(error.message);
     }
 });
@@ -27,6 +28,7 @@ router.post('/url', (req, res) => {
         debug(req.context.set(req.body.url, req.body.autoCreateLayers));
         res.sendStatus(200);
     } catch (error) {
+        console.error(error)
         res.status(400).send(error.message);
     }
 });
