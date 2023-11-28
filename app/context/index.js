@@ -63,6 +63,10 @@ class Context extends EE {
         this.#tree = canvas.tree
         this.#layerIndex = canvas.layers
 
+        console.log('-----------------------------')
+        console.log(canvas.layers)
+        console.log('-----------------------------')
+
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
         debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
@@ -94,11 +98,16 @@ class Context extends EE {
 
     get contextArray() { return this.#contextArray; }
     get featureArray() { return this.#featureArray; }
+    get features() { return this.#featureArray; }
     get filterArray() { return this.#filterArray; }
+    get filters() { return this.#filterArray; }
+
+    // List all roles linked to this context
+    get roles() {}
 
     // List all apps linked to this context
     get apps() {}
-
+    
     // List all identities linked to this context
     get identities() {}
 
@@ -220,6 +229,24 @@ class Context extends EE {
         filArr = this.#filterArray) {
 
     }
+
+    /**
+     * Features
+     */    
+
+    setContextFeatures(idOrArray) {}
+    addFeatureToContext(idOrArray) {}
+    removeFeatureFromContext(idOrArray) {}
+    listActiveContextFeatures() {}
+
+    /**
+     * Filters
+     */    
+    
+    setContextFilters(idOrArray) {}
+    addFilterToContext(idOrArray) {}
+    removeFilterFromContext(idOrArray) {}
+    listActiveContextFilters() {}
 
 
     /**

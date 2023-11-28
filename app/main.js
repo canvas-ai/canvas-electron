@@ -119,7 +119,7 @@ class Canvas extends EventEmitter {
             ]
         });
 
-        /* 
+        /*
         this.roles = new RoleManager({
             config: path.join(USER.paths.config, 'roles.json')
         });
@@ -166,7 +166,7 @@ class Canvas extends EventEmitter {
             layerPath: path.join(USER.paths.db, 'layers.json')
         })
 
-        this.layers = Tree.layers;
+        this.layers = this.tree.layers;
         this.bitmaps = new Map();
 
         // Contexts
