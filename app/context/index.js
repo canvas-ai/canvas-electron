@@ -26,7 +26,6 @@ class Context extends EE {
     #layerIndex;
     #tree;
 
-    #db;
     #index;
     #neurald;
     #stored;
@@ -37,8 +36,7 @@ class Context extends EE {
     #metaData = {};
 
     // TODO: Implement a DI framework
-    constructor(url, canvas, options = {
-    }) {
+    constructor(url, canvas, options = {}) {
 
         // Initialize event emitter
         super({
@@ -55,7 +53,6 @@ class Context extends EE {
         this.#id = options?.id || uuid12()
 
         // TODO: Rework?
-        this.#db = canvas.db
         this.#index = canvas.index
         this.#neurald = canvas.neurald
         this.#stored = canvas.storage
@@ -63,16 +60,14 @@ class Context extends EE {
         this.#tree = canvas.tree
         this.#layerIndex = canvas.layers
 
-        console.log('-----------------------------')
-        console.log(canvas.layers)
-        console.log('-----------------------------')
-
         // Set the context url
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
         debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
 
-
-        this.contextObjBitmap = null
+        // Maps containing pointers to the central in-memory
+        // bitmaps for context, features and filters
+        this.contextBitmaps = new Map()
+        this.featureBitmaps = new Map()
 
     }
 
@@ -247,7 +242,6 @@ class Context extends EE {
     addFilterToContext(idOrArray) {}
     removeFilterFromContext(idOrArray) {}
     listActiveContextFilters() {}
-
 
     /**
      * Data store methods
