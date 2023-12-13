@@ -18,6 +18,11 @@ const Config = require('./utils/config');
 const Log = require('./utils/logger');
 const EventEmitter = require('eventemitter2');
 
+// Constants
+const MAX_CONTEXTS = 1024 // 2^10
+const MAX_FEATURES = 65536 // 2^16
+const MAX_FILTERS = 65536 // 2^16
+
 // Core services
 const Db = require('./services/db');
 const IndexD = require('./services/indexd');
