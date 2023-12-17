@@ -16,7 +16,7 @@ canvas
     layers
         list
         renameLayer
-    
+
     bitmaps
 
     contextTree
@@ -31,10 +31,11 @@ canvas
 
         context
             // Setters
-            set || setUrl        
+            set || setUrl
 
             // Getters
             id
+            url
             path
             pathArray
             tree -> canvas.tree
@@ -49,7 +50,7 @@ canvas
             roles
             identities
 
-            // 
+            //
             linkApp
             unlinkApp
             linkAppArray
@@ -67,7 +68,7 @@ canvas
             removeDocumentArray
             destroyDocument
             destroyDocumentArray
-            
+
             // Feature Methods
             clearFeatures
             listFeatures

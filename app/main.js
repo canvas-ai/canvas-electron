@@ -25,7 +25,7 @@ const MAX_FILTERS = 65536 // 2^16
 
 // Core services
 const Db = require('./services/db');
-const IndexD = require('./services/indexd');
+const SynapseD = require('./services/synapsd/index.js');
 const NeuralD = require('./services/neurald');
 const StoreD = require('./services/stored');
 
@@ -52,7 +52,6 @@ class Canvas extends EventEmitter {
 
     constructor(options = {
         sessionEnabled: true,
-        restoreSession: true,
         enableUserApps: false,
         enableUserRoles: false
     }) {
@@ -83,22 +82,22 @@ class Canvas extends EventEmitter {
          * Core services
          */
 
+        // Main database backend
         this.db = new Db({
             path: USER.paths.db,
             backupPath: path.join(USER.paths.db, 'backup'),
             backupOnOpen: true,
             backupOnClose: false,
-            compression: false,
+            compression: true,
         })
 
-        this.index = new IndexD({
-            db: this.db,
-            config: this.config,
-            logger: this.logger
+        this.documents = SynapseD({
+            db: this.db.createDataset('documents'),
+            index: this.db.createDataset('index')
         })
 
         this.neurald = new NeuralD({
-            db: this.db,
+            db: this.db.createDataset('neurald'),
             config: this.config,
             logger: this.logger
         })
@@ -158,13 +157,6 @@ class Canvas extends EventEmitter {
             this.db.createDataset('session') :
             null
 
-        // Static variables
-        this.app = APP
-        this.user = USER
-        this.device = DEVICE
-        this.PID = PID
-        this.IPC = IPC
-
         // Global objects shared with all contexts
         this.tree = new Tree({
             treePath: path.join(USER.paths.db, 'tree.json'),
@@ -177,6 +169,13 @@ class Canvas extends EventEmitter {
         // Contexts
         this.activeContexts = new Map();
         this.focusedContext = null;
+
+        // Static variables
+        this.app = APP          // App runtime env
+        this.user = USER        // Current OS user
+        this.device = DEVICE    // Current OS device
+        this.PID = PID          // Current App instance PID
+        this.IPC = IPC          // Shared IPC socket
 
         // App State
         this.isMaster = true
@@ -204,11 +203,21 @@ class Canvas extends EventEmitter {
 
         this.setupProcessEventListeners()
         await this.initializeServices()
-
-        this.createContext(url, options)
         await this.initializeTransports()
         await this.initializeRoles()
         await this.initializeApps()
+
+        if (url) this.createContext(url, options)
+
+
+
+        // Load session
+        if (this.session) {
+            await this.session.load()
+        } else {
+            debug('Session support disabled, creating new context')
+
+        }
 
         this.status = 'running'
         this.emit('running')
@@ -314,17 +323,8 @@ class Canvas extends EventEmitter {
         return context
     }
 
-    switchContext(id) {
-        let context = this.activeContexts.get(id)
-        if (!context) return false
-
-        this.focusedContext = context
-        this.emit('context-switched', context)
-        return context
-    }
-
     removeContext(id) {
-        if (this.status != 'running') throw new Error('Application not running')
+        if (this.status != 'running') throw new Error('Application not fully initialized')
 
         let context = this.activeContexts.get(id)
         if (context) {
@@ -334,7 +334,7 @@ class Canvas extends EventEmitter {
     }
 
     listContexts() {
-        if (this.status != 'running') throw new Error('Application not running')
+        if (this.status != 'running') throw new Error('Application not fully initialized')
         return this.activeContexts.values()
     }
 

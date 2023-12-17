@@ -81,7 +81,13 @@ const env = {
     },
 
     USER: {
+        // TODO: Rework
+        ...device.user,
         paths: {
+            // TODO: Rework (to-be-done before OS integration)
+            homedir: device.os.homedir,
+            // desktop
+            // downloads
             home: USER_HOME,        // Path/to/canvas/user || ~/.canvas
             config: USER_CONFIG,    // USER_HOME/config
             cache: USER_CACHE,      // USER_HOME/cache
@@ -91,7 +97,14 @@ const env = {
         }
     },
 
-    DEVICE: device,
+    // TODO: Rework
+    DEVICE: {
+        id: device.id,
+        endianness: device.endianness,
+        type: device.type,
+        os: device.os,
+        network: device.network
+    },
 
     PID: path.join(APP_VAR, 'run', 'canvas.pid'),
     IPC: (process.platform === 'win32') ?

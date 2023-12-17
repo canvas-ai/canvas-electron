@@ -1,14 +1,6 @@
-/**
- * Canvas IndexD
- */
-
-
 // Utils
-const debug = require('debug')('canvas-index')
+const debug = require('debug')('canvas-db-index')
 const EE = require('eventemitter2')
-
-// Database
-const Db = require('../db')
 
 // App includes
 const BitmapManager = require('./lib/BitmapManager')
@@ -21,23 +13,12 @@ const MAX_FILTERS = 65536 // 2^16
 const INTERNAL_BITMAP_ID_MIN = 1000
 const INTERNAL_BITMAP_ID_MAX = 1000000
 
-// Metadata document schemas
-const Document = require('../../schemas/Document');
-const DOCUMENT_SCHEMAS = {
-    // Generic document schema
-    default: require('../../schemas/Document').toJSON(),
-    // Data abstraction schemas
-    file: require('../../schemas/abstr/File').toJSON(),
-    tab: require('../../schemas/abstr/Tab').toJSON(),
-    note: require('../../schemas/abstr/Note').toJSON()
-}
-
 
 /**
- * Canvas IndexD
+ * Index
  */
 
-class IndexD extends EE {
+class Index extends EE {
 
 
     #db
@@ -45,40 +26,11 @@ class IndexD extends EE {
 
     constructor(options = {}) {
 
-
-        debug('Initializing Canvas Index')
-
         // Initialize event emitter
-        super({
-            wildcard: true,         // set this to `true` to use wildcards
-            delimiter: '/',         // the delimiter used to segment namespaces
-            newListener: true,      // set this to `true` if you want to emit the newListener event
-            removeListener: true,   // set this to `true` if you want to emit the removeListener event
-            maxListeners: 32,       // the maximum amount of listeners that can be assigned to an event
-            verboseMemoryLeak: false,   // show event name in memory leak message when
-                                        // more than maximum amount of listeners is assigned
-            ignoreErrors: false     // disable throwing uncaughtException if an error event is emitted
-                                    //and it has no listeners
-        })
+        super()
 
-        // Initialize database
-        if (options.db) { this.db = options.db; } else {
-            // Validate options
-            if (!options.path) throw new Error('Database path is required')
-
-            // Initialize the database backend
-            this.db = new Db({
-                path: options.path,
-                maxDbs: options.maxDbs || 32,
-                cache: true
-            })
-        }
-
-        // Document dataset
-        this.documents = this.db.createDataset('documents')
-
-        // In-memory caches
-        this.bitmapCache = new Map()
+        // Initialize database backend
+        this.#db = options.db
 
         // Bitmaps
         this.bitmaps = this.db.createDataset('bitmaps')
@@ -129,24 +81,37 @@ class IndexD extends EE {
 
     }
 
+    async updateContextBitmaps(contextArray, oid) {
+        if (!Array.isArray(contextArray)) { throw new TypeError('Context array must be an array'); }
+        if (typeof oid !== 'number') { throw new TypeError('OID must be a number'); }
+
+        for (const contextID of contextArray) {
+            await this.bmContexts.tick(contextID, oid);
+        }
+    }
+
+    async tickContextBitmaps(contextArray, oidArray) {}
+    async untickContextBitmaps(contextArray, oidArray) {}
+
+    async tickFeatureBitmaps(featureArray, oidArray) {}
+    async untickFeatureBitmaps(featureArray, oidArray) {}2
+
+
+    async updateFeatureBitmaps(featureArray, oid) {
+        if (!Array.isArray(featureArray)) { throw new TypeError('Feature array must be an array'); }
+        if (typeof oid !== 'number') { throw new TypeError('OID must be a number'); }
+
+        for (const featureID of featureArray) {
+            await this.bmFeatures.tick(featureID, oid);
+        }
+    }
 
     /**
      * Document management
      */
 
     async insertDocument(doc, contextArray = [], featureArray = []) {
-        debug(`insertDocument(): ContextArray: ${contextArray}; FeaturesArray: ${featureArray}`)
 
-        if (!doc) throw new Error('Document is required')
-        if (!Array.isArray(contextArray)) throw new Error('Contexts must be an array')
-        if (!Array.isArray(featureArray)) throw new Error('Features must be an array')
-
-        // Validate document schema
-        if (!Document.validate(doc)) throw new Error('Document in invalid format')
-
-        // Initialize document
-        let parsed = new Document(doc)
-        if (!parsed.id) parsed.id = this.#genDocumentID()
 
         // Extract features
         let extractedFeatures = this.#extractDocumentFeatures(doc)
@@ -272,7 +237,7 @@ class IndexD extends EE {
         return this.bmFeatures.createBitmap(feature, idArray)
     }
 
-    async removeFeature(feature) {}    
+    async removeFeature(feature) {}
 
     async tickFeatures(featureArray, idArray) {}
 
@@ -289,8 +254,8 @@ class IndexD extends EE {
 
     untickFeaturesSync(featureArray, idArray) {}
 
-    listFeatures() { 
-        return this.bmFeatures.listBitmaps(); 
+    listFeatures() {
+        return this.bmFeatures.listBitmaps();
     }
 
     hasFeature(feature) {
@@ -304,55 +269,6 @@ class IndexD extends EE {
     getFeatureStats(feature) { /* TODO */ }
 
 
-    /**
-     * Schema management
-     */
-
-    listDocumentSchemas() { return DOCUMENT_SCHEMAS; }
-
-    hasDocumentSchema(schema) { return DOCUMENT_SCHEMAS[schema] ? true : false; }
-
-    getDocumentSchema(schema) {
-        // TODO: Rework (this ugly workaround [for inconsistent schema names])
-        if (schema.includes('/')) schema = schema.split('/').pop()
-        if (!DOCUMENT_SCHEMAS[schema]) return null
-        return DOCUMENT_SCHEMAS[schema]
-    }
-
-
-    /**
-     * Filter management
-     */
-
-    // Regexp
-    // Timeline
-    // Metadata
-
-
-    /**
-     * Internal methods
-     */
-
-    #validateDocument(doc) {
-        if (typeof doc !== 'object') throw new Error('Document is not an object')
-        debug(this.documents.getKeysCount())
-        doc.id = this.#genDocumentID()
-        return doc
-    }
-
-    #genDocumentID() {
-        let keysCount = this.documents.db.getKeysCount()
-        let id = INTERNAL_BITMAP_ID_MAX + keysCount + 1
-        if (id > MAX_DOCUMENTS) throw new Error('Maximum number of documents reached')
-        return id
-    }
-
-    #extractDocumentFeatures(doc) {
-        let features = []
-        features.push(doc.type)
-        return features
-    }
-
 }
 
-module.exports = IndexD
+module.exports = Index
