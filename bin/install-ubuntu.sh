@@ -11,6 +11,8 @@ CANVAS_NODE_VERSION=""
 CANVAS_ELECTRON_VERSION=""
 
 
+packages=['notify-osd','notify-osd-icons']
+
 # Parse arguments
 
 # Check dependencies

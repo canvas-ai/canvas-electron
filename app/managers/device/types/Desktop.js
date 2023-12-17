@@ -12,6 +12,7 @@ class Desktop {
   constructor() {
     this.id = machineIdSync(true).substr(0, 11);
     this.endianness = os.endianness();
+    this.type = "desktop"
     this.os = {
       arch: os.arch(),
       platform: os.platform(),

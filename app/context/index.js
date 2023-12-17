@@ -78,10 +78,14 @@ class Context extends EE {
     get id() { return this.#id;}
     get url() { return this.#url; }
     get path() { return this.#path; }
-    get array() { return this.#array; }
+    get pathArray() { return this.#array; }
 
     get tree() { return this.#tree.getJsonTree(); }
     get paths() { return this.#tree.paths; }
+
+    // layers
+    // features
+    // filters
 
     get bitmaps() {
         return {
@@ -102,7 +106,7 @@ class Context extends EE {
 
     // List all apps linked to this context
     get apps() {}
-    
+
     // List all identities linked to this context
     get identities() {}
 
@@ -227,7 +231,7 @@ class Context extends EE {
 
     /**
      * Features
-     */    
+     */
 
     setContextFeatures(idOrArray) {}
     addFeatureToContext(idOrArray) {}
@@ -236,8 +240,8 @@ class Context extends EE {
 
     /**
      * Filters
-     */    
-    
+     */
+
     setContextFilters(idOrArray) {}
     addFilterToContext(idOrArray) {}
     removeFilterFromContext(idOrArray) {}
@@ -247,11 +251,11 @@ class Context extends EE {
      * Data store methods
      */
 
-    insertDocument(doc) {
+    async insertDocument(doc) {
         if (!doc) throw new Error('Document must be provided')
         if (!doc.type) throw new Error('Document type must be provided')
         if (!doc.data) throw new Error('Document data must be provided')
-        return this.#index.insertDocument(doc)
+        return this.#index.insertDocument(doc, this.contextArray, this.featureArray)
     }
 
     listDocuments(ctxArr, ftArr, filArr) {

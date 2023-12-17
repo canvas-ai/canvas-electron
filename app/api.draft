@@ -1,0 +1,88 @@
+# Original draft
+canvas
+    workspace
+        context
+            layer
+                bitmap
+
+# Current draft
+canvas
+    context
+        layer
+            bitmap
+
+canvas
+    db
+    layers
+        list
+        renameLayer
+
+    bitmaps
+
+    contextTree
+        insertPath
+
+
+    createContext
+    listActiveContexts
+    removeContext
+
+    contexts
+
+        context
+            // Setters
+            set || setUrl
+
+            // Getters
+            id
+            url
+            path
+            pathArray
+            tree -> canvas.tree
+
+            layers
+            features    // To decide whether to tie them to layers or context
+            filters     // To decide whether to tie them to layers or context
+
+            documents
+
+            apps
+            roles
+            identities
+
+            //
+            linkApp
+            unlinkApp
+            linkAppArray
+            unlinkAppArray
+            linkRole
+            linkRoleArray
+            linkIdentity
+            linkIdentityArray
+
+            // Document Methods
+            listDocuments
+            insertDocument
+            insertDocumentArray
+            removeDocument
+            removeDocumentArray
+            destroyDocument
+            destroyDocumentArray
+
+            // Feature Methods
+            clearFeatures
+            listFeatures
+            clearFeatureArray
+            insertFeature
+            insertFeatureArray
+            removeFeature
+            removeFeatureArray
+
+            // Filter Methods
+            clearFilters
+            listFilters
+            insertFilter
+            insertFilterArray
+            removeFilter
+            removeFilterArray
+
