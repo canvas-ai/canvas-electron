@@ -2,7 +2,7 @@
 const debug = require('debug')('canvas-db')
 const EE = require('eventemitter2')
 
-// Includes
+// App includes
 const Index = require('./index')
 
 
@@ -38,6 +38,7 @@ class Db extends EE {
         let validated = await this.#validateDocument(doc);
         if (!validated) return false;
 
+
         await this.#documents.put(validated.id, validated);
 
         validated.hash.forEach((hash)  => {
@@ -61,8 +62,18 @@ class Db extends EE {
 
     async listDocuments(contextArray, featureArray, filterArray) {
         let docArray = [];
-        let oidArray = await this.#index.getOidArray(contextArray, featureArray, filterArray);
+
+        // Calculate bitmaps
+        let contextBitmap = await this.#index.idArrayAND(contextArray);
+        let featureBitmap = await this.#index.idArrayOR(featureArray);
+        let resultBitmap = await this.#index.bitmapArrayAND(contextBitmap, featureBitmap);
+
+        // Get document IDs
+        let oidArray = resultBitmap.toArray();
+
+        // Get documents
         docArray = await this.#documents.getMany(oidArray);
+
         return docArray;
     }
 

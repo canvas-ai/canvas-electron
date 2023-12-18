@@ -25,7 +25,7 @@ const MAX_FILTERS = 65536 // 2^16
 
 // Core services
 const Db = require('./services/db');
-const SynapseD = require('./services/synapsd/index.js');
+const CanvasDB = require('./services/canvasdb/index.js');
 const NeuralD = require('./services/neurald');
 const StoreD = require('./services/stored');
 
@@ -91,7 +91,7 @@ class Canvas extends EventEmitter {
             compression: true,
         })
 
-        this.documents = SynapseD({
+        this.documents = CanvasDB({
             db: this.db.createDataset('documents'),
             index: this.db.createDataset('index')
         })

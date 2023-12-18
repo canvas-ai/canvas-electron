@@ -1,23 +1,33 @@
 'use strict'
 
-
 const RoaringBitmap32 = require('roaring/RoaringBitmap32')
 const Bitmap = require('./Bitmap')
-const debug = require('debug')('canvas-index-bitmapManager')
+const debug = require('debug')('canvas-db-bitmapManager')
+
 
 class BitmapManager {
 
     #db;
     #cache;
 
+    /**
+     * BitmapManager constructor
+     * @param {*} db
+     * @param {*} cache
+     * @param {*} options
+     */
     constructor(db = new Map(), cache = new Map(), options = {
         rangeMin: 0,
         rangeMax: 4294967296 // 2^32
     }) {
+        // A suitable DB backend with a Map() like interface
         this.#db = db
+        // A suitable Caching backend with a Map() like interface
         this.#cache = cache
-        // We'll use the LMDBs caching mechanism for now
-        // https://www.npmjs.com/package/lmdb#caching
+
+        // This should probably be implemented one abstraction layer up
+        this.rangeMin = options.rangeMin || 0
+        this.rangeMax = options.rangeMax || 4294967296 - 1 // 2^32 - 1
     }
 
 
@@ -25,17 +35,17 @@ class BitmapManager {
      * Logical operators
      */
 
-    andBitmapArray(bitmapArray) {}
+    andRoaringBitmapArray(roaringBitmapArray) {}
 
-    andBitmapArraySync(bitmapArray) {}
+    andRoaringBitmapArraySync(roaringBitmapArray) {}
 
     andBitmapKeyArray(bitmapKeyArray) {}
 
     andBitmapKeyArraySync(bitmapKeyArray) {}
 
-    orBitmapArray(bitmapArray) {}
+    orRoaringBitmapArray(roaringBitmapArray) {}
 
-    orBitmapArraySync(bitmapArray) {}
+    orRoaringBitmapArraySync(roaringBitmapArray) {}
 
     orBitmapKeyArray(bitmapKeyArray) {}
 
@@ -107,9 +117,6 @@ class BitmapManager {
 
     static XOR(roaringBitmapArray) {}
 
-
-    //getActiveAND() {}
-    //getActiveOR() {}
     //andCardinality() {}
     //orCardinality() {}
     //jaccardIndex() {}
@@ -120,22 +127,21 @@ class BitmapManager {
      * @returns {Array} Array of bitmap keys
      */
     listBitmaps() {
-        // TODO: Temporary workaround for Map() support
-        if (this.#db instanceof Map) {
-            let bitmaps = [...this.#db.keys()]
-            return bitmaps
-        } else {
-            return this.#db.listKeys();
-        }
+        let bitmaps = [...this.#db.keys()]
+        return bitmaps
     }
 
-    getActiveBitmaps() { /* TODO */ }
+    getActiveBitmaps() { return this.#cache.list(); }
 
-    clearActiveBitmaps() { /* TODO */ }
+    clearActiveBitmaps() { this.#cache.clear(); }
 
     hasBitmap(key) { return this.#db.has(key); }
 
     getBitmap(key) {
+        // Return from cache if available
+        if (this.#cache.has(key)) return this.#cache.get(key)
+
+        // Load from DB
         if (!this.#db.has(key)) {
             debug(`Bitmap with key ID "${key}" not found`)
             return null
@@ -144,10 +150,6 @@ class BitmapManager {
         let bitmap = this.#loadBitmapFromDb(key)
         return bitmap
     }
-
-    activateBitmap(key) { /* TODO */ }
-
-    deactivateBitmap(key) { /* TODO */ }
 
     removeBitmapSync(key) {
         if (!this.#db.has(key)) {
@@ -313,9 +315,6 @@ class BitmapManager {
         // ...
     }
 
-    // Ticks all active bitmaps with an array of IDs or a bitmap
-    untickAllActiveSync(oidArrayOrBitmap) { /* TODO */ }
-
     // Ticks all bitmaps with an array of IDs or a bitmap
     untickAllSync(oidArrayOrBitmap) {
         // Consider the performance impact of ticking all bitmaps
@@ -332,10 +331,12 @@ class BitmapManager {
         // TODO: runOptimize()
         // TODO: shrinkToFit()
         // TODO: Overwrite logic
+
         let bitmapData = bitmap.serialize(true)
         if (!this.#db.set(key, bitmapData)) {
             throw new Error(`Unable to save bitmap ${key} to database`)
         }
+
         return true
     }
 
