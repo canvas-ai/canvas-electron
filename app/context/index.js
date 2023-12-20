@@ -167,11 +167,6 @@ class Context extends EE {
         return this.#layerIndex.removeLayerByName(name)
     }
 
-    // TODO: Not implemented
-    destroyLayer(name) {
-        return false
-    }
-
     listLayers() {
         return this.#layerIndex.list()
     }
@@ -226,6 +221,7 @@ class Context extends EE {
     insertFeature(feature) {}
     updateFeature(feature) {}
     removeFeature(feature) {}
+    listActiveFeatures() {}
     listFeatures() {}
 
     /**
@@ -235,6 +231,7 @@ class Context extends EE {
     insertFilter(filter) {}
     updateFilter(filter) {}
     removeFilter(filter) {}
+    listActiveFilters() {}
     listFilters() {}
 
 
@@ -269,18 +266,20 @@ class Context extends EE {
         }
     }
 
-    async updateDocument() {}
+    async updateDocument(document, contextArray, featureArray) {}
 
-    async removeDocument() {}
+    async updateDocumentArray(documentArray) {}
 
-    async removeDocumentArray() {}
+    async removeDocument(id) {}
 
-    async deleteDocument() {}
+    async removeDocumentArray(idArray) {}
+
+    async deleteDocument(id) {}
 
     async deleteDocumentArray() {}
 
-    getDocumentSchema() {
-        return {}
+    getDocumentSchema(schema = 'default') {
+        return this.documents.getDocumentSchema(schema)
     }
 
 

@@ -7,17 +7,12 @@ const debug = require('debug')('canvas-svc-jsonapi:documents');
 router.get('/', async (req, res) => {
 
     let context = req.context;
-
-    // TODO: Check feature and filter types
-
     let documents = await context.listDocuments();
-
-    console.log('documents----------------------------', documents)
 
     if (documents) {
         res.json(documents)
     } else {
-        res.status(404).send('No documents found')
+        res.status(404).send(`No documents found in context ${context.url}`)
     }
 })
 
@@ -28,7 +23,7 @@ router.get('/:id', async (req, res) => {
     if (document) {
         res.json(document)
     } else {
-        res.status(404).send('Document not found')
+        res.status(404).send(`Document not found in context ${context.url}`)
     }
 })
 
@@ -40,7 +35,7 @@ router.get('/:abstr', (req, res) => {
     if (documents) {
         res.json(documents)
     } else {
-        res.status(404).send('No documents found for type ' + abstr)
+        res.status(404).send('No documents found for type ' + abstr + ' in context ' + context.url)
     }
 })
 

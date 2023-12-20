@@ -393,7 +393,19 @@ class BitmapManager {
      * Internal methods
      */
 
-    #saveBitmapToDb(key, bitmap, overwrite = true) {}
+    async #saveBitmapToDb(key, bitmap, overwrite = true) {
+        if (!bitmap instanceof RoaringBitmap32) throw new TypeError(`Input must be an instance of RoaringBitmap32`)
+        // TODO: runOptimize()
+        // TODO: shrinkToFit()
+        // TODO: Overwrite logic
+
+        let bitmapData = bitmap.serialize(true)
+        try {
+            await this.#db.put(key, bitmapData)
+        } catch (err) {
+            throw new Error(`Unable to save bitmap ${key} to database`)
+        }
+    }
 
     #saveBitmapToDbSync(key, bitmap, overwrite = true) {
         if (!bitmap instanceof RoaringBitmap32) throw new TypeError(`Input must be an instance of RoaringBitmap32`)

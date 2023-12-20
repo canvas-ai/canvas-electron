@@ -30,13 +30,12 @@ class Index extends EE {
         // Initialize event emitter
         super()
 
-        // Initialize database backend
+        // Bind/initialize the database backend
         this.#db = options.db
 
         // Bitmaps
         this.bitmaps = this.#db.createDataset('bitmaps')
-        // Shared Map() to cache bitmaps in memory
-        this.bitmapCache = new MemCache()
+        this.bitmapCache = new MemCache() // Shared Map() to cache bitmaps in memory
 
         // HashMap(s)
         // To decide whether to use a single dataset

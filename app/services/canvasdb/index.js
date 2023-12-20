@@ -13,6 +13,11 @@ const INTERNAL_BITMAP_ID_MAX = 1000000
 const Document = require('./schemas/Document')
 const Tab = require('./schemas/abstr/Tab')
 
+const DOCUMENT_SCHEMAS = {
+    default: Document.toJSON(),
+    'data/abstr/tab': Tab.toJSON()
+}
+
 
 /**
  * Canvas document database
@@ -43,13 +48,18 @@ class CanvasDB extends EE {
 
     async insertDocument(document, contextArray, featureArray, filterArray) {
         if (!this.validateDocument(document)) throw new Error('Invalid document');
+
         document = this.parseDocument(document);
-
         if (!document.id) document.id = this.#genDocumentID();
-        await this.#db.put(document.id, document);
 
-        for (const hash of document.hashes) {
-            await this.#index.hash2oid.put(hash, document.id);
+        if (!this.#db.has(document.id)) {
+            await this.#db.put(document.id, document);
+            await this.#index.hash2oid.put(document.checksum, document.id);
+            /*for (const hash of document.hashes) {
+                await this.#index.hash2oid.put(hash, document.id);
+            }*/
+        } else {
+            debug(`Document ${document.id} already exists, updating bitmaps`)
         }
 
         if (Array.isArray(contextArray) && contextArray.length > 0) {
@@ -133,6 +143,15 @@ class CanvasDB extends EE {
         return parsed
     }
 
+    getDocumentSchema(schema) {
+        if (!DOCUMENT_SCHEMAS[schema]) {
+            debug(`getDocumentSchema(): Schema ${schema} not found, using default`)
+            return DOCUMENT_SCHEMAS['default']
+        }
+
+        return DOCUMENT_SCHEMAS[schema]
+    }
+
     async #extractDocumentFeatures(doc) {
         let features = []
         // TODO, currently we just add the document type
@@ -142,7 +161,9 @@ class CanvasDB extends EE {
 
     #genDocumentID() {
         let keyCount = this.#db.getKeysCount() || 0
+        console.log(keyCount)
         let nextDocumentID = INTERNAL_BITMAP_ID_MAX + keyCount + 1
+        console.log(nextDocumentID)
         debug(`genDocumentID(): Key count: ${keyCount}`)
         debug(`genDocumentID(): Next document ID: ${nextDocumentID}`)
         return nextDocumentID
