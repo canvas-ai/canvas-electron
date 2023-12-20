@@ -26,14 +26,11 @@ class Context extends EE {
     #layerIndex;
     #tree;
 
-    #index;
-    #neurald;
-    #stored;
-
     #contextArray = [];
     #featureArray = [];
     #filterArray = [];
-    #metaData = {};
+
+    #meta = {};
 
     // TODO: Implement a DI framework
     constructor(url, canvas, options = {}) {
@@ -51,11 +48,7 @@ class Context extends EE {
 
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
-
-        // TODO: Rework?
-        this.#index = canvas.index
-        this.#neurald = canvas.neurald
-        this.#stored = canvas.storage
+        this.documents = canvas.documents
 
         this.#tree = canvas.tree
         this.#layerIndex = canvas.layers
@@ -64,8 +57,8 @@ class Context extends EE {
         this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
         debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
 
-        // Maps containing pointers to the central in-memory
-        // bitmaps for context, features and filters
+        // Maps containing pointers to global in-memory
+        // bitmap cache
         this.contextBitmaps = new Map()
         this.featureBitmaps = new Map()
 
@@ -118,7 +111,6 @@ class Context extends EE {
     set url(url) { return this.set(url); }
 
     set(url = CONTEXT_URL_BASE, autoCreateLayers = CONTEXT_AUTOCREATE_LAYERS) {
-
         if (!url || typeof url !== 'string') throw new Error(`Context url must be of type string, "${typeof url}" given`)
 
         let parsed = new Url(url)
@@ -135,7 +127,6 @@ class Context extends EE {
 
         this.emit('url', this.#url)
         return this.#url
-
     }
 
 
@@ -226,49 +217,70 @@ class Context extends EE {
         ctxArr = this.#contextArray,
         ftArr = this.#featureArray,
         filArr = this.#filterArray) {
-
     }
 
     /**
      * Features
      */
 
-    setContextFeatures(idOrArray) {}
-    addFeatureToContext(idOrArray) {}
-    removeFeatureFromContext(idOrArray) {}
-    listActiveContextFeatures() {}
+    insertFeature(feature) {}
+    updateFeature(feature) {}
+    removeFeature(feature) {}
+    listFeatures() {}
 
     /**
      * Filters
      */
 
-    setContextFilters(idOrArray) {}
-    addFilterToContext(idOrArray) {}
-    removeFilterFromContext(idOrArray) {}
-    listActiveContextFilters() {}
+    insertFilter(filter) {}
+    updateFilter(filter) {}
+    removeFilter(filter) {}
+    listFilters() {}
+
 
     /**
      * Data store methods
      */
 
-    async insertDocument(doc) {
-        if (!doc) throw new Error('Document must be provided')
-        if (!doc.type) throw new Error('Document type must be provided')
-        if (!doc.data) throw new Error('Document data must be provided')
-        return this.#index.insertDocument(doc, this.contextArray, this.featureArray)
+    async insertDocument(doc, featureArray = this.#featureArray) {
+        try {
+            const result = await this.documents.insertDocument(doc, this.#contextArray, this.#featureArray);
+            return result;
+        } catch (error) {
+            throw error
+        }
     }
 
-    listDocuments(ctxArr, ftArr, filArr) {
-        if (!ctxArr) ctxArr = this.#contextArray
-        return []
+    async insertDocumentArray(docArray, featureArray = this.#featureArray) {
+        try {
+            const result = await this.documents.insertDocumentArray(docArray, this.#contextArray, this.#featureArray);
+            return result;
+        } catch (error) {
+            throw error
+        }
     }
 
-    updateDocument(doc, ctxArr, ftArr) {
-        if (!ctxArr) ctxArr = this.#contextArray
+    async listDocuments(featureArray = this.#featureArray, filterArray) {
+        try {
+            const result = await this.documents.listDocuments(this.#contextArray, featureArray, filterArray);
+            return result;
+        } catch (error) {
+            throw error
+        }
     }
 
-    removeDocuments(doc, ctxArr, ftArr) {
-        if (!ctxArr) ctxArr = this.#contextArray
+    async updateDocument() {}
+
+    async removeDocument() {}
+
+    async removeDocumentArray() {}
+
+    async deleteDocument() {}
+
+    async deleteDocumentArray() {}
+
+    getDocumentSchema() {
+        return {}
     }
 
 

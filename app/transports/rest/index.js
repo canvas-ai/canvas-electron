@@ -65,8 +65,9 @@ class ExpressService extends Service {
         this.#host = options.host || DEFAULT_HOST;
         this.#port = options.port || DEFAULT_PORT;
 
+        // TODO: Refactor!!!!! (this is a ugly workaround)
+        if (!options.context) throw new Error('Context not defined');
         this.context = options.context;
-        this.index = options.index;
     }
 
     async start() {
@@ -82,15 +83,18 @@ class ExpressService extends Service {
 
         this.server.use('/documents', (req, res, next) => {
             req.context = this.context;
-            req.index = this.index;
             next();
         }, documentsRoutes);
 
         this.server.use('/schemas', (req, res, next) => {
             req.context = this.context;
-            req.index = this.index;
             next();
         }, schemasRoutes);
+
+        this.server.use('/bitmaps', (req, res, next) => {
+            req.context = this.context;
+            next();
+        }, bitmapRoutes);
 
         await new Promise((resolve, reject) => {
             this.server.listen(this.#port, resolve).on('error', reject);

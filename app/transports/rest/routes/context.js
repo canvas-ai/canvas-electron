@@ -34,7 +34,7 @@ router.post('/url', (req, res) => {
 });
 
 router.get('/array', (req, res) => {
-    res.json({ array: req.context.array });
+    res.json({ array: req.context.pathArray });
 });
 
 

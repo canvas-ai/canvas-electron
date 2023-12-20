@@ -3,6 +3,7 @@ const Service = require('../../managers/service/lib/Service');
 
 // Utils
 const debug = require('debug')('canvas-svc-websocket')
+const http = require('http');
 const io = require('socket.io')
 
 // Defaults
@@ -25,37 +26,36 @@ class SocketIoService extends Service {
         this.#host = options.host || DEFAULT_HOST;
         this.#port = options.port || DEFAULT_PORT;
 
+        // TODO: Refactor!!!!! (this is a ugly workaround)
+        if (!options.context) throw new Error('Context not defined');
         this.context = options.context;
-        this.index = options.index;
-
     }
 
     async start() {
-        this.server = io();
-        this.server.listen(this.#port, (err) => {
-            if (err) {
-                console.error("Error in server setup");
-                return;
-            }
+        const server = http.createServer();
+        this.server = io(server);
 
+        server.listen(this.#port, () => { // Listen on the specified port
             console.log("Socket.io Server listening on Port", this.#port);
+            this.status = 'running';
+        }).on('error', (err) => {
+            console.error("Error in server setup:", err);
+        });
+
+        this.server.on('connection', (socket) => {
+            console.log(`Client connected: ${socket.id}`);
 
             // Setup event listeners
-            this.server.on('connection', (socket) => {
-                console.log(`Client connected: ${socket.id}`);
-                setupSocketEventListeners(socket, this.context);
-                setupContextEventListeners(socket, this.context);
-                setupIndexEventListeners(socket, this.index, this.context);
+            setupSocketEventListeners(socket, this.context);
+            setupDataEventListeners(socket, this.context);
+            setupContextEventListeners(socket, this.context);
 
-                socket.on('disconnect', () => {
-                    console.log(`Client disconnected: ${socket.id}`);
-                });
+            socket.on('disconnect', () => {
+                console.log(`Client disconnected: ${socket.id}`);
             });
-
-            this.status = 'running';
-
         });
     }
+
 
     async stop() {
         if(this.server) {
@@ -165,49 +165,56 @@ function setupSocketEventListeners(socket, context) {
 
 }
 
-function setupIndexEventListeners(socket, index, context) {
+function setupDataEventListeners(socket, context) {
 
     // Setters::Index
-    socket.on('index:insertDocument', (doc, callback) => {
+    socket.on('test123', async (doc, callback) => {
         debug('index:insertDocument event')
         try {
-            index.insertDocument(
-                doc,
-                context.contextArray,
-                // feautureArray
-            );
+            await context.insertDocument(doc);
+            callback({ status: 'success', message: 'Document inserted successfully.' });
+        } catch (error) {
+            console.error(error)
+            callback({ status: 'error', message: `Error inserting document: ${error.message}` });
+        }
+    })
+
+    socket.on('index:insertDocumentArray', async (docArray, callback) => {
+        debug('index:insertDocumentArray event')
+        try {
+            await context.insertDocumentArray(docArray);
             callback({ status: 'success', message: 'Document inserted successfully.' });
         } catch (error) {
             callback({ status: 'error', message: `Error inserting document: ${error.message}` });
         }
     })
 
-    socket.on('index:updateDocument', (doc, callback) => {
+
+    socket.on('index:updateDocument', async (doc, callback) => {
         debug('index:updateDocument event')
         try {
-            index.updateDocument(doc);
+            await context.updateDocument(doc);
             callback({ status: 'success', message: 'Document updated successfully.' });
         } catch (error) {
             callback({ status: 'error', message: `Error updating document: ${error.message}` });
         }
     })
 
-    socket.on('index:removeDocument', (doc, callback) => {
+    socket.on('index:removeDocument', async (doc, callback) => {
         debug('index:removeDocument event')
         try {
-            index.removeDocument(doc);
+            await context.removeDocument(doc);
             callback({ status: 'success', message: 'Document removed successfully.' });
         } catch (error) {
             callback({ status: 'error', message: `Error removed document: ${error.message}` });
         }
     })
 
-    socket.on('index:schema:get', (data, callback) => {
+    socket.on('index:schema:get', async (data, callback) => {
         debug('index:schema:get event')
-        const schema = index.getDocumentSchema(data.type, data.version);
+        const schema = context.getDocumentSchema(data.type, data.version);
         if (!schema) {
             let msg = `Schema not found for type "${data.type}" and version "${data.version}"`;
-            debug(msg)
             callback({ status: 'error', message: msg });
             return;
         }

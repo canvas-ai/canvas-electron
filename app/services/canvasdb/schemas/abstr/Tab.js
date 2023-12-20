@@ -15,13 +15,9 @@ class Tab extends Document {
             type: DOCUMENT_SCHEMA_TYPE,
         })
 
-        if (!params.url) {
+        if (!params.data.url) {
             throw new Error('Tab URL is a mandatory parameter');
         }
-
-        // Set document defaults
-        data.url = params.url
-        data.title = params.title || 'Canvas | Tab';
 
     }
 

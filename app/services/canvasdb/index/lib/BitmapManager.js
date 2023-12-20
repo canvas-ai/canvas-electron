@@ -1,5 +1,6 @@
 'use strict'
 
+
 const RoaringBitmap32 = require('roaring/RoaringBitmap32')
 const Bitmap = require('./Bitmap')
 const debug = require('debug')('canvas-db-bitmapManager')
@@ -29,6 +30,52 @@ class BitmapManager {
         this.rangeMin = options.rangeMin || 0
         this.rangeMax = options.rangeMax || 4294967296 - 1 // 2^32 - 1
     }
+
+
+    /**
+     * Bitmap management
+     */
+
+    async createBitmap(key, oidArrayOrBitmap) {
+        if (this.hasBitmap(key)) {
+            debug(`Bitmap with key ID "${key}" already exists`);
+            return false;
+        }
+
+        let bitmap;
+
+        if (!oidArrayOrBitmap) {
+            debug(`Creating new empty bitmap with key ID "${key}"`);
+            bitmap = new Bitmap(null, {
+                rangeMin: this.rangeMin,
+                rangeMax: this.rangeMax
+            });
+        }
+
+        // Throws on error
+        Bitmap.validateRange(oidArrayOrBitmap, this.rangeMin, this.rangeMax)
+
+        debug(`Creating new bitmap with key ID "${key}"`);
+        bitmap = new Bitmap(oidArrayOrBitmap, {
+            rangeMin: this.rangeMin,
+            rangeMax: this.rangeMax
+        });
+
+        await this.#saveBitmapToDb(key, bitmap);
+        return bitmap;
+    }
+
+    createBitmapSync(key, oidArrayOrBitmap) {}
+
+    removeBitmap(key) {}
+
+    removeBitmapSync(key) {}
+
+    renameBitmap(key, newKey) {}
+
+    renameBitmapSync(key, newKey) {}
+
+    hasBitmap(key) {}
 
 
     /**
@@ -218,6 +265,26 @@ class BitmapManager {
     }
 
     // Ticks a single key with an ID array or a bitmap
+    tick(key, oidArrayOrBitmap, autoCreateBitmap = true, implicitSave = true) {
+        let bitmap = this.getBitmap(key)
+        if (!bitmap) {
+            debug(`Bitmap with key ID "${key}" not found`)
+            if (!autoCreateBitmap) return false
+
+            debug(`Creating new bitmap with key ID "${key}"`)
+            bitmap = new RoaringBitmap32()
+        }
+
+        bitmap = bitmap.add(oidArrayOrBitmap)
+        if (implicitSave) {
+            debug(`Implicit save for bitmap with key ID "${key}"`)
+            this.#saveBitmapToDbSync(key, bitmap)
+        }
+
+        return bitmap
+    }
+
+    // Ticks a single key with an ID array or a bitmap
     tickSync(key, oidArrayOrBitmap, autoCreateBitmap = true, implicitSave = true) {
         let bitmap = this.getBitmap(key)
         if (!bitmap) {
@@ -251,9 +318,9 @@ class BitmapManager {
             throw new TypeError('The first argument to tickMany must be a non-empty array of bitmap keys');
         }
 
-        if (!Array.isArray(oidArrayOrBitmap) && !(oidArrayOrBitmap instanceof RoaringBitmap32)) {
+        /*if (!Array.isArray(oidArrayOrBitmap) && !(oidArrayOrBitmap instanceof RoaringBitmap32)) {
             throw new TypeError('The second argument to tickMany must be an array of IDs or an instance of RoaringBitmap32');
-        }
+        }*/
 
         return Promise.all(keyArray.map(key => {
             return this.tick(key, oidArrayOrBitmap, autoCreateBitmaps, implicitSave);
@@ -325,6 +392,8 @@ class BitmapManager {
     /**
      * Internal methods
      */
+
+    #saveBitmapToDb(key, bitmap, overwrite = true) {}
 
     #saveBitmapToDbSync(key, bitmap, overwrite = true) {
         if (!bitmap instanceof RoaringBitmap32) throw new TypeError(`Input must be an instance of RoaringBitmap32`)

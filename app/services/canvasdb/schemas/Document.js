@@ -55,9 +55,10 @@ class Document {
             DOCUMENT_DATA_ENCODING
         );
 
-        this.hashes = {
+        this.hashes = [`${dataChecksumAlgorithm}/${defaultHash}`]
+        /*{
             [dataChecksumAlgorithm]: hashes[dataChecksumAlgorithm] || defaultHash,
-        };
+        };*/
 
         // Check and set document data
         if (!data) { throw new Error('Document data is a mandatory parameter'); }
