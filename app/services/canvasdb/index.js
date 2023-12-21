@@ -3,17 +3,29 @@ const debug = require('debug')('canvas-db')
 const EE = require('eventemitter2')
 
 // App includes
-const Index = require('./index')
+const Index = require('./index/')   // TODO: Refactor
+
+// Constants
+const INTERNAL_BITMAP_ID_MIN = 1000
+const INTERNAL_BITMAP_ID_MAX = 1000000
+
+// Schemas
+const Document = require('./schemas/Document')
+const Tab = require('./schemas/abstr/Tab')
+
+const DOCUMENT_SCHEMAS = {
+    default: Document.toJSON(),
+    'data/abstr/tab': Tab.toJSON()
+}
 
 
 /**
  * Canvas document database
  */
 
-class Db extends EE {
+class CanvasDB extends EE {
 
-
-    #documents;
+    #db;
     #index;
 
     constructor(options = {
@@ -25,7 +37,7 @@ class Db extends EE {
         super()
 
         // Initialize database backend
-        this.#documents = options.db;
+        this.#db = options.db;
 
         // Initialize index
         this.#index = new Index({
@@ -34,47 +46,65 @@ class Db extends EE {
 
     }
 
-    async insertDocument(doc, contextArray, featureArray, filterArray) {
-        let validated = await this.#validateDocument(doc);
-        if (!validated) return false;
+    async insertDocument(document, contextArray, featureArray, filterArray) {
+        if (!this.validateDocument(document)) throw new Error('Invalid document');
 
+        document = this.parseDocument(document);
+        if (!document.id) document.id = this.#genDocumentID();
 
-        await this.#documents.put(validated.id, validated);
-
-        validated.hash.forEach((hash)  => {
-            this.#index.hash2oid.set(hash, validated.id);
-        });
+        if (!this.#db.has(document.id)) {
+            await this.#db.put(document.id, document);
+            await this.#index.hash2oid.put(document.checksum, document.id);
+            /*for (const hash of document.hashes) {
+                await this.#index.hash2oid.put(hash, document.id);
+            }*/
+        } else {
+            debug(`Document ${document.id} already exists, updating bitmaps`)
+        }
 
         if (Array.isArray(contextArray) && contextArray.length > 0) {
-            await this.#index.updateContextBitmaps(contextArray, validated.id)
+            await this.#index.updateContextBitmaps(contextArray, document.id)
         }
 
         if (Array.isArray(featureArray) && featureArray.length > 0) {
-            await this.#index.updateFeatureBitmaps(featureArray, validated.id)
+            await this.#index.updateFeatureBitmaps(featureArray, document.id)
         }
     }
 
     async insertDocumentArray(docArray, contextArray, featureArray, filterArray) {
-        for (const doc of docArray) {
-            await this.insertDocument(doc, contextArray, featureArray, filterArray);
+        for (const document of docArray) {
+            await this.insertDocument(document, contextArray, featureArray, filterArray);
         }
     }
 
     async listDocuments(contextArray, featureArray, filterArray) {
-        let docArray = [];
+        debug(`listDocuments(): ContextArray: ${contextArray}; FeatureArray: ${featureArray}`)
 
-        // Calculate bitmaps
-        let contextBitmap = await this.#index.idArrayAND(contextArray);
-        let featureBitmap = await this.#index.idArrayOR(featureArray);
-        let resultBitmap = await this.#index.bitmapArrayAND(contextBitmap, featureBitmap);
+        let documents = []
+        let bitmaps = []
 
-        // Get document IDs
-        let oidArray = resultBitmap.toArray();
+        if (!contextArray.length && !featureArray.length) {
+            documents = await this.#db.listValues()
+            return documents
+        }
 
-        // Get documents
-        docArray = await this.#documents.getMany(oidArray);
+        if (contextArray.length) {
+            bitmaps.push(this.#index.contextArrayAND(contextArray))
+        }
 
-        return docArray;
+        if (featureArray.length) {
+            bitmaps.push(this.#index.featureArrayAND(featureArray))
+        }
+
+        if (bitmaps.length === 0) return []
+
+        let result = this.#index.AND(bitmaps)
+        debug('Result IDs', result.toArray())
+        if (!result.toArray().length) return []
+
+        documents = await this.#db.getMany(result.toArray())
+        return documents
+
     }
 
     updateDocument(doc, contextArray, featureArray, filterArray) {
@@ -90,30 +120,56 @@ class Db extends EE {
     }
 
 
-    async #validateDocument(doc) {
-        if (typeof doc !== 'object') throw new Error('Document is not an object')
-        if (!doc.type) throw new Error('Document type is not defined')
+    validateDocument(doc) {
+        let valid = true;
 
-        // TODO: Validate document
-        doc.id = this.#genDocumentID()
-        return doc
+        if (typeof doc !== 'object') {
+            debug(`Document has to be an object, got ${typeof doc}`);
+            valid = false;
+        }
+
+        if (!doc.type) {
+            debug(`Missing document type`);
+            valid = false;
+        }
+
+        // ...
+
+        return valid
+    }
+
+    parseDocument(doc) {
+        let parsed = new Tab(doc)
+        return parsed
+    }
+
+    getDocumentSchema(schema) {
+        if (!DOCUMENT_SCHEMAS[schema]) {
+            debug(`getDocumentSchema(): Schema ${schema} not found, using default`)
+            return DOCUMENT_SCHEMAS['default']
+        }
+
+        return DOCUMENT_SCHEMAS[schema]
     }
 
     async #extractDocumentFeatures(doc) {
         let features = []
-        // TODO
+        // TODO, currently we just add the document type
         features.push(doc.type)
         return features
     }
 
     #genDocumentID() {
-        let keysCount = this.documents.db.getKeysCount()
-        let id = INTERNAL_BITMAP_ID_MAX + keysCount + 1
-        if (id > MAX_DOCUMENTS) throw new Error('Maximum number of documents reached')
-        return id
+        let keyCount = this.#db.getKeysCount() || 0
+        console.log(keyCount)
+        let nextDocumentID = INTERNAL_BITMAP_ID_MAX + keyCount + 1
+        console.log(nextDocumentID)
+        debug(`genDocumentID(): Key count: ${keyCount}`)
+        debug(`genDocumentID(): Next document ID: ${nextDocumentID}`)
+        return nextDocumentID
     }
 
 }
 
 
-module.exports = Db;
+module.exports = CanvasDB;

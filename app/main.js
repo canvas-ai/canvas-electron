@@ -91,7 +91,7 @@ class Canvas extends EventEmitter {
             compression: true,
         })
 
-        this.documents = CanvasDB({
+        this.documents = new CanvasDB({
             db: this.db.createDataset('documents'),
             index: this.db.createDataset('index')
         })
@@ -164,11 +164,8 @@ class Canvas extends EventEmitter {
         })
 
         this.layers = this.tree.layers;
-        this.bitmaps = new Map();
-
-        // Contexts
         this.activeContexts = new Map();
-        this.focusedContext = null;
+        this.context = null;    // TODO: Multi-context support, lets keep one global one for now
 
         // Static variables
         this.app = APP          // App runtime env
@@ -189,35 +186,29 @@ class Canvas extends EventEmitter {
     get apps() { return this.apps; }
     get pid() { return this.PID; }
     get ipc() { return this.IPC; }
-    get context() { return this.focusedContext; }
 
     /**
      * Canvas service controls
      */
 
     async start(url, options = {}) {
-
         if (this.status == 'running' && this.isMaster) throw new Error('Application already running')
+
         this.status = 'starting'
         this.emit('starting')
 
         this.setupProcessEventListeners()
         await this.initializeServices()
+
+        // TODO: Load session
+        if (!url) { url = (this.session) ?  this.session.get('contextUrl') : '/' }
+
+        // Create context (TODO: Multi-context support)
+        this.context = this.createContext(url, options);
+
         await this.initializeTransports()
         await this.initializeRoles()
         await this.initializeApps()
-
-        if (url) this.createContext(url, options)
-
-
-
-        // Load session
-        if (this.session) {
-            await this.session.load()
-        } else {
-            debug('Session support disabled, creating new context')
-
-        }
 
         this.status = 'running'
         this.emit('running')
@@ -229,7 +220,9 @@ class Canvas extends EventEmitter {
         this.status = 'stopping'
 
         try {
+            // TODO: Save session
             //if (this.session) await this.session.save();
+            if (this.session) await this.session.put('contextUrl', this.context.url)
             //await this.shutdownApps();
             await this.shutdownRoles();
             await this.shutdownTransports();
@@ -273,13 +266,13 @@ class Canvas extends EventEmitter {
     async initializeTransports() {
         // for (const transport of this.config.transports) { /* load, then init, then start, catch err */ })
         await this.services.loadInitializeAndStartService('rest', {
-            context: this.focusedContext,
-            index: this.index
+            context: this.context
+            //db: this.documents
         })
 
         await this.services.loadInitializeAndStartService('websocket', {
-            context: this.focusedContext,
-            index: this.index
+            context: this.context,
+            //db: this.documents
         })
 
         return true
@@ -316,10 +309,9 @@ class Canvas extends EventEmitter {
      * Context
      */
 
-    createContext(url, options = {}) {
+    createContext(url = '/', options = {}) {
         let context = new Context(url, this, options)
         this.activeContexts.set(context.id, context)
-        if (this.focusedContext == null) this.focusedContext = context
         return context
     }
 

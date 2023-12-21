@@ -30,20 +30,19 @@ class Index extends EE {
         // Initialize event emitter
         super()
 
-        // Initialize database backend
+        // Bind/initialize the database backend
         this.#db = options.db
 
         // Bitmaps
-        this.bitmaps = this.db.createDataset('bitmaps')
-        // Shared Map() to cache bitmaps in memory
-        this.bitmapCache = new MemCache()
+        this.bitmaps = this.#db.createDataset('bitmaps')
+        this.bitmapCache = new MemCache() // Shared Map() to cache bitmaps in memory
 
         // HashMap(s)
         // To decide whether to use a single dataset
         // sha1/<hash> | oid
         // md5/<hash> | oid
         // or a separate dataset per hash type
-        this.hash2oid = this.db.createDataset('hash2oid')
+        this.hash2oid = this.#db.createDataset('hash2oid')
 
         // Internal Bitmaps
         this.bmInternal = new BitmapManager(
@@ -88,6 +87,9 @@ class Index extends EE {
 
     }
 
+    AND(bitmaps) {
+        return BitmapManager.AND(bitmaps)
+    }
 
     async updateContextBitmaps(contextArray, oidOrArray) {
 
@@ -104,17 +106,16 @@ class Index extends EE {
      * @param {Array} idArray: Array of bitmap IDs
      * @returns {Array|RoaringBitmap32} Array of bitmap IDs or RoaringBitmap32
      */
-    async idArrayAND(idArray, returnBitmap = false) {
+    async idArrayAND(idArray, returnAsBitmap = false) {
 
     }
 
-    /**
-     * Calculate the AND of an array of roaring bitmaps
-     * @param {Array} bitmapArray
-     * @returns {RoaringBitmap32|Array} RoaringBitmap32 or Array of bitmap IDs
-     */
-    async bitmapArrayAND(bitmapArray, returnArray = false) {
+    contextArrayAND(bitmapArray, returnAsArray = false) {
+        return this.bmContexts.AND(bitmapArray)
+    }
 
+    featureArrayAND(bitmapArray, returnAsArray = false) {
+        return this.bmFeatures.AND(bitmapArray)
     }
 
     /**
@@ -122,7 +123,7 @@ class Index extends EE {
      * @param {Array} idArray: Array of bitmap IDs
      * @returns {Array|RoaringBitmap32} Array of bitmap IDs or RoaringBitmap32
      */
-    async idArrayOR(idArray, returnBitmap = false) {
+    async idArrayOR(idArray, returnAsBitmap = false) {
 
     }
 
@@ -131,7 +132,7 @@ class Index extends EE {
      * @param {Array} bitmapArray
      * @returns {RoaringBitmap32|Array} RoaringBitmap32 or Array of bitmap IDs
      */
-    async bitmapArrayOR(bitmapArray, returnArray = false) {
+    async bitmapArrayOR(bitmapArray, returnAsArray = false) {
 
     }
 

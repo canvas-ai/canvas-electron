@@ -6,46 +6,36 @@ const debug = require('debug')('canvas-svc-jsonapi:documents');
 // Define routes
 router.get('/', async (req, res) => {
 
-    let index = req.index;
     let context = req.context;
-    let features = req.features;
-    let filters = req.filters;
+    let documents = await context.listDocuments();
 
-    // TODO: Check feature and filter types
-
-    let documents = await index.listDocuments(
-        context.contextArray,
-        features,
-        filters,
-    );
     if (documents) {
         res.json(documents)
     } else {
-        res.status(404).send('No documents found')
+        res.status(404).send(`No documents found in context ${context.url}`)
     }
 })
 
 router.get('/:id', async (req, res) => {
-    const id = req.params.id
-    const document = await index.getDocuments(id)
+    let context = req.context
+    const id = req.params.i
+    const document = await context.getDocument(id)
     if (document) {
         res.json(document)
     } else {
-        res.status(404).send('Document not found')
+        res.status(404).send(`Document not found in context ${context.url}`)
     }
 })
 
 router.get('/:abstr', (req, res) => {
     const abstr = req.params.abstr;
-
-    let index = req.index;
     let context = req.context;
 
-    let document = index.listDocuments(context.array, abstr)
-    if (document) {
-        res.json(document)
+    let documents = abstr.listDocuments(abstr)
+    if (documents) {
+        res.json(documents)
     } else {
-        res.status(404).send('No documents found for type ' + abstr)
+        res.status(404).send('No documents found for type ' + abstr + ' in context ' + context.url)
     }
 })
 
