@@ -38,6 +38,7 @@ push_repos() {
         if [[ -d "$dir" && $(basename "$dir") == canvas-* ]]; then
             echo "Pushing current branch in repository: $(basename "$dir")"
             cd "$dir"
+			if ! git status; then echo "Non-commited changes found in $dir"; fi;
             git push
         fi
     done
