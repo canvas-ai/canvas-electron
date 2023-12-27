@@ -2,15 +2,22 @@
 const Service = require('../../managers/service/lib/Service');
 
 // Utils
-const debug = require('debug')('canvas-svc-websocket')
+const debug = require('debug')('canvas-transport-socketio')
 const http = require('http');
 const io = require('socket.io')
+
+// Routes
+const setupContextRoutes = require('./routes/context');
+//const setupUserEvents = require('./user');
 
 // Defaults
 const DEFAULT_PROTOCOL = 'http'
 const DEFAULT_HOST = '127.0.0.1'
 const DEFAULT_PORT = 3001
 const API_KEY = 'canvas-socketio';
+
+// Event name constants
+
 
 class SocketIoService extends Service {
 
@@ -29,6 +36,8 @@ class SocketIoService extends Service {
         // TODO: Refactor!!!!! (this is a ugly workaround)
         if (!options.context) throw new Error('Context not defined');
         this.context = options.context;
+
+        debug(`Socket.io Service initialized, protocol: ${this.#protocol}, host: ${this.#host}, port: ${this.#port}`)
     }
 
     async start() {
@@ -43,12 +52,13 @@ class SocketIoService extends Service {
         });
 
         this.server.on('connection', (socket) => {
-            console.log(`Client connected: ${socket.id}`);
+            debug(`Client connected: ${socket.id}`);
 
             // Setup event listeners
             setupSocketEventListeners(socket, this.context);
             setupDataEventListeners(socket, this.context);
             setupContextEventListeners(socket, this.context);
+            setupContextRoutes(socket, this.context);
 
             socket.on('disconnect', () => {
                 console.log(`Client disconnected: ${socket.id}`);
