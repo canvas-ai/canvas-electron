@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const debug = require('debug')('canvas-service-restapi:context');
 
 
 /**
- * Context URL
+ * Current context
  */
 
 router.get('/url', (req, res) => {
@@ -119,15 +118,15 @@ router.patch('/layers/:name', (req, res) => {
  */
 
 router.get('/bitmaps', (req, res) => {
-    res.json({ contextArray: req.context.bitmaps });
+    res.json({ contextBitmaps: req.context.bitmaps });
 });
 
 router.get('/bitmaps/context', (req, res) => {
-    res.json({ contextArray: req.context.contextArray });
+    res.json({ contextBitmapArray: req.context.contextArray });
 });
 
 router.get('/bitmaps/features', (req, res) => {
-    res.json({ featureArray: req.context.featureArray });
+    res.json({ featureBitmapArray: req.context.featureArray });
 });
 
 

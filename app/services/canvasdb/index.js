@@ -53,13 +53,14 @@ class CanvasDB extends EE {
         if (!document.id) document.id = this.#genDocumentID();
 
         if (!this.#db.has(document.id)) {
+            debug(`Inserting document ID ${document.id} to DB, document checksum: ${document.checksum}`)
             await this.#db.put(document.id, document);
             await this.#index.hash2oid.put(document.checksum, document.id);
             /*for (const hash of document.hashes) {
                 await this.#index.hash2oid.put(hash, document.id);
             }*/
         } else {
-            debug(`Document ${document.id} already exists, updating bitmaps`)
+            debug(`Document ID ${document.id} already exists, updating bitmaps`)
         }
 
         if (Array.isArray(contextArray) && contextArray.length > 0) {
@@ -121,25 +122,27 @@ class CanvasDB extends EE {
 
 
     validateDocument(doc) {
-        let valid = true;
+        debug('Validating document ' + JSON.stringify(doc, null, 2))
 
         if (typeof doc !== 'object') {
             debug(`Document has to be an object, got ${typeof doc}`);
-            valid = false;
+            return false;
         }
 
         if (!doc.type) {
             debug(`Missing document type`);
-            valid = false;
+            return false;
         }
 
         // ...
 
-        return valid
+        return true
     }
 
     parseDocument(doc) {
+        debug('Parsing document')
         let parsed = new Tab(doc)
+        debug('Parsed document', parsed)
         return parsed
     }
 
@@ -161,11 +164,8 @@ class CanvasDB extends EE {
 
     #genDocumentID() {
         let keyCount = this.#db.getKeysCount() || 0
-        console.log(keyCount)
         let nextDocumentID = INTERNAL_BITMAP_ID_MAX + keyCount + 1
-        console.log(nextDocumentID)
-        debug(`genDocumentID(): Key count: ${keyCount}`)
-        debug(`genDocumentID(): Next document ID: ${nextDocumentID}`)
+        debug(`Generating new document ID, current key count: ${keyCount}, ID: ${nextDocumentID}`)
         return nextDocumentID
     }
 

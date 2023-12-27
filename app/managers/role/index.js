@@ -29,11 +29,43 @@ class RoleManager extends EventEmitter {
 
         debug('Initializing Canvas Role Manager')
         super();
-        
+
         this.loadedRoles = new Map();
         this.initializedRoles = new Map();
 
     }
+
+    startRole() {}
+
+    stopRole() {}
+
+    restartRole() {}
+
+    getRoleStatus() {}
+
+    loadRole(role) {
+        debug(`Loading role ${role}`)
+        const rolePath = path.join(__dirname, role);
+        const roleModule = require(rolePath);
+        this.loadedRoles.set(role, roleModule);
+    }
+
+    unloadRole(role) {
+        debug(`Unloading role ${role}`)
+        this.loadedRoles.delete(role);
+    }
+
+    initializeRole(role, options = {}) {
+        debug(`Initializing role ${role}`)
+        const roleModule = this.loadedRoles.get(role);
+        roleModule.initialize(options);
+        this.initializedRoles.set(role, roleModule);
+    }
+
+    migrateRole(roleID, backend , options = {}) {
+        debug(`Migrating role ${roleID}`)
+    }
+
 
 }
 

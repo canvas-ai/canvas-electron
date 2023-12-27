@@ -258,6 +258,7 @@ class Context extends EE {
     }
 
     async listDocuments(featureArray = this.#featureArray, filterArray) {
+        if (typeof featureArray === 'string') featureArray = [featureArray]
         try {
             const result = await this.documents.listDocuments(this.#contextArray, featureArray, filterArray);
             return result;

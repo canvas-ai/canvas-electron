@@ -8,7 +8,7 @@ const DOCUMENT_SCHEMA_VERSION = '1.0';
 const DOCUMENT_DATA_CHECKSUM_ALGO = 'sha1';
 const DOCUMENT_DATA_FORMAT = 'application/json';
 const DOCUMENT_DATA_ENCODING = 'utf8';
-const DOCUMENT_SCHEMA_TYPE = 'document';
+const DOCUMENT_SCHEMA_TYPE = 'data/abstraction/document';
 
 // Document class
 class Document {
@@ -23,7 +23,6 @@ class Document {
         data,
         versions = [],
 
-        checksum = null,
         dataChecksumAlgorithm = DOCUMENT_DATA_CHECKSUM_ALGO,
         checksumDataFields = [],
     }) {

@@ -29,6 +29,8 @@ class BitmapManager {
         // This should probably be implemented one abstraction layer up
         this.rangeMin = options.rangeMin || 0
         this.rangeMax = options.rangeMax || 4294967296 - 1 // 2^32 - 1
+
+        debug(`BitmapManager initialized with rangeMin: ${this.rangeMin}, rangeMax: ${this.rangeMax}`)
     }
 
 
@@ -36,27 +38,22 @@ class BitmapManager {
      * Bitmap management
      */
 
-    async createBitmap(key, oidArrayOrBitmap) {
+    async createBitmap(key, oidArrayOrBitmap = null) {
         if (this.hasBitmap(key)) {
             debug(`Bitmap with key ID "${key}" already exists`);
             return false;
         }
 
         let bitmap;
-
-        if (!oidArrayOrBitmap) {
-            debug(`Creating new empty bitmap with key ID "${key}"`);
-            bitmap = new Bitmap(null, {
-                rangeMin: this.rangeMin,
-                rangeMax: this.rangeMax
-            });
+        if (oidArrayOrBitmap) {
+            // Throws on error, use a try/catch block
+            Bitmap.validateRange(oidArrayOrBitmap, this.rangeMin, this.rangeMax)
         }
 
-        // Throws on error
-        Bitmap.validateRange(oidArrayOrBitmap, this.rangeMin, this.rangeMax)
-
-        debug(`Creating new bitmap with key ID "${key}"`);
+        debug(`Creating a new bitmap with key ID "${key}", input data: ${oidArrayOrBitmap}`);
         bitmap = new Bitmap(oidArrayOrBitmap, {
+            type: 'static',
+            key: key,
             rangeMin: this.rangeMin,
             rangeMax: this.rangeMax
         });
@@ -75,7 +72,7 @@ class BitmapManager {
 
     renameBitmapSync(key, newKey) {}
 
-    hasBitmap(key) {}
+    hasBitmap(key) { return this.#db.has(key); }
 
 
     /**

@@ -12,8 +12,12 @@ class Bitmap extends RoaringBitmap32 {
 
         super(oidArrayOrBitmap);
         this.type = options.type;
+        this.key = options.key;
         this.rangeMin = options.rangeMin;
         this.rangeMax = options.rangeMax;
+
+        debug(`Bitmap "${this.key}" type ${this.type}, ID range: ${this.rangeMin} - ${this.rangeMax} initialized`);
+        debug(`Bitmap "${this.key}" has ${this.size} objects`);
     }
 
     tick(oid) {
