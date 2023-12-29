@@ -97,7 +97,7 @@ class Index extends EE {
     }
 
     async updateFeatureBitmaps(featureArray, oidOrArray) {
-
+        debug(`Updating feature bitmaps for ${featureArray.length} features`)
         await this.bmFeatures.tickMany(featureArray, oidOrArray)
     }
 

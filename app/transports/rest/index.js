@@ -3,10 +3,10 @@ const Service = require('../../managers/service/lib/Service');
 
 // Utils
 const debug = require('debug')('canvas-transport-rest')
-
-// Services
-const express = require('express');
 const bodyParser = require('body-parser');
+
+// Includes
+const express = require('express');
 
 // Routes
 const schemasRoutes = require('./routes/schemas');
@@ -32,7 +32,7 @@ const validateApiKey = (req, res, next) => {
     }*/
 };
 
-class ExpressService extends Service {
+class RestTransport extends Service {
 
     #protocol;
     #host;
@@ -50,7 +50,7 @@ class ExpressService extends Service {
         if (!options.context) throw new Error('Context not defined');
         this.context = options.context;
 
-        debug(`REST API Service initialized, protocol: ${this.#protocol}, host: ${this.#host}, port: ${this.#port}`)
+        debug(`REST API Transport initialized, protocol: ${this.#protocol}, host: ${this.#host}, port: ${this.#port}`)
     }
 
     async start() {
@@ -59,13 +59,6 @@ class ExpressService extends Service {
         this.server.use(bodyParser.json());
         this.server.use(validateApiKey);
 
-        // Contexts
-        /*this.server.use('/contexts', (req, res, next) => {
-            req.canvas = this.canvas;
-            next();
-        }, contextsRoutes);*/
-
-        // Current context
         this.server.use('/context', (req, res, next) => {
             req.context = this.context;
             next();
@@ -117,6 +110,19 @@ class ExpressService extends Service {
             await this.start();
         }
     }
+
+    status() {
+        if (!this.server) {
+            return { listening: false };
+        }
+
+        return {
+            protocol: this.#protocol,
+            host: this.#host,
+            port: this.#port,
+            listening: true
+        };
+    }
 }
 
-module.exports = ExpressService
+module.exports = RestTransport

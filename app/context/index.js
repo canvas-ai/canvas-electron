@@ -242,6 +242,7 @@ class Context extends EE {
     async insertDocument(doc, featureArray = this.#featureArray) {
         try {
             const result = await this.documents.insertDocument(doc, this.#contextArray, this.#featureArray);
+            this.emit('context:documentInserted', result)
             return result;
         } catch (error) {
             throw error

@@ -39,6 +39,10 @@ const UserManager = require('./managers/user');
 const IdentityManager = require('./managers/peer');
 const DeviceManager = require('./managers/device');
 
+// Transports
+//const RestTransport = require('./transports/rest');
+//const SocketioTransport = require('./transports/socketio');
+
 // Context
 const Tree = require('./context/lib/Tree');
 const Context = require('./context');
@@ -270,7 +274,7 @@ class Canvas extends EventEmitter {
             //db: this.documents
         })
 
-        await this.services.loadInitializeAndStartService('websocket', {
+        await this.services.loadInitializeAndStartService('socketio', {
             context: this.context,
             //db: this.documents
         })

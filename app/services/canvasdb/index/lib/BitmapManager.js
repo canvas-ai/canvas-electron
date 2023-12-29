@@ -311,13 +311,11 @@ class BitmapManager {
      * @throws {TypeError} If the first argument is not a non-empty array of bitmap keys, or if the second argument is not an array of IDs or an instance of RoaringBitmap32.
      */
     async tickMany(keyArray, oidArrayOrBitmap, autoCreateBitmaps =  true, implicitSave = true) {
+
+        debug(`tickMany(): keyArray: ${keyArray}, oidArrayOrBitmap: ${oidArrayOrBitmap}`)
         if (!Array.isArray(keyArray) || !keyArray.length) {
             throw new TypeError('The first argument to tickMany must be a non-empty array of bitmap keys');
         }
-
-        /*if (!Array.isArray(oidArrayOrBitmap) && !(oidArrayOrBitmap instanceof RoaringBitmap32)) {
-            throw new TypeError('The second argument to tickMany must be an array of IDs or an instance of RoaringBitmap32');
-        }*/
 
         return Promise.all(keyArray.map(key => {
             return this.tick(key, oidArrayOrBitmap, autoCreateBitmaps, implicitSave);

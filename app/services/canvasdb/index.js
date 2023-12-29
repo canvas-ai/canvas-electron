@@ -47,18 +47,20 @@ class CanvasDB extends EE {
     }
 
     async insertDocument(document, contextArray, featureArray, filterArray) {
+
         if (!this.validateDocument(document)) throw new Error('Invalid document');
-
         document = this.parseDocument(document);
-        if (!document.id) document.id = this.#genDocumentID();
 
-        if (!this.#db.has(document.id)) {
+        let documentFeatures = await this.#extractDocumentFeatures(document);
+        featureArray = [...featureArray, ...documentFeatures]
+
+        debug('Inserting document ' + JSON.stringify(document, null, 2))
+        debug(`ContextArray: ${contextArray}; FeatureArray: ${featureArray}`)
+
+        if (!this.#index.hash2oid.has(document.checksum)) {
             debug(`Inserting document ID ${document.id} to DB, document checksum: ${document.checksum}`)
             await this.#db.put(document.id, document);
             await this.#index.hash2oid.put(document.checksum, document.id);
-            /*for (const hash of document.hashes) {
-                await this.#index.hash2oid.put(hash, document.id);
-            }*/
         } else {
             debug(`Document ID ${document.id} already exists, updating bitmaps`)
         }
@@ -141,8 +143,9 @@ class CanvasDB extends EE {
 
     parseDocument(doc) {
         debug('Parsing document')
+        // TODO Tab.parse(doc)
         let parsed = new Tab(doc)
-        debug('Parsed document', parsed)
+        if (!parsed.id) parsed.id = this.#genDocumentID();
         return parsed
     }
 
