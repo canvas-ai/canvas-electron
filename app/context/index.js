@@ -113,7 +113,9 @@ class Context extends EE {
     set(url = CONTEXT_URL_BASE, autoCreateLayers = CONTEXT_AUTOCREATE_LAYERS) {
         if (!url || typeof url !== 'string') throw new Error(`Context url must be of type string, "${typeof url}" given`)
 
-        let parsed = new Url(url)
+        // TODO: Add a separate URL validator method (static)
+        let sanitized = this.#sanitizeContextUrl(url)
+        let parsed = new Url(sanitized)
         if (this.#url === parsed.url) return this.#url
 
         debug(`Setting context url for context id "${this.#id}" to "${parsed.url}"`)
@@ -289,6 +291,8 @@ class Context extends EE {
      * Misc
      */
 
+    static validateContextUrl(url) {}
+
     getEventListeners() { return this.eventNames(); }
 
     stats() {
@@ -324,6 +328,12 @@ class Context extends EE {
     /**
      * Internal methods
      */
+
+    #sanitizeContextUrl(url) {
+        // Remove special characters except slashes and ":"
+        let sanitized = url.replace(/[^a-zA-Z0-9/:]/g, '')
+        return sanitized
+    }
 
     #initializeTreeEventListeners() {
         this.#tree.on('update', (tree) => {
