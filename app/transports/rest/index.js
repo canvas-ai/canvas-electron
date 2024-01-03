@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 
 // Includes
 const express = require('express');
+const cors = require('cors');
 
 // Routes
 const schemasRoutes = require('./routes/schemas');
@@ -56,6 +57,7 @@ class RestTransport extends Service {
     async start() {
         this.server = express();
 
+		this.server.use(cors());
         this.server.use(bodyParser.json());
         this.server.use(validateApiKey);
 

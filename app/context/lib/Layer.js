@@ -51,6 +51,8 @@ class Layer {
         this.featureBitmaps = []
         this.filterBitmaps = []
 
+        this.locked = false // TODO: Implement locking for subtree
+
         this.metadata = options.metadata || {} // TODO: Handle object lifetime metadata
 
     }
@@ -59,7 +61,7 @@ class Layer {
     /**
      * Getters
      */
-    
+
     get contextBitmapArray() {
         return this.contextBitmaps
     }
