@@ -8,7 +8,8 @@ class Bitmap extends RoaringBitmap32 {
         rangeMax: 4294967296 - 1    // 2^32 - 1
     }) {
 
-        // TODO: Add range checks!
+        // Will throw an error if the input data is out of range
+        Bitmap.validateRange(oidArrayOrBitmap, this.rangeMin, this.rangeMax)
 
         super(oidArrayOrBitmap);
         this.type = options.type;

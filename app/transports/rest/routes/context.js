@@ -131,6 +131,26 @@ router.get('/bitmaps/features', (req, res) => {
 
 
 /**
+ * Documents
+ */
+
+router.get('/documents', async (req, res) => {
+    let documents = await req.context.listDocuments();
+    // TODO: Use a standard RESPONSE document object as for socket.io
+    res.json(documents);
+});
+
+router.post('/documents', async (req, res) => {
+    try {
+        await req.context.insertDocument(req.body.document, req.body.contextArray, req.body.featureArray, req.body.filterArray);
+        res.sendStatus(200);
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+})
+
+
+/**
  * Misc
  */
 
