@@ -135,9 +135,14 @@ router.get('/bitmaps/features', (req, res) => {
  */
 
 router.get('/documents', async (req, res) => {
-    let documents = await req.context.listDocuments();
-    // TODO: Use a standard RESPONSE document object as for socket.io
-    res.json(documents);
+    let context = req.context;
+    let documents = await context.listDocuments();
+
+    if (documents) {
+        res.json(documents)
+    } else {
+        res.status(404).send(`No documents found in context ${context.url}`)
+    }
 });
 
 router.post('/documents', async (req, res) => {

@@ -97,6 +97,107 @@ module.exports = function (socket, context) {
 
 
     /**
+     * Document routes
+     */
+
+    socket.on('context:get:documents', async (data, callback) => {
+        debug('context:get:documents event')
+        debug(data)
+
+        const documents = await context.listDocuments(data.type);
+        RESPONSE_OBJECT.data = documents
+
+        if (callback) {
+            debug('Executing documents:get callback function')
+            callback(RESPONSE_OBJECT)
+        } else {
+            socket.emit('context:get:documents:response', RESPONSE_OBJECT)
+        }
+
+    });    
+
+    socket.on('context:insert:document', async (document, callback) => {
+        debug('context:insert:document event')
+        debug(document)
+
+        try {
+            const res = await context.insertDocument(document);
+            RESPONSE_OBJECT.data = res
+            if (callback) {
+                debug('Executing insertDocumentArray callback function')
+                callback(RESPONSE_OBJECT)
+            } else {
+                socket.emit('context:insert:document:response', RESPONSE_OBJECT)
+            }
+        } catch (err) {
+            debug('Error inserting document', err)
+            RESPONSE_OBJECT.error = err
+            RESPONSE_OBJECT.status = 'error'
+            if (callback) {
+                debug('Executing insertDocument callback function')
+                callback(RESPONSE_OBJECT)
+            } else {
+                socket.emit('context:insert:document:response', RESPONSE_OBJECT)
+            }
+        }
+
+    });
+
+    socket.on('context:remove:document', async (id, callback) => {
+        debug('context:remove:document event')
+        debug(id)
+
+        try {
+            const res = await context.removeDocument(id);
+            RESPONSE_OBJECT.data = res
+            if (callback) {
+                debug('Executing removeDocument callback function')
+                callback(RESPONSE_OBJECT)
+            } else {
+                socket.emit('context:remove:document:response', RESPONSE_OBJECT)
+            }
+        } catch (err) {
+            debug('Error removing document', err)
+            RESPONSE_OBJECT.error = err
+            RESPONSE_OBJECT.status = 'error'
+            if (callback) {
+                debug('Executing removeDocument callback function')
+                callback(RESPONSE_OBJECT)
+            } else {
+                socket.emit('context:remove:document:response', RESPONSE_OBJECT)
+            }
+        }
+
+    });        
+
+    socket.on('context:insert:documentArray', async (documentArray, callback) => {
+        debug('context:insert:documentArray event')
+        debug(documentArray)
+
+        try {
+            const res = await context.insertDocumentArray(documentArray);
+            RESPONSE_OBJECT.data = res
+            if (callback) {
+                debug('Executing insertDocumentArray callback function')
+                callback(RESPONSE_OBJECT)
+            } else {
+                socket.emit('context:insert:documentArray:response', RESPONSE_OBJECT)
+            }
+        } catch (err) {
+            debug('Error inserting document array', err)
+            RESPONSE_OBJECT.error = err
+            RESPONSE_OBJECT.status = 'error'
+            if (callback) {
+                debug('Executing insertDocumentArray callback function')
+                callback(RESPONSE_OBJECT)
+            } else {
+                socket.emit('context:insert:documentArray:response', RESPONSE_OBJECT)
+            }
+        }
+
+    });
+
+    /**
      * Event listeners
      */
 
