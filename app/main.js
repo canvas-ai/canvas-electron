@@ -39,9 +39,14 @@ const UserManager = require('./managers/user');
 const IdentityManager = require('./managers/peer');
 const DeviceManager = require('./managers/device');
 
+// Transports
+//const RestTransport = require('./transports/rest');
+//const SocketioTransport = require('./transports/socketio');
+
 // Context
 const Tree = require('./context/lib/Tree');
 const Context = require('./context');
+const { log } = require('console');
 
 
 /**
@@ -52,6 +57,7 @@ class Canvas extends EventEmitter {
 
     constructor(options = {
         sessionEnabled: true,
+        initGlobalContext: true,
         enableUserApps: false,
         enableUserRoles: false
     }) {
@@ -270,7 +276,7 @@ class Canvas extends EventEmitter {
             //db: this.documents
         })
 
-        await this.services.loadInitializeAndStartService('websocket', {
+        await this.services.loadInitializeAndStartService('socketio', {
             context: this.context,
             //db: this.documents
         })
@@ -308,6 +314,44 @@ class Canvas extends EventEmitter {
     /**
      * Context
      */
+
+    // New multi-context methods
+    openContext(id, url, options = {}) {
+        if (this.status != 'running') throw new Error('Application not fully initialized')
+        if (this.activeContexts.size >= MAX_CONTEXTS) throw new Error('Maximum number of contexts reached')
+        if (this.activeContexts.has(id)) {
+            log.warning(`Context with id ${id} already exists`)
+            if (url) return this.openContext(id + "-clone", url, options)
+            return this.activeContexts.get(id)
+        }
+
+        let context = new Context(url, this, options)
+        this.activeContexts.set(id, context)
+
+        log.info(`Opened context ${id} at ${url}`)
+        return context
+    }
+
+    closeContext(id) {
+        if (this.status != 'running') throw new Error('Application not fully initialized')
+        if (!this.activeContexts.has(id)) {
+            log.error(`Context with id ${id} does not exist`)
+            return false
+        }
+
+        let context = this.activeContexts.get(id)
+        if (!context.destroy()) {
+            log.error(`Error destroying context ${id}`)
+            return false
+        }
+
+        this.activeContexts.delete(id)
+        log.info(`Closed context ${id}`)
+
+        return true
+    }
+
+
 
     createContext(url = '/', options = {}) {
         let context = new Context(url, this, options)

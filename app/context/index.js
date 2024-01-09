@@ -240,8 +240,10 @@ class Context extends EE {
      */
 
     async insertDocument(doc, featureArray = this.#featureArray) {
+        if (typeof featureArray === 'string') featureArray = [featureArray]
         try {
             const result = await this.documents.insertDocument(doc, this.#contextArray, this.#featureArray);
+            this.emit('context:documentInserted', result)
             return result;
         } catch (error) {
             throw error
@@ -249,6 +251,7 @@ class Context extends EE {
     }
 
     async insertDocumentArray(docArray, featureArray = this.#featureArray) {
+        if (typeof featureArray === 'string') featureArray = [featureArray]
         try {
             const result = await this.documents.insertDocumentArray(docArray, this.#contextArray, this.#featureArray);
             return result;
@@ -257,7 +260,8 @@ class Context extends EE {
         }
     }
 
-    async listDocuments(featureArray = this.#featureArray, filterArray) {
+    async listDocuments(featureArray = this.#featureArray, filterArray) {        
+        if (typeof featureArray === 'string') featureArray = [featureArray]
         try {
             const result = await this.documents.listDocuments(this.#contextArray, featureArray, filterArray);
             return result;
@@ -266,17 +270,50 @@ class Context extends EE {
         }
     }
 
-    async updateDocument(document, contextArray, featureArray) {}
+    async updateDocument(document, contextArray, featureArray) {
+        if (typeof featureArray === 'string') featureArray = [featureArray]
+        try {
+            const result = await this.documents.updateDocument(document, contextArray, featureArray);
+            return result;
+        } catch (error) {
+            throw error
+        }
+    }
 
-    async updateDocumentArray(documentArray) {}
+    async updateDocumentArray(documentArray) {
 
-    async removeDocument(id) {}
+    }
+
+    async removeDocument(id) {
+        debug(`Removing document with id "${id}" from context "${this.#id}, url "${this.#url}"`)
+        try {
+            const result = await this.documents.removeDocument(id, this.#contextArray);
+            return result;
+        } catch (error) {
+            throw error
+        }
+    }
 
     async removeDocumentArray(idArray) {}
 
-    async deleteDocument(id) {}
+    async deleteDocument(id) {
+        debug(`Deleting document with id "${id}" from Canvas"`)
+        try {
+            const result = await this.documents.deleteDocument(id);
+            return result;
+        } catch (error) {
+            throw error
+        }
+    }
 
-    async deleteDocumentArray() {}
+    async deleteDocumentArray(idArray) {
+        try {
+            const result = await this.documents.deleteDocumentArray(idArray);
+            return result;
+        } catch (error) {
+            throw error
+        }
+    }
 
     getDocumentSchema(schema = 'default') {
         return this.documents.getDocumentSchema(schema)
@@ -286,6 +323,8 @@ class Context extends EE {
     /**
      * Misc
      */
+
+    static validateContextUrl(url) {}
 
     getEventListeners() { return this.eventNames(); }
 

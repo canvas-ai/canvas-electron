@@ -2,6 +2,7 @@
 
 
 # Creadits for this script goes to chatgpt
+# Do not use, will update it later
 
 
 # Find the Canvas directory from the current path
@@ -23,7 +24,7 @@ update_repos() {
             echo "Updating repository: $(basename "$dir")"
             cd "$dir"
             git fetch --all
-            git pull
+
             if [ $? -ne 0 ]; then
                 echo "Merge conflict in $(basename "$dir"). Stopping script."
                 exit 1
@@ -38,6 +39,7 @@ push_repos() {
         if [[ -d "$dir" && $(basename "$dir") == canvas-* ]]; then
             echo "Pushing current branch in repository: $(basename "$dir")"
             cd "$dir"
+			if ! git status; then echo "Non-commited changes found in $dir"; fi;
             git push
         fi
     done

@@ -5,10 +5,10 @@ const crypto = require('crypto');
 
 // Define constants
 const DOCUMENT_SCHEMA_VERSION = '1.0';
+const DOCUMENT_SCHEMA_TYPE = 'data/abstraction/document';
 const DOCUMENT_DATA_CHECKSUM_ALGO = 'sha1';
 const DOCUMENT_DATA_FORMAT = 'application/json';
 const DOCUMENT_DATA_ENCODING = 'utf8';
-const DOCUMENT_SCHEMA_TYPE = 'document';
 
 // Document class
 class Document {
@@ -23,13 +23,14 @@ class Document {
         data,
         versions = [],
 
-        checksum = null,
         dataChecksumAlgorithm = DOCUMENT_DATA_CHECKSUM_ALGO,
         checksumDataFields = [],
     }) {
 
         this.id = id;
         this.type = type;
+
+        this.schemaVersion = schemaVersion;
 
         // Set meta information
         const now = new Date().toISOString();

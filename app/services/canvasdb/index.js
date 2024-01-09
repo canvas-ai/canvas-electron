@@ -47,19 +47,22 @@ class CanvasDB extends EE {
     }
 
     async insertDocument(document, contextArray, featureArray, filterArray) {
+
         if (!this.validateDocument(document)) throw new Error('Invalid document');
-
         document = this.parseDocument(document);
-        if (!document.id) document.id = this.#genDocumentID();
 
-        if (!this.#db.has(document.id)) {
+        let documentFeatures = await this.#extractDocumentFeatures(document);
+        featureArray = [...featureArray, ...documentFeatures]
+
+        debug('Inserting document ' + JSON.stringify(document, null, 2))
+        debug(`ContextArray: ${contextArray}; FeatureArray: ${featureArray}`)
+
+        if (!this.#index.hash2oid.has(document.checksum)) {
+            debug(`Inserting document ID ${document.id} to DB, document checksum: ${document.checksum}`)
             await this.#db.put(document.id, document);
             await this.#index.hash2oid.put(document.checksum, document.id);
-            /*for (const hash of document.hashes) {
-                await this.#index.hash2oid.put(hash, document.id);
-            }*/
         } else {
-            debug(`Document ${document.id} already exists, updating bitmaps`)
+            debug(`Document ID ${document.id} already exists, updating bitmaps`)
         }
 
         if (Array.isArray(contextArray) && contextArray.length > 0) {
@@ -107,39 +110,53 @@ class CanvasDB extends EE {
 
     }
 
-    updateDocument(doc, contextArray, featureArray, filterArray) {
+    async updateDocument(doc, contextArray, featureArray, filterArray) {}
+
+    async removeDocument(id, contextArray, featureArray, filterArray) {
+        debug(`removeDocument(): ID: ${id}; ContextArray: ${contextArray}; FeatureArray: ${featureArray}`)
+        if (!id) throw new Error('Document ID required')
+        if (!contextArray || !Array.isArray(contextArray) || contextArray.length < 1) throw new Error('Context array required')
+
+        let document = await this.#db.get(id)
+        if (!document) return false
+
+
+        let res = this.#index.untickContextArray(contextArray, document.id)
+
+        if (Array.isArray(featureArray) && featureArray.length > 0) {
+            await this.#index.untickFeatureArray(featureArray, document.id)
+        }
 
     }
 
-    deleteDocument(doc, contextArray, featureArray, filterArray) {
-
+    async deleteDocument(id) {
+        // We are not removing the entry, just updating meta: {} to mark it as deleted
+        // We also clear all bitmaps, tick "removed" bitmap and remove the data: {} part
     }
-
-    removeDocument(doc, contextArray, featureArray, filterArray) {
-
-    }
-
 
     validateDocument(doc) {
-        let valid = true;
+        debug('Validating document ' + JSON.stringify(doc, null, 2))
 
         if (typeof doc !== 'object') {
             debug(`Document has to be an object, got ${typeof doc}`);
-            valid = false;
+            return false;
         }
 
         if (!doc.type) {
             debug(`Missing document type`);
-            valid = false;
+            return false;
         }
 
         // ...
 
-        return valid
+        return true
     }
 
     parseDocument(doc) {
+        debug('Parsing document')
+        // TODO Tab.parse(doc)
         let parsed = new Tab(doc)
+        if (!parsed.id) parsed.id = this.#genDocumentID();
         return parsed
     }
 
@@ -161,11 +178,8 @@ class CanvasDB extends EE {
 
     #genDocumentID() {
         let keyCount = this.#db.getKeysCount() || 0
-        console.log(keyCount)
         let nextDocumentID = INTERNAL_BITMAP_ID_MAX + keyCount + 1
-        console.log(nextDocumentID)
-        debug(`genDocumentID(): Key count: ${keyCount}`)
-        debug(`genDocumentID(): Next document ID: ${nextDocumentID}`)
+        debug(`Generating new document ID, current key count: ${keyCount}, ID: ${nextDocumentID}`)
         return nextDocumentID
     }
 

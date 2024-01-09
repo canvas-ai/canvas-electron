@@ -87,6 +87,59 @@ class Index extends EE {
 
     }
 
+    /**
+     * Main Index methods
+     */
+
+    async insert(id, contextArray, featureArray, filterArray) {}
+
+    async update(id, contextArray, featureArray, filterArray) {}
+
+    async remove(id, contextArray, featureArray, filterArray) {
+        if (!id) throw new Error('Document ID required')
+        if (!contextArray) throw new Error('Context array required')
+        debug(`Removing document ${id} from context bitmaps ${contextArray}`)
+
+    }
+
+    async delete(id) {
+        if (!id) throw new Error('Document ID required')
+        debug(`Deleting document ${id} from index`)
+    }
+
+    async listEntries(contextArray, featureArray, filterArray) {}
+
+    async listContexts() {}
+
+    async listFeatures() {}
+
+    async listFilters() {}
+
+    async tickFeatureArray(id, featureArray) {
+        if (!id) throw new Error('Document ID required')
+        if (!featureArray) throw new Error('Feature array required')
+    }
+
+    async untickFeatureArray(id, featureArray) {
+        if (!id) throw new Error('Document ID required')
+        if (!featureArray) {
+            debug(`untickFeatureArray(): No feature array provided, unticking all features for document ${id}`)
+        }
+    }
+
+    async tickContextArray(id, contextArray) {    
+
+    }
+
+    async untickContextArray(id, contextArray) {
+
+    }
+
+
+    /**
+     * Bitmap methods
+     */
+
     AND(bitmaps) {
         return BitmapManager.AND(bitmaps)
     }
@@ -97,7 +150,7 @@ class Index extends EE {
     }
 
     async updateFeatureBitmaps(featureArray, oidOrArray) {
-
+        debug(`Updating feature bitmaps for ${featureArray.length} features`)
         await this.bmFeatures.tickMany(featureArray, oidOrArray)
     }
 

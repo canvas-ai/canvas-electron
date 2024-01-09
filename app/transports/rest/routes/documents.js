@@ -16,9 +16,9 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/id/:id', async (req, res) => {
     let context = req.context
-    const id = req.params.i
+    const id = req.params.id
     const document = await context.getDocument(id)
     if (document) {
         res.json(document)
@@ -27,11 +27,11 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.get('/:abstr', (req, res) => {
-    const abstr = req.params.abstr;
+router.get('/abstr/:abstr', (req, res) => {
+    const abstr = 'data/abstraction/' + req.params.abstr;
     let context = req.context;
 
-    let documents = abstr.listDocuments(abstr)
+    let documents = context.listDocuments(abstr)
     if (documents) {
         res.json(documents)
     } else {

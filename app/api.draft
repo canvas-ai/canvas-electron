@@ -1,3 +1,19 @@
+# Canvas OS(linux)
+.
+├── Canvas
+│   ├── OS
+│   ├── UI
+│   ├── Apps
+│   ├── Roles
+│   └── Runtimes
+├── Code
+├── Home
+├── Utils
+└── Work
+├── dock.sh
+└── undock.sh
+
+
 # Original draft
 canvas
     workspace

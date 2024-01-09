@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const debug = require('debug')('canvas-service-restapi:context');
-
+const debug = require('debug')('canvas-transport-rest:context');
 
 /**
- * Context URL
+ * Current context
  */
 
 router.get('/url', (req, res) => {
@@ -119,16 +118,41 @@ router.patch('/layers/:name', (req, res) => {
  */
 
 router.get('/bitmaps', (req, res) => {
-    res.json({ contextArray: req.context.bitmaps });
+    res.json({ contextBitmaps: req.context.bitmaps });
 });
 
 router.get('/bitmaps/context', (req, res) => {
-    res.json({ contextArray: req.context.contextArray });
+    res.json({ contextBitmapArray: req.context.contextArray });
 });
 
 router.get('/bitmaps/features', (req, res) => {
-    res.json({ featureArray: req.context.featureArray });
+    res.json({ featureBitmapArray: req.context.featureArray });
 });
+
+
+/**
+ * Documents
+ */
+
+router.get('/documents', async (req, res) => {
+    let context = req.context;
+    let documents = await context.listDocuments();
+
+    if (documents) {
+        res.json(documents)
+    } else {
+        res.status(404).send(`No documents found in context ${context.url}`)
+    }
+});
+
+router.post('/documents', async (req, res) => {
+    try {
+        await req.context.insertDocument(req.body.document, req.body.contextArray, req.body.featureArray, req.body.filterArray);
+        res.sendStatus(200);
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+})
 
 
 /**

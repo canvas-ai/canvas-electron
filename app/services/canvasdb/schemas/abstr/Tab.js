@@ -5,7 +5,7 @@
 
 const Document = require('../Document')
 const DOCUMENT_SCHEMA_VERSION = '2.0'
-const DOCUMENT_SCHEMA_TYPE = 'tab';
+const DOCUMENT_SCHEMA_TYPE = 'data/abstraction/tab';
 
 class Tab extends Document {
 
