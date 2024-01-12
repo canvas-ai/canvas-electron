@@ -20,8 +20,6 @@ const EventEmitter = require('eventemitter2');
 
 // Constants
 const MAX_CONTEXTS = 1024 // 2^10
-const MAX_FEATURES = 65536 // 2^16
-const MAX_FILTERS = 65536 // 2^16
 
 // Core services
 const Db = require('./services/db');
@@ -163,15 +161,18 @@ class Canvas extends EventEmitter {
             this.db.createDataset('session') :
             null
 
-        // Global objects shared with all contexts
+        // Global context tree
         this.tree = new Tree({
             treePath: path.join(USER.paths.db, 'tree.json'),
             layerPath: path.join(USER.paths.db, 'layers.json')
         })
 
+
         this.layers = this.tree.layers;
+
+
         this.activeContexts = new Map();
-        this.context = null;    // TODO: Multi-context support, lets keep one global one for now
+        this.context = null;
 
         // Static variables
         this.app = APP          // App runtime env
@@ -316,6 +317,7 @@ class Canvas extends EventEmitter {
      */
 
     // New multi-context methods
+
     openContext(id, url, options = {}) {
         if (this.status != 'running') throw new Error('Application not fully initialized')
         if (this.activeContexts.size >= MAX_CONTEXTS) throw new Error('Maximum number of contexts reached')
@@ -350,7 +352,6 @@ class Canvas extends EventEmitter {
 
         return true
     }
-
 
 
     createContext(url = '/', options = {}) {
