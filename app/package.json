@@ -7,8 +7,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "jsdoc": "jsdoc -r -c jsdoc.json",
-    "cli": "node cli",
-    "server": "nodemon server.js",
+    "cli": "node ui/cli/server.js",
+    "repl": "node ui/cli/repl.js",
+    "server": "nodemon canvas-server.js",
+    "server:prod": "pm2 start canvas-server.js",
+    "server:prod:status": "pm2 status",
     "canvas": "electron ui/electron",
     "rebuild": "electron-rebuild -f"
   },
@@ -43,7 +46,6 @@
     "mime-types": "^2.1.35",
     "minimist": "^1.2.8",
     "mkdirp": "^3.0.1",
-    "nedb": "^1.8.0",
     "node-machine-id": "^1.1.12",
     "node-notifier": "^10.0.1",
     "nodemon": "^3.0.1",

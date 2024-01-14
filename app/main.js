@@ -316,11 +316,10 @@ class Canvas extends EventEmitter {
      * Context
      */
 
-    // New multi-context methods
-
     openContext(id, url, options = {}) {
         if (this.status != 'running') throw new Error('Application not fully initialized')
         if (this.activeContexts.size >= MAX_CONTEXTS) throw new Error('Maximum number of contexts reached')
+
         if (this.activeContexts.has(id)) {
             log.warning(`Context with id ${id} already exists`)
             if (url) return this.openContext(id + "-clone", url, options)
