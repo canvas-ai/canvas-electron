@@ -16,15 +16,12 @@ class Document {
     constructor({
         id,
         type,
-        version = 1,
-        schemaVersion = DOCUMENT_SCHEMA_VERSION,
-
-        meta = {},
+        version,
+        schemaVersion,
+        meta,
         data,
-        versions = [],
-
-        dataChecksumAlgorithm = DOCUMENT_DATA_CHECKSUM_ALGO,
-        checksumDataFields = [],
+        dataChecksumFields,
+        versions
     }) {
 
         this.id = id;
@@ -43,19 +40,7 @@ class Document {
             ...meta,
         };
 
-        let checksumData;
-        if (checksumDataFields.length > 0) {
-            // Only include specified fields for checksum calculation
-            checksumData = {};
-            for (const field of checksumDataFields) {
-                if (field in data) {
-                    checksumData[field] = data[field];
-                }
-            }
-        } else {
-            // Include all data in checksum calculation
-            checksumData = data;
-        }
+        this.checksum = this.calculateChecksum(data, dataChecksumFields);
 
         // TODO: Temporary
         const defaultHash = this.createHash(
@@ -127,6 +112,15 @@ class Document {
         return document;
     }
 
+    calculateChecksum(data, fields) {
+        const checksumData = fields.length ? fields.reduce((acc, field) => {
+            acc[field] = data[field];
+            return acc;
+        }, {}) : data;
+
+        return this.createHash(checksumData);
+    }
+
     createHash(str, algorithm = DOCUMENT_DATA_CHECKSUM_ALGO, encoding = DOCUMENT_DATA_ENCODING) {
         if (typeof str === 'object') str = JSON.stringify(str)
         return crypto
@@ -145,13 +139,21 @@ class Document {
     static validate(document) {
         if (!document) throw new Error('Document is not defined')
 
-        // Check for mandatory parameters
+        // Check for mandatory parameters (TODO)
         return (
             document.type &&
             document.data) || false
     }
 
     static get schema() { return Document.toJSON(); }
+
+    static get schemaVersion() {
+        return DOCUMENT_SCHEMA_VERSION;
+    }
+
+    static get schemaType() {
+        return DOCUMENT_SCHEMA_TYPE;
+    }
 
     // TODO: Fix me, this is just plain wrong
     #validateHashString(str) {
