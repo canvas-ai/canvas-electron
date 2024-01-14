@@ -1,16 +1,20 @@
 {
   "name": "canvas",
   "productName": "Canvas",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Context layer on top of your unstructured universe",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "jsdoc": "jsdoc -r -c jsdoc.json",
-    "cli": "node cli",
-    "server": "nodemon server.js",
-    "canvas": "electron ui/electron",
-    "rebuild": "electron-rebuild -f"
+    "cli": "node ui/cli/server.js",
+    "repl": "node ui/cli/repl.js",
+    "server:dev": "node canvas-server.js",
+    "server:start": "PM2_HOME=~/.canvas/pm2 pm2 start canvas-server.js",
+    "server:start:watch": "PM2_HOME=~/.canvas/pm2 pm2 start canvas-server.js --watch",
+    "server:stop": "PM2_HOME=~/.canvas/pm2 pm2 stop canvas-server.js",
+    "server:status": "PM2_HOME=~/.canvas/pm2 pm2 status canvas-server.js",
+    "server:logs": "PM2_HOME=~/.canvas/pm2 pm2 logs canvas-server.js"
   },
   "author": "me@idnc.sk",
   "license": "AGPL-3.0-or-later",
@@ -43,7 +47,6 @@
     "mime-types": "^2.1.35",
     "minimist": "^1.2.8",
     "mkdirp": "^3.0.1",
-    "nedb": "^1.8.0",
     "node-machine-id": "^1.1.12",
     "node-notifier": "^10.0.1",
     "nodemon": "^3.0.1",

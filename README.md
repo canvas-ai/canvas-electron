@@ -16,9 +16,9 @@
 
 Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** - regardless of its type and location - into separate "contexts".
 
-Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all the unstructured information fighting for my attention on a default desktop setup(emails, notifications, chat messages, growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).  
+Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all unstructured information fighting for my attention on a standard(tm) desktop setup(emails, notifications, chat messages, growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).  
 
-A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate whatever structure is needed to be productive:
+A Canvas context tree is designed to be dynamic, supporting frequent changes to accommodate any structure needed to be productive:
 
 ```plain
 universe://
@@ -77,9 +77,9 @@ Context URL
 will (presumably) return all reports for Customer A,  
 
 ``universe://reports``  
-will return all reports indexed ("linked") by the bitmap index of the "reports" layer for your entire universe.  
+will return all reports indexed("linked") by the bitmap index of the "reports" layer for your entire universe.  
 
-You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer ("reports" for example), leaving the larger context(layer order) handle the filtering for you.  
+You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer ("reports" for example), leaving the actual context(layer order) handle the filtering for you.  
 
 This setup enables having the same data accessible through different, ad-hoc "filesystem-like" context paths:  
 ``universe://photos/2023/06``  
@@ -96,7 +96,7 @@ There are 5 layer types:
 
 - **Context**: The default layer type that links a context url part to one and only one context bitmap.
 
-- **Filter**: Represents a single filter or feature bitmap*; example: ``universe://customer_a/:emails/:today``, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/datetime/today" filter.
+- **Filter**: Represents a single filter or feature bitmap*; example: `universe://customer_a/:emails/:today`, where :emails represents the "data/abstraction/email" feature bitmap, :today represents the "filter/datetime/today" filter.
 
 - **Label**: A noop layer with no context or feature bitmap links
 
@@ -108,9 +108,9 @@ There are couple of motivating factors for this project:
 - I never really liked the "desktop" UI/UX, stacked nor tiled, and now [due to more mature libraries, better tooling in general, ai] it is finally feasible to experiment on my own implementation without burning 1/4 of an average human lifespan
 - I never liked the rigidness of a flat, "static" file system hierarchy, always wanted to have dynamic "views" on top of my data without unwanted duplication or too much manual symlinking effort(this dates back to 2007?, found out msft once worked on a similar - fs as a db - concept)
 - I kept collecting \_RESTORE\_ and \_TO\_SORT\_ folders within some random dirs of other \_TO\_SORT\_ folders, had data on a growing number of usb sticks, memory cards, <random cloud provider> instances and computers at work and in our household. I want to know where my rare-studio-recording-2008.mp3 is located("asus mp3 player", smb://nas.lan/some/random/folder, file://deviceid/foo/bar/baz/Downloads, timecapsule gps :)
-- I want to have a working "roaming profile" experience across all my devices running linux and windows. On linux, container-based applications I can freeze on logout/undock and unfreeze on a different linux machine(main motivation behind my iolinux distro experiment)
-- I want to easily discover peers, share files and collaborate on documents within a LAN
-- I want to use all my devices to work, export an application menu, toolbox or applet(music player of my HiFi-connected pc) to my phone or tablet, or a more practical example, have my Canvas timeline on my phone so that whenever I search for some emails or notes, I can easily use swipe and zoom gestures *on my phone* to zoom into the timeframe and filter out files I work on on my main workstation dynamically
+- I want to have a working "roaming profile" experience across all my devices running linux and windows. On linux, container-based applications I can freeze on logout/undock and unfreeze on a different linux machine(main motivation behind my iolinux distro experiment ~2017-2018)
+- I want to easily discover peers, share files and collaborate on documents hosted on my own infrastructure
+- I want to use all my devices to work, export an application menu, toolbox or applet(music player of my HiFi-connected pc) to my phone or tablet, or a more practical example, have my Canvas timeline on my phone so that whenever I search for some emails or notes, I can easily use swipe and zoom gestures *on my phone* to zoom into the time-frame of interest and filter out data I work on on my main workstation dynamically
 - Pin devices to specific workspaces or contexts(fe my work nb to universe://work) so I can trash my work-life balance even more
 - Related to a previous point, have all my data backed on multiple backends with fine-grained rules and policies with versioning support where I find necessary, have a working local cross-platform multi-backend caching solution
 - Have a personal AI assistant that can interact with the Canvas application, underlying OS and with my context-related data, that would learn and optimize to best cather for my workflows
@@ -123,15 +123,14 @@ There are couple of motivating factors for this project:
 Some of the technologies used in no particular order:
 
 - [Roaring bitmaps](https://roaringbitmap.org/)
-- [LMDB](https://www.npmjs.com/package/lmdb) - Main in-process KV db backend for storing document metadata and indexes(originally leveldb)
-- nedb - For keeping part of the index data(context tree, layers) easily readable and editable as local JSON files
-- FlexSearch - Fulltext search index, to-be replaced with ..bitmap indexes :)
-- express.js - RestAPI and some of the UI elements like shared Workspaces or Canvases
-- socket.io - Evaluated zeromq, wrote a custom nodejs net.ipc module(currently at services/\_old\_/net-ipc), currently socket.io
-- webdavd - Canvas based dynamic Desktop and Downloads folders
-- cacache - Integral part of storeD for caching remote data locally
-- vLLM - Currently evaluating as the LLM backend
-- electron - Well ..should be easy enough to migrate to a more lightweight solution later on
+- [LMDB](https://www.npmjs.com/package/lmdb) - Main in-process KV DB backend for storing document metadata and indexes(originally leveldb, currently evaluating pouchdb/couchdb)
+- [FlexSearch](https://github.com/nextapps-de/flexsearch) - Fulltext search index, to-be replaced with ..bitmap indexes :)
+- [express.js](https://expressjs.com/) - RestAPI and some of the UI elements like shared Workspaces or Canvases
+- [socket.io](https://socket.io/) - Evaluated zeromq, wrote a custom nodejs net.ipc module(currently at services/\_old\_/net-ipc), currently socket.io
+- [webdavd](https://github.com/OpenMarshal/npm-WebDAV-Server) - Canvas based dynamic Desktop and Downloads folders
+- [cacache](https://www.npmjs.com/package/cacache) - Integral part of storeD for caching remote data locally
+- [vLLM](https://github.com/vllm-project/vllm) - Currently evaluating as the LLM backend
+- [electron](https://www.electronjs.org/) - Well ..it should be easy enough to migrate to a more lightweight solution later on
 
 <br />
 
@@ -142,30 +141,61 @@ Some of the technologies used in no particular order:
 ### ! Slowly separating some of the modules into their own repos for easier maintainability
 
 - https://github.com/idncsk/canvas-ui-shell
-- https://github.com/idncsk/canvas-ui-node
 - https://github.com/idncsk/canvas-ui-firefox-ext
 - https://github.com/idncsk/canvas-ui-electron
 
+### ! Progress on a sort-of generally usable "MVP" is now tracked via the [Canvas project github SCRUM board](https://github.com/users/idncsk/projects/1/views/1)
 
- #### Old *not working* Installation instructions:
+#### Canvas server
 
 ```bash
-$ git clone git@github.com:idncsk/canvas.git
-$ cd canvas/app
+$ git clone git@github.com:idncsk/canvas.git /path/to/canvas
+$ cd /path/to/canvas/app
 $ npm install
-$ npm run canvas # Electron UI
-$ npm run server # Server backend only
-$ npm run repl
+$ npm run server    # Server backend only
+$ npm run repl      # Server repl CLI
 ```
 
-(Optional): Add ``canvas/bin`` to your ``$PATH``  
-(Optional): For a bare-bones bash client, source ``extensions/shell/context.sh``  
-(Optional): To install the firefox browser extension:  
+(Optional): Add `/path/to/canvas/bin` to your `$PATH`
+
+```bash
+$ echo PATH="$PATH:/path/to/canvas/bin" >> ~/.bashrc
+```
+
+#### Canvas bash client
+
+You can also install a bare-bones bash REST client:
+
+```bash
+$ git clone git@github.com:idncsk/canvas-ui-shell.git /path/to/canvas-shell
+$ echo ". /path/to/canvas-shell/context.sh" >> ~/.bashrc
+$ cd /path/to/canvas/app && npm run server
+```
+
+Currently, we only support a very limited API used mainly for development/testing purposes
+
+- set: Sets a context URL
+- url: Returns the current context url
+- path: Returns the current context path
+- paths: Returns the path representation of the current context tree
+- tree: Returns the full Canvas context tree in plain JSON format
+- bitmaps: Returns a summary of all in-memory bitmaps for the current context
+- list: Lists all documents linked to the current context    
+  - tabs: data/abstraction/tab
+  - notes: data/abstraction/note
+  - todo: data/abstraction/todo
+
+#### Canvas firefox extension
+
+To install the firefox browser extension:  
 
 - Open your browser and navigate to
 **about:debugging#/runtime/this-firefox**
 - Click on "Load Temporary Add-on"
 - Navigate to canvas/ext/browser/firefox
+
+
+#### Portable installation
 
 For **portable** use, download and extract nodejs and electron into the canvas/runtime folder
 
@@ -228,7 +258,7 @@ YT Channel + Some (royalty-free) music used in my videos
   - <https://www.buymeacoffee.com/idncsk>
 - **Or**, since I'd like to work on this project in an official part-time setup(stop saying open-source is free, it's not), by a monthly recurring payment of 10EUR (I tolerate some margin of error:) to IBAN: SK95 8330 0000 0023 0250 2806
 
-**Any suggestions welcome** ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a non-programmer this is really appreciated!
+**Any suggestions welcome** ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a hobby-programmer this is really appreciated!
 
 
 Thank you!

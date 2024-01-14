@@ -150,6 +150,11 @@ generateDotenvFile(INI, path.join(APP_VAR, '.env'))
 process.title = `${pkg.productName} | v${pkg.version}`
 Object.assign(process.env, {...INI});
 
+
+/**
+ * Exports
+ */
+
 module.exports = env
 
 
