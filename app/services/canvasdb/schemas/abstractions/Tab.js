@@ -1,4 +1,3 @@
-
 /**
  * Data abstraction for storing browser tab data
  */

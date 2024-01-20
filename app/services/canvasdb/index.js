@@ -12,10 +12,16 @@ const INTERNAL_BITMAP_ID_MAX = 1000000
 // Schemas
 const Document = require('./schemas/Document')
 const Tab = require('./schemas/abstractions/Tab')
+const Note = require('./schemas/abstractions/Note')
+const Todo = require('./schemas/abstractions/Todo')
+const File = require('./schemas/abstractions/File')
 
 const DOCUMENT_SCHEMAS = {
     default: Document.toJSON(),
-    'data/abstraction/tab': Tab.toJSON()
+    'data/abstraction/tab': Tab.toJSON(),
+    'data/abstraction/note': Note.toJSON(),
+    'data/abstraction/todo': Todo.toJSON(),
+    'data/abstraction/file': File.toJSON()
 }
 
 

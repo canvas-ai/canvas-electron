@@ -114,7 +114,7 @@ module.exports = function (socket, context) {
             socket.emit('context:get:documents:response', RESPONSE_OBJECT)
         }
 
-    });    
+    });
 
     socket.on('context:insert:document', async (document, callback) => {
         debug('context:insert:document event')
@@ -168,7 +168,7 @@ module.exports = function (socket, context) {
             }
         }
 
-    });        
+    });
 
     socket.on('context:insert:documentArray', async (documentArray, callback) => {
         debug('context:insert:documentArray event')

@@ -1,24 +1,25 @@
 /**
- * Data abstraction for storing Notes
+ * Data abstraction for storing TODO items
  */
 
 const Document = require('../Document')
 const DOCUMENT_SCHEMA_VERSION = '2.0'
-const DOCUMENT_SCHEMA_TYPE = 'data/abstraction/note';
+const DOCUMENT_SCHEMA_TYPE = 'data/abstraction/todo';
 
-class Note extends Document {
+class Todo extends Document {
 
     constructor(params) {
         super({
             ...params,
+            checksumDataFields: ['data'],
             type: DOCUMENT_SCHEMA_TYPE,
             schemaVersion: DOCUMENT_SCHEMA_VERSION,
-            data: {
-                title: params.data.title || 'Canvas | Note',
-                content: params.data.content || 'Note content'
-            }
-
         })
+
+        if (!params.data) {
+            throw new Error('No TODO data submitted');
+        }
+
     }
 
     static toJSON() {
@@ -27,16 +28,13 @@ class Note extends Document {
         let base = super.toJSON();
 
         // Set schema version and type
+        base.checksumDataFields = ['data'];
         base.schemaVersion = DOCUMENT_SCHEMA_VERSION;
         base.type = DOCUMENT_SCHEMA_TYPE;
-
-        // Set document data
-        base.data.title = 'Canvas | Note';
-        base.data.content = 'Note content';
 
         return base;
     }
 
 }
 
-module.exports = Note;
+module.exports = Todo
