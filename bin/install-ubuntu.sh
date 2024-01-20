@@ -1,9 +1,9 @@
 #!/bin/bash
 
 
-#############################################
-# Canvas installer                          #
-#############################################
+#####################################
+# Canvas installer                  #
+#####################################
 
 # Installer defaults
 CANVAS_MODE_PORTABLE=1
@@ -13,7 +13,12 @@ CANVAS_ELECTRON_VERSION=""
 
 packages=['notify-osd','notify-osd-icons']
 
-# Parse arguments
+#####################################
+# Parse arguments                   #
+#####################################
+
+
+
 
 # Check dependencies
 

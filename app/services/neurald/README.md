@@ -1,9 +1,22 @@
-# Canvas NeuralD
+# Canvas | NeuralD
 
-## Refs
+### To eval
 
-- https://en.wikipedia.org/wiki/Hopfield_network
-- https://vllm.readthedocs.io/en/latest/
-- https://python.langchain.com/docs/integrations/llms/llamacpp
-- https://www.npmjs.com/package/openai
-- https://developer.nvidia.com/riva
+#### Runtimes
+
+- https://ollama.ai/
+- https://github.com/mlc-ai/mlc-llm
+- https://github.com/vllm-project/vllm
+- https://unsloth.ai/
+- https://github.com/OpenAccess-AI-Collective/axolotl
+
+#### Agent frameworks
+
+- https://microsoft.github.io/autogen/
+- https://microsoft.github.io/autogen/blog/2023/12/01/AutoGenStudio/
+- https://github.com/OpenBMB/ChatDev
+- https://github.com/joaomdmoura/crewai
+
+
+#### Speech/audio
+

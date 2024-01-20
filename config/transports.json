@@ -1,0 +1,8 @@
+{
+    "restapi": {
+        "port": 3000
+    },
+    "socketio": {
+        "port": 3001
+    }
+}
