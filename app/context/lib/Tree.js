@@ -438,26 +438,25 @@ class Tree extends EventEmitter {
         }
     }
 
-    #buildPathArray(sort = true) {
+    #buildPathArray(sort = false) {
         const paths = [];
 
         const traverseTree = (node, parentPath = '') => {
-          const path = (node.name === 'universe') ?
-            parentPath :
-            parentPath + '/' + node.name;
+            const path = (!parentPath || parentPath === '') ? "/" + node.name : `${parentPath}/${node.name}`;
 
-          if (node.children.size > 0) {
-            for (const child of node.children.values()) {
-              traverseTree(child, path);
+            if (node.children.size > 0) {
+                for (const child of node.children.values()) {
+                    traverseTree(child, path);
+                }
+            } else {
+                // TODO: Fix me!
+                paths.push(path.replace('/universe', ''));
             }
-          } else {
-            paths.push(path);
-          }
         };
 
         traverseTree(this.root);
         return sort ? paths.sort() : paths;
-      }
+    }
 
 }
 
