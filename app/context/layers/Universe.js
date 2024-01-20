@@ -1,6 +1,6 @@
 const Layer = require('../lib/Layer')
 module.exports = new Layer({
-    id: '/',    // 0? 
+    id: '/',
     name: 'universe',
     label: 'Universe',
     type: 'universe',

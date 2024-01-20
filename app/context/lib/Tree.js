@@ -441,23 +441,16 @@ class Tree extends EventEmitter {
     #buildPathArray(sort = false) {
         const paths = [];
 
-        const traverseTree = (node, parentPath = '/') => {
-            console.log(node.name, parentPath)
-
-            if (node.id === '/') {
-                parentPath = '/';
-            } else {
-                parentPath = (parentPath === '/' || parentPath === '') ? node.name : `${parentPath}/${node.name}`;
-            }
-            
-            const path = (parentPath === '/' || parentPath === '') ? node.name : `${parentPath}/${node.name}`;
+        const traverseTree = (node, parentPath = '') => {
+            const path = (!parentPath || parentPath === '') ? "/" + node.name : `${parentPath}/${node.name}`;
 
             if (node.children.size > 0) {
                 for (const child of node.children.values()) {
                     traverseTree(child, path);
                 }
             } else {
-                paths.push(path);
+                // TODO: Fix me!
+                paths.push(path.replace('/universe', ''));
             }
         };
 
