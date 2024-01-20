@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "me@idnc.sk",
   "license": "ISC",
   "dependencies": {
     "openai": "^4.6.0"

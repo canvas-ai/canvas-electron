@@ -5,16 +5,17 @@
   "description": "Context layer on top of your unstructured universe",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "setenv": "#load env variables from .env file\nif [ -f .env ]; then\n  export $(cat .env | sed 's/#.*//g' | xargs)\nfi",
+    "test": "eslint . --ext .js",
     "jsdoc": "jsdoc -r -c jsdoc.json",
     "cli": "node ui/cli/server.js",
     "repl": "node ui/cli/repl.js",
+    "electron": "electron ui/electron/main.js",
     "server:dev": "node canvas-server.js",
-    "server:start": "PM2_HOME=~/.canvas/pm2 pm2 start canvas-server.js",
-    "server:start:watch": "PM2_HOME=~/.canvas/pm2 pm2 start canvas-server.js --watch",
-    "server:stop": "PM2_HOME=~/.canvas/pm2 pm2 stop canvas-server.js",
-    "server:status": "PM2_HOME=~/.canvas/pm2 pm2 status canvas-server.js",
-    "server:logs": "PM2_HOME=~/.canvas/pm2 pm2 logs canvas-server.js"
+    "server:start": "PM2_HOME=../var/pm2 pm2 start ecosystem.config.js --watch",
+    "server:stop": "PM2_HOME=../var/pm2 pm2 stop ecosystem.config.js",
+    "server:status": "PM2_HOME=../var/pm2 pm2 status ecosystem.config.js",
+    "server:logs": "PM2_HOME=../var/pm2 pm2 logs ecosystem.config.js"
   },
   "author": "me@idnc.sk",
   "license": "AGPL-3.0-or-later",
@@ -60,6 +61,7 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
     "jsdoc": "^4.0.2"
   }
 }

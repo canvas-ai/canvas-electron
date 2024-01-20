@@ -28,14 +28,14 @@ const NeuralD = require('./services/neurald');
 const StoreD = require('./services/stored');
 
 // Manager classes
-const AppManager = require('./managers/app');
-const PeerManager = require('./managers/peer');
-const RoleManager = require('./managers/role');
+//const AppManager = require('./managers/app');
+//const PeerManager = require('./managers/peer');
+//const RoleManager = require('./managers/role');
 const ServiceManager = require('./managers/service');
-const SessionManager = require('./managers/session');
-const UserManager = require('./managers/user');
-const IdentityManager = require('./managers/peer');
-const DeviceManager = require('./managers/device');
+//const SessionManager = require('./managers/session');
+//const UserManager = require('./managers/user');
+//const IdentityManager = require('./managers/peer');
+//const DeviceManager = require('./managers/device');
 
 // Transports
 //const RestTransport = require('./transports/rest');
