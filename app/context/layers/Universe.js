@@ -1,8 +1,8 @@
 const Layer = require('../lib/Layer')
 module.exports = new Layer({
-    id: '/',
+    id: '/',    // 0? 
     name: 'universe',
-    label: 'universe',
+    label: 'Universe',
     type: 'universe',
     description: 'And then there was light',
     color: '#fff'
