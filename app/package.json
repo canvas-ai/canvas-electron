@@ -3,7 +3,8 @@
   "productName": "Canvas",
   "version": "1.1.0",
   "description": "Context layer on top of your unstructured universe",
-  "main": "main.js",
+  "main": "canvas-server.js",
+  "bin": "canvas-server.js",
   "scripts": {
     "setenv": "#load env variables from .env file\nif [ -f .env ]; then\n  export $(cat .env | sed 's/#.*//g' | xargs)\nfi",
     "test": "eslint . --ext .js",
@@ -16,6 +17,11 @@
     "server:stop": "PM2_HOME=../var/pm2 pm2 stop ecosystem.config.js",
     "server:status": "PM2_HOME=../var/pm2 pm2 status ecosystem.config.js",
     "server:logs": "PM2_HOME=../var/pm2 pm2 logs ecosystem.config.js"
+  },
+  "pkg": {
+    "assets": "./.env",
+    "targets": [ "node18-linux" ],
+    "outputPath": "../bin"
   },
   "author": "me@idnc.sk",
   "license": "AGPL-3.0-or-later",

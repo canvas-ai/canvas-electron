@@ -118,7 +118,7 @@ class Context extends EE {
         if (this.#url === parsed.url) return this.#url
 
         debug(`Setting context url for context id "${this.#id}" to "${parsed.url}"`)
-        if (!this.#tree.insert(parsed.path, null, autoCreateLayers) {
+        if (!this.#tree.insert(parsed.path, null, autoCreateLayers)) {
             debug(`Context url "${parsed.url}" not set, path "${parsed.path}" not found`)
             return false
         }

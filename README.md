@@ -14,7 +14,7 @@
 
 ## Basic Concepts | What is Canvas
 
-Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** - regardless of its type and location - into separate "contexts".
+Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** into separate "contexts".
 
 Contexts are represented by a tree structure resembling a file-system hierarchy; every tree node represents a separate layer filtering down all unstructured information fighting for my attention on a standard(tm) desktop setup(emails, notifications, chat messages, growing number of random browser tabs and ad-hoc download-extract-test-forget endeavors).  
 
@@ -79,20 +79,20 @@ will (presumably) return all reports for Customer A,
 ``universe://reports``  
 will return all reports indexed("linked") by the bitmap index of the "reports" layer for your entire universe.  
 
-You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer ("reports" for example), leaving the actual context(layer order) handle the filtering for you.  
+You want to prevent having multiple layers representing the same data. "Reports", "reports_new", "reports2", "customera-reports" should be represented by one layer - fe "reports", leaving the context(layer order) handle the filtering for you.  
 
 This setup enables having the same data accessible through different, ad-hoc "filesystem-like" context paths:  
 ``universe://photos/2023/06``  
 ``universe://home/inspirations/kitchens``  
 ``universe://travel/Spain/2023``  
 ``universe://tasks/data-cleanup/2023/09``  
-For the above example, all contexts return (among other data) the same file `IMG_1234.jpg` - a picture of a nice kitchen from an airbnb we stayed at. As a bonus - regardless of where it is stored(the storage part is abstracted away via storeD). Same goes for tabs, notes or any other documents - including the entropy-rich content of your ~/Downloads and ~/Desktop folders.  
+For the above example, all contexts return (among other data) the same file `IMG_1234.jpg` - a picture of a nice kitchen from an airbnb we stayed at. As a bonus - regardless of where it is stored(the storage part is abstracted away via storeD). Same goes for tabs, notes or any other documents - including the entropy-rich content of my ~/Downloads and ~/Desktop folders.  
 
 There are 5 layer types:
 
 - **Workspace**: Exportable, **shareable** collection of data sources and layers. By default, you start with an undifferentiated "universe". Workspaces in Canvas can have a primary color assigned. If they do, Canvas will automatically use gradients [of the primary workspace color] for individual data abstractions. 
 
-- **Canvas**: A layer with multiple context, feature and/or filter bitmaps assigned that can optionally store Canvas UI layout and UI applet data.
+- **Canvas**: A layer with multiple context, feature and/or filter bitmaps assigned that can optionally store Canvas UI layout and UI applet data. Canvases are the central piece of a lets say unorthodox approach to desktop environments, but more on that later.
 
 - **Context**: The default layer type that links a context url part to one and only one context bitmap.
 
@@ -105,16 +105,15 @@ There are 5 layer types:
 
 There are couple of motivating factors for this project:
 
-- I never really liked the "desktop" UI/UX, stacked nor tiled, and now [due to more mature libraries, better tooling in general, ai] it is finally feasible to experiment on my own implementation without burning 1/4 of an average human lifespan
-- I never liked the rigidness of a flat, "static" file system hierarchy, always wanted to have dynamic "views" on top of my data without unwanted duplication or too much manual symlinking effort(this dates back to 2007?, found out msft once worked on a similar - fs as a db - concept)
-- I kept collecting \_RESTORE\_ and \_TO\_SORT\_ folders within some random dirs of other \_TO\_SORT\_ folders, had data on a growing number of usb sticks, memory cards, <random cloud provider> instances and computers at work and in our household. I want to know where my rare-studio-recording-2008.mp3 is located("asus mp3 player", smb://nas.lan/some/random/folder, file://deviceid/foo/bar/baz/Downloads, timecapsule gps :)
-- I want to have a working "roaming profile" experience across all my devices running linux and windows. On linux, container-based applications I can freeze on logout/undock and unfreeze on a different linux machine(main motivation behind my iolinux distro experiment ~2017-2018)
-- I want to easily discover peers, share files and collaborate on documents hosted on my own infrastructure
-- I want to use all my devices to work, export an application menu, toolbox or applet(music player of my HiFi-connected pc) to my phone or tablet, or a more practical example, have my Canvas timeline on my phone so that whenever I search for some emails or notes, I can easily use swipe and zoom gestures *on my phone* to zoom into the time-frame of interest and filter out data I work on on my main workstation dynamically
-- Pin devices to specific workspaces or contexts(fe my work nb to universe://work) so I can trash my work-life balance even more
-- Related to a previous point, have all my data backed on multiple backends with fine-grained rules and policies with versioning support where I find necessary, have a working local cross-platform multi-backend caching solution
-- Have a personal AI assistant that can interact with the Canvas application, underlying OS and with my context-related data, that would learn and optimize to best cather for my workflows
-- Have the option to easily integrate other applications to make them context-aware(easier than to roll-out a custom browser, note taking app, todo app etc), kde/plasma activities were close but not close enough
+- I never really liked the "desktop" UI/UX, stacked nor tiled, and now [due to more mature libraries, better tooling in general, AI] it is finally feasible to experiment on my own implementation without burning 1/4 of an average human lifespan while doing so
+- I never liked the rigidness of a flat, "static" file system hierarchy, always wanted to have dynamic "views" on top of my data without unwanted duplication or too much manual effort(this dates back to 2007? at that time I found out msft once worked on a similar - fs as a db - concept)
+- I kept collecting \_RESTORE\_ and \_TO\_SORT\_ folders within other random \_TO\_SORT\_ folders, had data on a growing number of USB sticks, memory cards, \<random cloud provider\> instances and computers at work and in our household. I want to know where my rare-studio-recording-2008.mp3 is located("asus mp3 player", smb://nas.lan/some/random/folder, file://deviceid/foo/bar/baz/Downloads, timecapsule gps coordinates :)
+- I want to have a working "roaming profile" experience across all my devices running linux and windows. On linux, ideally container-based applications I can freeze on logout/undock and unfreeze on a different linux machine(main motivation behind my iolinux distro experiment ~2017-2018)
+- I want to easily discover peers, share files and collaborate on documents hosted publicly or on my own infrastructure
+- I want to use all my computing devices seamlessly; export an application menu, toolbox or applet(music player of my HiFi-connected pc) to my phone or tablet, have my Canvas timeline on my phone so that whenever I search for some emails or notes, I can easily use swipe and zoom gestures to zoom into the time-frame of interest and filter out data I work on on my main workstation
+- Pin devices to specific workspaces or contexts(fe my work nb to universe://work)
+- Have a workforce of personal Canvas-integrated AI assistants(agents) that would keep track and monitor various contexts(tasks), notify me and do basic tasks autonomously
+- Enable easy integration with other non-context-aware applications(kde/plasma activities were close but not close enough)
 
 <br />
 
@@ -136,17 +135,13 @@ Some of the technologies used in no particular order:
 
 ## Installation instructions
 
-### ! Current status: Bunch of modules most of them at most in a "draft" or test state
-
 ### ! Slowly separating some of the modules into their own repos for easier maintainability
 
 - https://github.com/idncsk/canvas-ui-shell
 - https://github.com/idncsk/canvas-ui-firefox-ext
 - https://github.com/idncsk/canvas-ui-electron
 
-### ! Progress on a sort-of generally usable "MVP" is now tracked via the [Canvas project github SCRUM board](https://github.com/users/idncsk/projects/1/views/1)
-
-#### Canvas server
+### Canvas server
 
 ```bash
 $ git clone git@github.com:idncsk/canvas.git /path/to/canvas
@@ -162,7 +157,7 @@ $ npm run repl      # Server repl CLI
 $ echo PATH="$PATH:/path/to/canvas/bin" >> ~/.bashrc
 ```
 
-#### Canvas bash client
+### Canvas bash client
 
 You can also install a bare-bones bash REST client:
 
@@ -185,7 +180,7 @@ Currently, we only support a very limited API used mainly for development/testin
   - notes: data/abstraction/note
   - todo: data/abstraction/todo
 
-#### Canvas firefox extension
+### Canvas firefox extension
 
 To install the firefox browser extension:  
 
@@ -195,7 +190,7 @@ To install the firefox browser extension:
 - Navigate to canvas/ext/browser/firefox
 
 
-#### Portable installation
+### Portable installation
 
 For **portable** use, download and extract nodejs and electron into the canvas/runtime folder
 
