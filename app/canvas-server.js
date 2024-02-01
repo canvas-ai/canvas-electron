@@ -3,8 +3,8 @@
  */
 
 // Utils
-const path = require('path')
-const os = require('os')
+//const path = require('path')
+//const os = require('os')
 
 // CLI Parser
 const argv = require('minimist')(process.argv.slice(2));
@@ -19,7 +19,7 @@ const canvas = new Canvas();
 canvas.start()
 
 
-// Event 
+// Event
 canvas.on('running', () => {
   console.log('Canvas server started successfully.')
 })

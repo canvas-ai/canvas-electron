@@ -1,5 +1,10 @@
 ## App config
 /config/**
+!/config/transports.json
+!/config/apps.json
+!/config/roles.json
+!/config/services.json
+!/config/identities.json
 !/config/aliases.json
 !/config/colors.json
 !/config/socket.io-server.json
@@ -9,8 +14,10 @@
 ## App extensions
 /extensions/**
 !/extensions/.keep
-!/extensions/roles/.keep
 !/extensions/apps/.keep
+!/extensions/roles/.keep
+!/extensions/services/.keep
+
 
 ## Var directories
 /var/**

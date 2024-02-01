@@ -67,12 +67,6 @@ class Tree extends EventEmitter {
      * Tree interface methods
      */
 
-    // insert
-    // remove
-    // copy
-    // move
-    // rename
-
     insert(path = '/', node, autoCreateLayers = true) {
 
         debug(`Inserting path "${path}" to the context tree`)

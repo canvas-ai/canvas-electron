@@ -21,6 +21,7 @@ class Document {
         meta,
         data,
         dataChecksumFields,
+        dataChecksumAlgorithm = DOCUMENT_DATA_CHECKSUM_ALGO,
         versions
     }) {
 
@@ -154,14 +155,6 @@ class Document {
     static get schemaType() {
         return DOCUMENT_SCHEMA_TYPE;
     }
-
-    // TODO: Fix me, this is just plain wrong
-    #validateHashString(str) {
-        if (typeof str !== 'string') return false // throw new Error('Hash has to be of type string')
-        if (!str.includes('-')) return false // throw new Error('Invalid hash format')
-        return options.hash.split('-').length === 2
-    }
-
 }
 
 module.exports = Document

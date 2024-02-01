@@ -143,7 +143,7 @@ const INI = {
 }
 
 // Updates .env
-generateDotenvFile(INI, path.join(APP_VAR, '.env'))
+generateDotenvFile(INI, path.join(APP_HOME, '.env'))
 
 // Update process env vars
 // We could just run require('dotenv').config() at this point
@@ -193,6 +193,8 @@ function generateDotenvFile(iniVars, filePath) {
 
         iniContent += `${key}="${value}"\n`;
     });
-
-    fs.writeFileSync(filePath, iniContent);
+	console.log(filePath, iniContent)
+    //fs.writeFileSync(filePath, iniContent);
 }
+
+console.log(process)

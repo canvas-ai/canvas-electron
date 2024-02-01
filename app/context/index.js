@@ -94,21 +94,22 @@ class Context extends EE {
     get filterArray() { return this.#filterArray; }
     get filters() { return this.#filterArray; }
 
-    // List all roles linked to this context
-    get roles() {}
-
     // List all apps linked to this context
-    get apps() {}
+    get apps() {
+        return [];
+    }
 
     // List all identities linked to this context
-    get identities() {}
+    get identities() {
+        return [];
+    }
 
 
     /**
      * Context management
      */
 
-    set url(url) { return this.set(url); }
+    set url(url) { this.set(url); }
 
     set(url = CONTEXT_URL_BASE, autoCreateLayers = CONTEXT_AUTOCREATE_LAYERS) {
         if (!url || typeof url !== 'string') throw new Error(`Context url must be of type string, "${typeof url}" given`)
@@ -117,8 +118,12 @@ class Context extends EE {
         if (this.#url === parsed.url) return this.#url
 
         debug(`Setting context url for context id "${this.#id}" to "${parsed.url}"`)
-        this.#tree.insert(parsed.path)
-        this.#initializeLayers(parsed.array)
+        if (!this.#tree.insert(parsed.path, null, autoCreateLayers)) {
+            debug(`Context url "${parsed.url}" not set, path "${parsed.path}" not found`)
+            return false
+        }
+
+        //this.#initializeLayers(parsed.array, autoCreateLayers)
 
         // Update context variables
         this.#url = parsed.url
@@ -176,30 +181,34 @@ class Context extends EE {
      * Context tree management
      */
 
-    insertPath(path, autoCreateLayers = CONTEXT_AUTOCREATE_LAYERS) {
-        if (!path || typeof path !== 'string') throw new Error('Context url must be of type string')
+    parseContextPath(path) {
         let parsed = new Url(path)
-        this.#tree.insert(parsed.path, autoCreateLayers)
+        return parsed.path
     }
 
-    removePath(path) {
-        this.#tree.remove(path)
+    insertContextPath(path, autoCreateLayers = CONTEXT_AUTOCREATE_LAYERS) {
+        if (!path || typeof path !== 'string') throw new Error('Context url must be of type string')
+        return this.#tree.insert(path, null, autoCreateLayers)
     }
 
-    movePath(path, newPath, recursive) {
-        this.#tree.move(path, newPath, recursive)
+    removeContextPath(path) {
+        return this.#tree.remove(path)
     }
 
-    copyPath(path, newPath, recursive) {
-        this.#tree.copy(path, newPath, recursive)
+    moveContextPath(path, newPath, recursive) {
+        return this.#tree.move(path, newPath, recursive)
+    }
+
+    copyContextPath(path, newPath, recursive) {
+        return this.#tree.copy(path, newPath, recursive)
     }
 
     saveContextTree() {
-        this.#tree.save()
+        return this.#tree.save()
     }
 
     updateContextTreeFromJson(json) {
-        this.#tree.load(json)
+        return this.#tree.load(json)
     }
 
 
@@ -241,43 +250,26 @@ class Context extends EE {
 
     async insertDocument(doc, featureArray = this.#featureArray) {
         if (typeof featureArray === 'string') featureArray = [featureArray]
-        try {
-            const result = await this.documents.insertDocument(doc, this.#contextArray, this.#featureArray);
-            this.emit('context:documentInserted', result)
-            return result;
-        } catch (error) {
-            throw error
-        }
+        const result = await this.documents.insertDocument(doc, this.#contextArray, this.#featureArray);
+        return result;
     }
 
     async insertDocumentArray(docArray, featureArray = this.#featureArray) {
         if (typeof featureArray === 'string') featureArray = [featureArray]
-        try {
-            const result = await this.documents.insertDocumentArray(docArray, this.#contextArray, this.#featureArray);
-            return result;
-        } catch (error) {
-            throw error
-        }
+        const result = await this.documents.insertDocumentArray(docArray, this.#contextArray, this.#featureArray);
+        return result;
     }
 
-    async listDocuments(featureArray = this.#featureArray, filterArray) {        
+    async listDocuments(featureArray = this.#featureArray, filterArray) {
         if (typeof featureArray === 'string') featureArray = [featureArray]
-        try {
-            const result = await this.documents.listDocuments(this.#contextArray, featureArray, filterArray);
-            return result;
-        } catch (error) {
-            throw error
-        }
+        const result = await this.documents.listDocuments(this.#contextArray, featureArray, filterArray);
+        return result;
     }
 
     async updateDocument(document, contextArray, featureArray) {
         if (typeof featureArray === 'string') featureArray = [featureArray]
-        try {
-            const result = await this.documents.updateDocument(document, contextArray, featureArray);
-            return result;
-        } catch (error) {
-            throw error
-        }
+        const result = await this.documents.updateDocument(document, contextArray, featureArray);
+        return result;
     }
 
     async updateDocumentArray(documentArray) {
@@ -286,33 +278,21 @@ class Context extends EE {
 
     async removeDocument(id) {
         debug(`Removing document with id "${id}" from context "${this.#id}, url "${this.#url}"`)
-        try {
-            const result = await this.documents.removeDocument(id, this.#contextArray);
-            return result;
-        } catch (error) {
-            throw error
-        }
+        const result = await this.documents.removeDocument(id, this.#contextArray);
+        return result;
     }
 
     async removeDocumentArray(idArray) {}
 
     async deleteDocument(id) {
         debug(`Deleting document with id "${id}" from Canvas"`)
-        try {
-            const result = await this.documents.deleteDocument(id);
-            return result;
-        } catch (error) {
-            throw error
-        }
+        const result = await this.documents.deleteDocument(id);
+        return result;
     }
 
     async deleteDocumentArray(idArray) {
-        try {
-            const result = await this.documents.deleteDocumentArray(idArray);
-            return result;
-        } catch (error) {
-            throw error
-        }
+        const result = await this.documents.deleteDocumentArray(idArray);
+        return result;
     }
 
     getDocumentSchema(schema = 'default') {
