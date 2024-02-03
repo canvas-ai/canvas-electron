@@ -10,11 +10,6 @@ const CONTEXT_SET_URL = 'context:set:url';
 const CONTEXT_GET_PATH = 'context:get:path';
 const CONTEXT_INSERT_PATH = 'context:insert:path';
 const CONTEXT_REMOVE_PATH = 'context:remove:path';
-const RESPONSE_OBJECT = {
-    status: 'success',
-    data: null,
-    error: null
-}
 
 /**
  * Context routes

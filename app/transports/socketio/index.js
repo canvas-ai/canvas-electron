@@ -3,6 +3,7 @@ const Service = require('../../managers/service/lib/Service');
 
 // Utils
 const debug = require('debug')('canvas-transport-socketio')
+const ResponseObject = require('../../utils/ResponseObject');
 
 // Includes
 const http = require('http');
@@ -44,7 +45,9 @@ class SocketioTransport extends Service {
         this.#port = options.port || DEFAULT_PORT;
 
         // TODO: Refactor!!!!! (this is a ugly workaround)
+        if (!options.canvas) throw new Error('Canvas not defined');
         if (!options.context) throw new Error('Context not defined');
+        this.canvas = options.canvas;
         this.context = options.context;
 
         debug(`Socket.io Transport initialized, protocol: ${this.#protocol}, host: ${this.#host}, port: ${this.#port}`)
@@ -66,7 +69,7 @@ class SocketioTransport extends Service {
 
             // Setup routes && event handlers
             contextRoutes(socket, this.context);
-            documentsRoutes(socket, this.context);
+            documentsRoutes(socket, this.canvas.documents);
 
             socket.on('disconnect', () => {
                 console.log(`Client disconnected: ${socket.id}`);

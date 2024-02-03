@@ -1,4 +1,5 @@
 const { RoaringBitmap32 } = require("roaring");
+const debug = require('debug')('canvasdb:bitmap');
 
 class Bitmap extends RoaringBitmap32 {
 
@@ -7,9 +8,6 @@ class Bitmap extends RoaringBitmap32 {
         rangeMin: 0,
         rangeMax: 4294967296 - 1    // 2^32 - 1
     }) {
-
-        // Will throw an error if the input data is out of range
-        Bitmap.validateRange(oidArrayOrBitmap, this.rangeMin, this.rangeMax)
 
         super(oidArrayOrBitmap);
         this.type = options.type;
@@ -90,6 +88,19 @@ class Bitmap extends RoaringBitmap32 {
     /**
      * Static methods
      */
+
+    static create(oidArrayOrBitmap, options = {
+        type: 'static',
+        rangeMin: 0,
+        rangeMax: 4294967296 - 1
+    }) {
+
+        // Perform validation
+        Bitmap.validateRange(oidArrayOrBitmap, options.rangeMin, options.rangeMax);
+
+        // Return a new instance
+        return new Bitmap(oidArrayOrBitmap, options);
+    }
 
     static validateRange(inputData, rangeMin, rangeMax) {
         if (rangeMin < 0) {
