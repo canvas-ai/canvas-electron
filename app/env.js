@@ -193,8 +193,6 @@ function generateDotenvFile(iniVars, filePath) {
 
         iniContent += `${key}="${value}"\n`;
     });
-	console.log(filePath, iniContent)
-    //fs.writeFileSync(filePath, iniContent);
-}
 
-console.log(process)
+    fs.writeFileSync(filePath, iniContent);
+}

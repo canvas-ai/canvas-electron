@@ -1,74 +1,120 @@
 const express = require('express');
 const router = express.Router();
+const debug = require('debug')('canvas/transports/rest:documents');
 
-// Define routes
+/**
+ * Canvas document DB routes
+ */
+
+// List all documents
 router.get('/', async (req, res) => {
     const db = req.db;
-    const documents = await db.listDocuments();
+    const response = new req.ResponseObject();
 
-    if (documents) {
-        res.json(documents);
-    } else {
-        res.status(404).send('No documents found');
+    try {
+        const documents = await db.listDocuments();
+        res.status(200).json(response.success(documents, 'Documents retrieved successfully').getResponse());
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(response.error('Failed to retrieve documents', error).getResponse());
     }
 });
 
-router.get('/id/:id', (req, res) => {
+// Get a document by ID
+router.get('/id/:id', async (req, res) => {
     const db = req.db;
+    const response = new req.ResponseObject();
     const id = req.params.id;
-    const document = db.getDocumentByID(id);
 
-    if (document) {
-        res.status(200).json(document);
-    } else {
-        res.status(404).send(`Document not found for id ${id}`);
+    try {
+        const document = await db.getDocumentByID(id);
+        if (document) {
+            res.status(200).json(response.success(document, 'Document retrieved successfully').getResponse());
+        } else {
+            res.status(404).json(response.error(`Document not found for id ${id}`).getResponse());
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(response.error(`Failed to retrieve document for id ${id}`, error).getResponse());
     }
 });
 
+// Get documents by abstraction
 router.get('/abstr/:abstr', async (req, res) => {
     const db = req.db;
+    const response = new req.ResponseObject();
     const abstraction = 'data/abstraction/' + req.params.abstr;
-    const documents = await db.listDocuments(abstraction);
-    if (documents) {
-        res.status(200).json(documents);
-    } else {
-        res.status(404).send('No documents found for type ' + abstraction);
+
+    try {
+        const documents = await db.listDocuments(abstraction);
+        if (documents) {
+            res.status(200).json(response.success(documents, 'Documents retrieved successfully').getResponse());
+        } else {
+            res.status(404).json(response.error('No documents found for type ' + abstraction).getResponse());
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(response.error(`Failed to retrieve documents for type ${abstraction}`, error).getResponse());
     }
 });
 
+// Create a new document
 router.post('/', async (req, res) => {
     const db = req.db;
+    const response = new req.ResponseObject();
     const document = req.body;
-    
-    let ret = await db.createDocument(document);
-    if (ret.status === "error") {
-        res.status(500).send(ret.message);
-    } else {
-        res.status(200).json({ message: ret.message });
+
+    try {
+        let result = await db.createDocument(document);
+        if (result.status === "error") {
+            res.status(500).json(response.error(result.message).getResponse());
+        } else {
+            res.status(200).json(response.success(null, result.message).getResponse());
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(response.error('Failed to create document', error).getResponse());
     }
 });
 
+// Update a document
 router.put('/:id', async (req, res) => {
     const db = req.db;
+    const response = new req.ResponseObject();
     const id = req.params.id;
     const document = req.body;
-    
-    let ret = await db.updateDocument(id, document);
-    if (ret.status === "error") {
-        res.status(500).send(ret.message);
-    } else {
-        res.status(200).json({ message: ret.message });
+
+    try {
+        let result = await db.updateDocument(id, document);
+        if (result.status === "error") {
+            res.status(500).json(response.error(result.message).getResponse());
+        } else {
+            res.status(200).json(response.success(null, result.message).getResponse());
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(response.error(`Failed to update document with id ${id}`, error).getResponse());
     }
 });
 
-router.delete('/:id', (req, res) => {
-    const id = req.params.id
-    if (documents[id]) {
-        delete documents[id]
-        res.json({ message: 'Document deleted' })
-    } else {
-        res.status(404).send('Document not found')
+// Delete a document
+router.delete('/:id', async (req, res) => {
+    const db = req.db;
+    const response = new req.ResponseObject();
+    const id = req.params.id;
+
+    try {
+        const documentExists = await db.getDocumentByID(id);
+        if (documentExists) {
+            await db.deleteDocument(id);
+            res.status(200).json(response.success(null, 'Document deleted successfully').getResponse());
+        } else {
+            res.status(404).json(response.error('Document not found').getResponse());
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(response.error(`Failed to delete document with id ${id}`, error).getResponse());
     }
-})
+});
 
 module.exports = router;

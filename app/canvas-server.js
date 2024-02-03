@@ -9,15 +9,12 @@
 // CLI Parser
 const argv = require('minimist')(process.argv.slice(2));
 
-console.log(argv)
-
 // Canvas
 const Canvas = require('./main')
 const canvas = new Canvas();
 
 // Start
 canvas.start()
-
 
 // Event
 canvas.on('running', () => {

@@ -1,9 +1,8 @@
 'use strict'
 
-
 const RoaringBitmap32 = require('roaring/RoaringBitmap32')
 const Bitmap = require('./Bitmap')
-const debug = require('debug')('canvas-db-bitmapManager')
+const debug = require('debug')('canvasdb:bitmapManager')
 
 
 class BitmapManager {
@@ -13,7 +12,7 @@ class BitmapManager {
 
     /**
      * BitmapManager constructor
-     * 
+     *
      * @param {*} db
      * @param {*} cache
      * @param {*} options
@@ -28,8 +27,8 @@ class BitmapManager {
         this.#cache = cache
 
         // This should probably be implemented one abstraction layer up
-        this.rangeMin = options.rangeMin || 0
-        this.rangeMax = options.rangeMax || 4294967296 - 1 // 2^32 - 1
+        this.rangeMin = options.rangeMin
+        this.rangeMax = options.rangeMax
 
         debug(`BitmapManager initialized with rangeMin: ${this.rangeMin}, rangeMax: ${this.rangeMax}`)
     }
@@ -58,9 +57,9 @@ class BitmapManager {
         } else {
             debug(`Invalid input for bitmap with key ID "${key}"`);
             return false;
-        }        
+        }
 
-        bitmap = new Bitmap(oidArrayOrBitmap, {
+        bitmap = Bitmap.create(oidArrayOrBitmap, {
             type: 'static',
             key: key,
             rangeMin: this.rangeMin,
@@ -69,7 +68,7 @@ class BitmapManager {
 
         if (!this.#saveBitmapToDb(key, bitmap)) {
             throw new Error(`Unable to save bitmap with key ID "${key}" to database`);
-        };
+        }
 
         return bitmap;
     }
@@ -119,7 +118,7 @@ class BitmapManager {
     }
 
     /**
-     * Bitmap setters/getters 
+     * Bitmap setters/getters
      */
 
     tick(idOrArray, bitmapKey) {
@@ -150,35 +149,21 @@ class BitmapManager {
         return bitmap
     }
 
-    tickMany(idOrArray, bitmapKeyArray) {}
-
-    untickMany(idOrArray, bitmapKeyArray) {}
-
-    tickAll(idOrArray) {}
-
-    untickAll(idOrArray) {}
-
-
     /**
      * Logical operators
      */
 
-    andRoaringBitmapArray(roaringBitmapArray) {}
+    /*  NEW API */
+    /*
+    intersectRoaringBitmapsAsync(roaringBitmapArray) {}
+    intersectRoaringBitmaps(roaringBitmapArray) {}
+    unionRoaringBitmapsAsync(roaringBitmapArray) {}
+    unionRoaringBitmaps(roaringBitmapArray) {}
 
-    andRoaringBitmapArraySync(roaringBitmapArray) {}
-
-    andBitmapKeyArray(bitmapKeyArray) {}
-
-    andBitmapKeyArraySync(bitmapKeyArray) {}
-
-    orRoaringBitmapArray(roaringBitmapArray) {}
-
-    orRoaringBitmapArraySync(roaringBitmapArray) {}
-
-    orBitmapKeyArray(bitmapKeyArray) {}
-
-    orBitmapKeyArraySync(bitmapKeyArray) {}
-
+    intersectBitmapsByKeyAsync(bitmapKeyArray) {}
+    intersectBitmapsByKey(bitmapKeyArray) {}
+    unionBitmapsByKeyAsync(bitmapKeyArray) {}
+    unionBitmapsByKey(bitmapKeyArray) {}*/
 
 
     AND(keyArray) {
@@ -212,7 +197,7 @@ class BitmapManager {
         return validBitmaps.length ? RoaringBitmap32.orMany(validBitmaps) : new RoaringBitmap32();
     }
 
-    XOR(keyArray, inputBitmap = null) { throw new Error('Not implemented'); }
+    //XOR(keyArray, inputBitmap = null) { throw new Error('Not implemented'); }
 
     static AND(roaringBitmapArray) {
 
@@ -243,7 +228,7 @@ class BitmapManager {
         return RoaringBitmap32.orMany(roaringBitmapArray)
     }
 
-    static XOR(roaringBitmapArray) {}
+    //static XOR(roaringBitmapArray) {}
 
     //andCardinality() {}
     //orCardinality() {}
@@ -262,22 +247,6 @@ class BitmapManager {
     getActiveBitmaps() { return this.#cache.list(); }
 
     clearActiveBitmaps() { this.#cache.clear(); }
-
-    hasBitmap(key) { return this.#db.has(key); }
-
-    getBitmap(key) {
-        // Return from cache if available
-        if (this.#cache.has(key)) return this.#cache.get(key)
-
-        // Load from DB
-        if (!this.#db.has(key)) {
-            debug(`Bitmap with key ID "${key}" not found`)
-            return null
-        }
-
-        let bitmap = this.#loadBitmapFromDb(key)
-        return bitmap
-    }
 
     removeBitmapSync(key) {
         if (!this.#db.has(key)) {
@@ -311,26 +280,6 @@ class BitmapManager {
         }
 
         return true
-    }
-
-    // Ticks a single key with an ID array or a bitmap
-    tick(key, oidArrayOrBitmap, autoCreateBitmap = true, implicitSave = true) {
-        let bitmap = this.getBitmap(key)
-        if (!bitmap) {
-            debug(`Bitmap with key ID "${key}" not found`)
-            if (!autoCreateBitmap) return false
-
-            debug(`Creating new bitmap with key ID "${key}"`)
-            bitmap = new RoaringBitmap32()
-        }
-
-        bitmap = bitmap.add(oidArrayOrBitmap)
-        if (implicitSave) {
-            debug(`Implicit save for bitmap with key ID "${key}"`)
-            this.#saveBitmapToDb(key, bitmap)
-        }
-
-        return bitmap
     }
 
     // Ticks a single key with an ID array or a bitmap
@@ -401,12 +350,6 @@ class BitmapManager {
         return results;
     }
 
-    // Ticks all active bitmaps with an array of IDs or a bitmap
-    tickAllActiveSync(oidArrayOrBitmap) { /* TODO */ }
-
-    // Ticks all bitmaps with an array of IDs or a bitmap
-    tickAllSync(oidArrayOrBitmap) {}
-
     untickSync(key, oidArrayOrBitmap, implicitSave = true) {
         let bitmap = this.getBitmap(key)
         if (!bitmap) {
@@ -423,34 +366,22 @@ class BitmapManager {
         return bitmap
     }
 
-    // Ticks multiple keys with an array of IDs or a bitmap
-    untickManySync(keyArray, oidArrayOrBitmap) {
-        // Bulk operation logic
-        // ...
-    }
-
-    // Ticks all bitmaps with an array of IDs or a bitmap
-    untickAllSync(oidArrayOrBitmap) {
-        // Consider the performance impact of ticking all bitmaps
-        // ...
-    }
-
 
     /**
      * Internal methods (sync)
      */
 
-    #saveBitmapToDb(key, bitmap, overwrite = true) {
-        if (!bitmap instanceof RoaringBitmap32) throw new TypeError(`Input must be an instance of RoaringBitmap32`)
+    #saveBitmapToDb(key, bitmap/*, overwrite = true */) {
+        if (!(bitmap instanceof RoaringBitmap32)) throw new TypeError(`Input must be an instance of RoaringBitmap32`);
         // TODO: runOptimize()
         // TODO: shrinkToFit()
         // TODO: Overwrite logic
 
-        let bitmapData = bitmap.serialize(true)
+        let bitmapData = bitmap.serialize(true);
         try {
-            this.#db.set(key, bitmapData)
+            this.#db.set(key, bitmapData);
         } catch (err) {
-            throw new Error(`Unable to save bitmap ${key} to database`)
+            throw new Error(`Unable to save bitmap ${key} to database`);
         }
     }
 

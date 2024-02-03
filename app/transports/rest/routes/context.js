@@ -1,39 +1,56 @@
 const express = require('express');
 const router = express.Router();
-const debug = require('debug')('canvas-transport-rest:context');
+const debug = require('debug')('canvas/transports/rest:context');
+
 
 /**
  * Current context
  */
 
 router.get('/url', (req, res) => {
-    res.json({ url: req.context.url });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const url = context.url;
+    res.status(200).json(response.success(url).getResponse());
 });
 
 router.put('/url', (req, res) => {
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const url = req.body.url;
+    const autoCreateLayers = req.body.autoCreateLayers || false;
+
     try {
-        debug(`[PUT] Got context url "${req.body.url}`)
-        req.context.set(req.body.url, req.body.autoCreateLayers);
-        res.sendStatus(200);
+        debug(`[PUT] Got context url "${url}`)
+        context.set(url, autoCreateLayers);
+        res.status(200).json(response.success(url, 'Context set successfully').getResponse());
     } catch (error) {
         console.error(error)
-        res.status(400).send(error.message);
+        res.status(400).json(response.error('Unable to set context to url ' + url, error).getResponse());
     }
 });
 
 router.post('/url', (req, res) => {
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const url = req.body.url;
+    const autoCreateLayers = req.body.autoCreateLayers || false;
+
     try {
-        debug(`[POST] Got context url "${req.body.url}`)
-        debug(req.context.set(req.body.url, req.body.autoCreateLayers));
-        res.sendStatus(200);
+        debug(`[POST] Got context url "${url}`)
+        context.set(url, autoCreateLayers);
+        res.status(200).json(response.success(url, 'Context set successfully').getResponse());
     } catch (error) {
         console.error(error)
-        res.status(400).send(error.message);
+        res.status(400).json(response.error('Unable to set context to url ' + url, error).getResponse());
     }
 });
 
 router.get('/array', (req, res) => {
-    res.json({ array: req.context.pathArray });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const pathArray = context.pathArray;
+    res.status(200).json(response.success(pathArray).getResponse());
 });
 
 
@@ -42,42 +59,71 @@ router.get('/array', (req, res) => {
  */
 
 router.get('/tree', (req, res) => {
-    res.json({ tree: req.context.tree });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const tree = context.tree;
+    res.json(response.success(tree).getResponse());
 });
 
 router.get('/path', (req, res) => {
-    res.json({ path: req.context.path });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const path = context.path;
+    res.json(response.success(path).getResponse());
 });
 
 router.get('/paths', (req, res) => {
-    res.json({ paths: req.context.paths });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const paths = context.paths;
+    res.json(response.success(paths).getResponse());
 });
 
 router.put('/path', (req, res) => {
-    try {
-        req.context.insertPath(req.body.path, req.body.autoCreateLayers);
-        res.sendStatus(200);
-    } catch (error) {
-        res.status(400).send(error.message);
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const path = req.body.path;
+    const autoCreateLayers = req.body.autoCreateLayers;
+
+    if (!context.insertContextPath(path, autoCreateLayers)) {
+        res.status(400).send(response.error('Unable to insert context path').getResponse());
+    } else {
+        res.status(200).send(response.success('Context path inserted successfully').getResponse());
     }
 });
 
 router.delete('/path', (req, res) => {
-    req.context.removePath(req.body.path);
-    res.sendStatus(200);
-});
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const path = req.body.path;
+    const recursive = req.body.recursive;
 
-router.patch('/path', (req, res) => {
-    if (req.body.operation === 'copy') {
-        req.context.copyPath(req.body.path, req.body.newPath, req.body.recursive);
-        res.sendStatus(200);
-    } else if (req.body.operation === 'move') {
-        req.context.movePath(req.body.path, req.body.newPath, req.body.recursive);
-        res.sendStatus(200);
+    if (!context.removeContextPath(path, recursive)) {
+        res.status(400).send(response.error('Unable to remove context path ' + path).getResponse());
     } else {
-        res.status(400).send(`Unknown operation "${req.body.operation}"`);
+        res.status(200).send(response.success('Context path removed successfully').getResponse());
     }
 });
+
+// TODO: Rework, commenting out for now
+/*router.patch('/path', (req, res) => {
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const operation = req.body.operation;
+    const path = req.body.path;
+    const newPath = req.body.newPath;
+    const recursive = req.body.recursive;
+
+    if (operation === 'copy') {
+        context.copyPath(path, newPath, recursive);
+        res.sendStatus(200);
+    } else if (operation === 'move') {
+        context.movePath(path, newPath, recursive);
+        res.sendStatus(200);
+    } else {
+        res.status(400).send(`Unknown operation "${operation}"`);
+    }
+});*/
 
 
 /**
@@ -85,30 +131,41 @@ router.patch('/path', (req, res) => {
  */
 
 router.get('/layers', (req, res) => {
-    res.json({ layers: req.context.listLayers() });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const layers = context.listLayers();
+    res.status(200).json(response.success(layers).getResponse());
 });
 
 router.get('/layers/:name', (req, res) => {
-    const layer = req.context.getLayer(req.params.name);
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const name = req.params.name;
+    const layer = context.getLayer(name);
+
     if (layer) {
-        res.json(layer);
+        res.status(200).json(response.success(layer).getResponse());
     } else {
-        res.status(404).send(`Layer "${req.params.name}" not found`);
+        res.status(404).send(response.error(`Layer "${name}" not found`).getResponse());
     }
 });
 
 router.patch('/layers/:name', (req, res) => {
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const name = req.params.name;
+    const options = req.params.options;
 
-    let layer = req.context.getLayer(req.params.name);
+    let layer = context.getLayer(name);
     if (!layer) {
-        res.status(404).send(`Layer "${req.params.name}" not found`);
+        res.status(404).send(response.error(`Layer "${name}" not found`).getResponse());
         return;
     }
 
-    if (req.context.updateLayer(layer, req.params.options)) {
-        res.json({ success: true });
+    if (context.updateLayer(layer, options)) {
+        res.json(response.success(`Layer ${name} updated successfully`).getResponse());
     } else {
-        res.status(401).send(`Unable to update layer "${req.params.name}"`);
+        res.status(401).send(response.error(`Unable to update layer "${name}"`).getResponse());
     }
 });
 
@@ -118,15 +175,24 @@ router.patch('/layers/:name', (req, res) => {
  */
 
 router.get('/bitmaps', (req, res) => {
-    res.json({ contextBitmaps: req.context.bitmaps });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const bitmaps = context.bitmaps;
+    res.status(200).json(response.success(bitmaps).getResponse());
 });
 
 router.get('/bitmaps/context', (req, res) => {
-    res.json({ contextBitmapArray: req.context.contextArray });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const contextArray = context.contextArray;
+    res.status(200).json(response.success(contextArray).getResponse());
 });
 
 router.get('/bitmaps/features', (req, res) => {
-    res.json({ featureBitmapArray: req.context.featureArray });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const featureArray = context.featureArray;
+    res.status(200).json(response.success(featureArray).getResponse());
 });
 
 
@@ -135,24 +201,37 @@ router.get('/bitmaps/features', (req, res) => {
  */
 
 router.get('/documents', async (req, res) => {
-    let context = req.context;
+    const context = req.context;
+    const response = new req.ResponseObject();
     let documents = await context.listDocuments();
 
     if (documents) {
-        res.json(documents)
+        res.json(response.success(documents).getResponse());
     } else {
-        res.status(404).send(`No documents found in context ${context.url}`)
+        res.status(404).send(response.error(`No documents found in context ${context.url}`).getResponse());
     }
 });
 
 router.post('/documents', async (req, res) => {
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const documentArray = req.body.document;
+    const contextArray = req.body.contextArray;
+    const featureArray = req.body.featureArray;
+    const filterArray = req.body.filterArray;
+
     try {
-        await req.context.insertDocument(req.body.document, req.body.contextArray, req.body.featureArray, req.body.filterArray);
-        res.sendStatus(200);
+        await context.insertDocument(
+            documentArray,
+            contextArray,
+            featureArray,
+            filterArray
+        );
+        res.status(200).json(response.success('Document inserted successfully').getResponse());
     } catch (error) {
-        res.status(400).send(error.message);
+        res.status(400).json(response.error('Failed to insert documents: '. error).getResponse());
     }
-})
+});
 
 
 /**
@@ -160,13 +239,18 @@ router.post('/documents', async (req, res) => {
  */
 
 //router.get('/user', (req, res) => {  });
-
 router.get('/stats', (req, res) => {
-    res.json(req.context.stats());
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const stats = context.stats();
+    res.status(200).json(response.success(stats).getResponse());
 });
 
 router.get('/user/home', (req, res) => {
-    res.json({ userDataHome: req.context.userDataHome });
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const userDataHome = context.userDataHome;
+    res.json(response.success(userDataHome).getResponse());
 });
 
 

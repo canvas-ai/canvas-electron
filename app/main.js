@@ -42,8 +42,9 @@ const ServiceManager = require('./managers/service');
 //const SocketioTransport = require('./transports/socketio');
 
 // Context
-const Tree = require('./context/lib/Tree');
-const Context = require('./context');
+// TODO: Refactor! This setup does not make sense!
+const Tree = require('./core/lib/Tree');
+const Context = require('./core');
 const { log } = require('console');
 
 
@@ -175,9 +176,9 @@ class Canvas extends EventEmitter {
         this.context = null;
 
         // Static variables
-        this.app = APP          // App runtime env
-        this.user = USER        // Current OS user
-        this.device = DEVICE    // Current OS device
+        this.APP = APP          // App runtime env
+        this.USER = USER        // Current OS user
+        this.DEVICE = DEVICE    // Current OS device
         this.PID = PID          // Current App instance PID
         this.IPC = IPC          // Shared IPC socket
 
@@ -273,13 +274,16 @@ class Canvas extends EventEmitter {
     async initializeTransports() {
         // for (const transport of this.config.transports) { /* load, then init, then start, catch err */ })
         await this.services.loadInitializeAndStartService('rest', {
-            context: this.context
-            //db: this.documents
+            // TODO: Rework/refactor, are you serious!?
+            context: this.context,
+            db: this.documents,
+            canvas: this
         })
 
         await this.services.loadInitializeAndStartService('socketio', {
             context: this.context,
-            //db: this.documents
+            db: this.documents,
+            canvas: this
         })
 
         return true

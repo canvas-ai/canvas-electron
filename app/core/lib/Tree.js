@@ -69,15 +69,14 @@ class Tree extends EventEmitter {
 
     insert(path = '/', node, autoCreateLayers = true) {
 
-        debug(`Inserting path "${path}" to the context tree`)
+        debug(`Inserting path "${path}" to the context tree`);
         if (path === '/' && !node) {
-            debug('Nothing to insert')
-            return false
+            debug('Nothing to insert');
+            return false;
         }
 
         let currentNode = this.root;
-        let child
-
+        let child;
         const layerNames = path.split('/').filter(Boolean);
         for (const layerName of layerNames) {
 
@@ -103,14 +102,16 @@ class Tree extends EventEmitter {
         if (node) {
             // Check if node already exists
             child = currentNode.getChild(node.id);
-            if (child && child instanceof TreeNode) {
+            if (child && (child instanceof TreeNode)) {
                 // Add node to parent
                 currentNode.addChild(child)
             }
         }
 
         // Commit changes
-        this.save()
+        this.save();
+        debug(`Path "${path}" inserted successfully.`);
+        return true;
 
     }
 
@@ -221,12 +222,18 @@ class Tree extends EventEmitter {
         return this.dblayers.renameLayer(name, newName)
     }
 
-    // Store tree as JSON to the database
+    // Store tree as JSON to the database (sync!)
     save() {
-        debug('Saving current in-memory tree to database')
-        let data = this.#buildJsonIndexTree()
-        this.dbtree.set('tree', data)//if (!this.dbtree.set('tree', data)) throw new Error('Unable to save tree to database')
-        return true
+        debug('Saving current in-memory tree to database');
+        let data = this.#buildJsonIndexTree();
+        try {
+            this.dbtree.set('tree', data);
+            debug('Tree saved successfully.');
+            return true;
+        } catch (error) {
+            debug(`Error saving tree to database: ${error.message}`);
+            throw error; // or handle it as needed
+        }
     }
 
     // Load JSON tree from the database
@@ -235,7 +242,7 @@ class Tree extends EventEmitter {
         if (!json) {
             debug('No persistent JSON data found')
             return false
-            throw new Error('No JSON data supplied')
+            //throw new Error('No JSON data supplied')
         }
         this.root = this.#buildTreeFromJson(json)
         return true
@@ -295,7 +302,7 @@ class Tree extends EventEmitter {
             return false;
         }
 
-        if (!node || !node instanceof TreeNode) {
+        if (!node || !(node instanceof TreeNode)) {
             debug('Unable to move layer, source node not found')
             return false;
         }

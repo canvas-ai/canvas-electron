@@ -187,12 +187,11 @@ class Context extends EE {
     }
 
     insertContextPath(path, autoCreateLayers = CONTEXT_AUTOCREATE_LAYERS) {
-        if (!path || typeof path !== 'string') throw new Error('Context url must be of type string')
         return this.#tree.insert(path, null, autoCreateLayers)
     }
 
-    removeContextPath(path) {
-        return this.#tree.remove(path)
+    removeContextPath(path, recursive = false) {
+        return this.#tree.remove(path, recursive)
     }
 
     moveContextPath(path, newPath, recursive) {

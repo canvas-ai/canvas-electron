@@ -1,7 +1,7 @@
-// File: /utils/response.js
+// Common response object for API responses over supported transports
 
 class ResponseObject {
-    
+
     constructor() {
         this.status = 'error'; // Default to error to ensure explicit success setting
         this.message = null;

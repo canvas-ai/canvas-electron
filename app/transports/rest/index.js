@@ -4,6 +4,7 @@ const Service = require('../../managers/service/lib/Service');
 // Utils
 const debug = require('debug')('canvas-transport-rest')
 const bodyParser = require('body-parser');
+const ResponseObject = require('../../utils/ResponseObject');
 
 // Includes
 const express = require('express');
@@ -48,7 +49,9 @@ class RestTransport extends Service {
         this.#port = options.port || DEFAULT_PORT;
 
         // TODO: Refactor!!!!! (this is a ugly workaround)
+        if (!options.canvas) throw new Error('Canvas not defined');
         if (!options.context) throw new Error('Context not defined');
+        this.canvas = options.canvas;
         this.context = options.context;
 
         debug(`REST API Transport initialized, protocol: ${this.#protocol}, host: ${this.#host}, port: ${this.#port}`)
@@ -61,25 +64,19 @@ class RestTransport extends Service {
         this.server.use(bodyParser.json());
         this.server.use(validateApiKey);
 
+        // Routes related to the /context endpoint
         this.server.use('/context', (req, res, next) => {
             req.context = this.context;
+            req.ResponseObject = ResponseObject;
             next();
         }, contextRoutes);
 
+        // Global documents endpoint
         this.server.use('/documents', (req, res, next) => {
-            req.context = this.context;
+            req.db = this.canvas.documents;
+            req.ResponseObject = ResponseObject;
             next();
         }, documentsRoutes);
-
-        this.server.use('/schemas', (req, res, next) => {
-            req.context = this.context;
-            next();
-        }, schemasRoutes);
-
-        this.server.use('/bitmaps', (req, res, next) => {
-            req.context = this.context;
-            next();
-        }, bitmapRoutes);
 
         await new Promise((resolve, reject) => {
             this.server.listen(this.#port, resolve).on('error', reject);
@@ -92,11 +89,8 @@ class RestTransport extends Service {
         if (this.server) {
             await new Promise((resolve, reject) => {
                 this.server.close((err) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
+                    if (err) { reject(err); }
+                    else { resolve(); }
                 });
             });
 
