@@ -1,61 +1,65 @@
 const express = require('express');
 const router = express.Router();
-const debug = require('debug')('canvas-svc-jsonapi:documents');
-
 
 // Define routes
 router.get('/', async (req, res) => {
-
-    let context = req.context;
-    let documents = await context.listDocuments();
+    const db = req.db;
+    const documents = await db.listDocuments();
 
     if (documents) {
-        res.json(documents)
+        res.json(documents);
     } else {
-        res.status(404).send(`No documents found in context ${context.url}`)
+        res.status(404).send('No documents found');
     }
-})
+});
 
-router.get('/id/:id', async (req, res) => {
-    let context = req.context
-    const id = req.params.id
-    const document = await context.getDocument(id)
+router.get('/id/:id', (req, res) => {
+    const db = req.db;
+    const id = req.params.id;
+    const document = db.getDocumentByID(id);
+
     if (document) {
-        res.json(document)
+        res.status(200).json(document);
     } else {
-        res.status(404).send(`Document not found in context ${context.url}`)
+        res.status(404).send(`Document not found for id ${id}`);
     }
-})
+});
 
-router.get('/abstr/:abstr', (req, res) => {
-    const abstr = 'data/abstraction/' + req.params.abstr;
-    let context = req.context;
-
-    let documents = context.listDocuments(abstr)
+router.get('/abstr/:abstr', async (req, res) => {
+    const db = req.db;
+    const abstraction = 'data/abstraction/' + req.params.abstr;
+    const documents = await db.listDocuments(abstraction);
     if (documents) {
-        res.json(documents)
+        res.status(200).json(documents);
     } else {
-        res.status(404).send('No documents found for type ' + abstr + ' in context ' + context.url)
+        res.status(404).send('No documents found for type ' + abstraction);
     }
-})
+});
 
-router.post('/', (req, res) => {
-    const id = Math.random().toString(36).substring(2)
-    const document = req.body
-    documents[id] = document
-    res.json({ id })
-})
-
-router.put('/:id', (req, res) => {
-    const id = req.params.id
-    const document = req.body
-    if (documents[id]) {
-        documents[id] = document
-        res.json({ message: 'Document updated' })
+router.post('/', async (req, res) => {
+    const db = req.db;
+    const document = req.body;
+    
+    let ret = await db.createDocument(document);
+    if (ret.status === "error") {
+        res.status(500).send(ret.message);
     } else {
-        res.status(404).send('Document not found')
+        res.status(200).json({ message: ret.message });
     }
-})
+});
+
+router.put('/:id', async (req, res) => {
+    const db = req.db;
+    const id = req.params.id;
+    const document = req.body;
+    
+    let ret = await db.updateDocument(id, document);
+    if (ret.status === "error") {
+        res.status(500).send(ret.message);
+    } else {
+        res.status(200).json({ message: ret.message });
+    }
+});
 
 router.delete('/:id', (req, res) => {
     const id = req.params.id

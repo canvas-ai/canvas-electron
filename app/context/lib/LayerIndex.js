@@ -1,7 +1,6 @@
 'use strict'
 
 
-const path = require('path')
 //const Conf = require('conf')
 const JsonMap = require('../../utils/JsonMap')
 const Layer = require('./Layer')
@@ -81,11 +80,6 @@ class LayerIndex  { //extends Conf {
     removeLayer(layer) {
         this.index.delete(layer.id);
         this.nameToLayerMap.delete(layer.name);
-    }
-
-    removeLayerByID(id) {
-        const layer = this.getLayerByID(id);
-        return layer ? this.removeLayer(layer) : false
     }
 
     removeLayerByID(id) {
