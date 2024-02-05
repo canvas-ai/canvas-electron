@@ -5,38 +5,38 @@ class ResponseObject {
     constructor() {
         this.status = 'error'; // Default to error to ensure explicit success setting
         this.message = null;
-        this.data = null;
+        this.payload = null;
     }
 
     // Success: Generic success
-    success(data, message = 'Request successful') {
+    success(payload, message = 'Request successful') {
         this.status = 'success';
         this.message = message;
-        this.data = data;
+        this.payload = payload;
         return this;
     }
 
     // Create: Successful creation of a resource
-    created(data, message = 'Resource created successfully') {
+    created(payload, message = 'Resource created successfully') {
         this.status = 'success';
         this.message = message;
-        this.data = data;
+        this.payload = payload;
         return this;
     }
 
     // Read: Successful retrieval of a resource
-    found(data, message = 'Resource found') {
+    found(payload, message = 'Resource found') {
         this.status = 'success';
         this.message = message;
-        this.data = data;
+        this.payload = payload;
         return this;
     }
 
     // Update: Successful update of a resource
-    updated(data, message = 'Resource updated successfully') {
+    updated(payload, message = 'Resource updated successfully') {
         this.status = 'success';
         this.message = message;
-        this.data = data;
+        this.payload = payload;
         return this;
     }
 
@@ -61,8 +61,8 @@ class ResponseObject {
         return this;
     }
 
-    // Bad Request: Invalid request data
-    badRequest(message = 'Invalid request data') {
+    // Bad Request: Invalid request payload
+    badRequest(message = 'Invalid request payload') {
         this.status = 'error';
         this.message = message;
         return this;
@@ -82,7 +82,7 @@ class ResponseObject {
         return this;
     }
 
-    // Conflict: Conflict in request, such as duplicate data
+    // Conflict: Conflict in request, such as duplicate payload
     conflict(message = 'Conflict in request') {
         this.status = 'error';
         this.message = message;
@@ -101,7 +101,7 @@ class ResponseObject {
         return {
             status: this.status,
             message: this.message,
-            data: this.data,
+            payload: this.payload,
         };
     }
 }

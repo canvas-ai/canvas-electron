@@ -18,7 +18,7 @@ router.put('/url', (req, res) => {
     const context = req.context;
     const response = new req.ResponseObject();
     const url = req.body.url;
-    const autoCreateLayers = req.body.autoCreateLayers || false;
+    const autoCreateLayers = req.body.autoCreateLayers || true;
 
     try {
         debug(`[PUT] Got context url "${url}`)
@@ -34,7 +34,7 @@ router.post('/url', (req, res) => {
     const context = req.context;
     const response = new req.ResponseObject();
     const url = req.body.url;
-    const autoCreateLayers = req.body.autoCreateLayers || false;
+    const autoCreateLayers = req.body.autoCreateLayers || true;
 
     try {
         debug(`[POST] Got context url "${url}`)
@@ -49,7 +49,7 @@ router.post('/url', (req, res) => {
 router.get('/array', (req, res) => {
     const context = req.context;
     const response = new req.ResponseObject();
-    const pathArray = context.pathArray;
+    const pathArray = context.pathArray;    
     res.status(200).json(response.success(pathArray).getResponse());
 });
 
@@ -62,21 +62,21 @@ router.get('/tree', (req, res) => {
     const context = req.context;
     const response = new req.ResponseObject();
     const tree = context.tree;
-    res.json(response.success(tree).getResponse());
+    res.status(200).json(response.success(tree).getResponse());
 });
 
 router.get('/path', (req, res) => {
     const context = req.context;
     const response = new req.ResponseObject();
     const path = context.path;
-    res.json(response.success(path).getResponse());
+    res.status(200).json(response.success(path).getResponse());
 });
 
 router.get('/paths', (req, res) => {
     const context = req.context;
     const response = new req.ResponseObject();
     const paths = context.paths;
-    res.json(response.success(paths).getResponse());
+    res.status(200).json(response.success(paths).getResponse());
 });
 
 router.put('/path', (req, res) => {
@@ -86,9 +86,9 @@ router.put('/path', (req, res) => {
     const autoCreateLayers = req.body.autoCreateLayers;
 
     if (!context.insertContextPath(path, autoCreateLayers)) {
-        res.status(400).send(response.error('Unable to insert context path').getResponse());
+        res.status(400).json(response.error('Unable to insert context path').getResponse());
     } else {
-        res.status(200).send(response.success('Context path inserted successfully').getResponse());
+        res.status(200).json(response.success('Context path inserted successfully').getResponse());
     }
 });
 
@@ -99,9 +99,9 @@ router.delete('/path', (req, res) => {
     const recursive = req.body.recursive;
 
     if (!context.removeContextPath(path, recursive)) {
-        res.status(400).send(response.error('Unable to remove context path ' + path).getResponse());
+        res.status(400).json(response.error('Unable to remove context path ' + path).getResponse());
     } else {
-        res.status(200).send(response.success('Context path removed successfully').getResponse());
+        res.status(200).json(response.success('Context path removed successfully').getResponse());
     }
 });
 
@@ -146,7 +146,7 @@ router.get('/layers/:name', (req, res) => {
     if (layer) {
         res.status(200).json(response.success(layer).getResponse());
     } else {
-        res.status(404).send(response.error(`Layer "${name}" not found`).getResponse());
+        res.status(404).json(response.error(`Layer "${name}" not found`).getResponse());
     }
 });
 
@@ -158,14 +158,14 @@ router.patch('/layers/:name', (req, res) => {
 
     let layer = context.getLayer(name);
     if (!layer) {
-        res.status(404).send(response.error(`Layer "${name}" not found`).getResponse());
+        res.status(404).json(response.error(`Layer "${name}" not found`).getResponse());
         return;
     }
 
     if (context.updateLayer(layer, options)) {
-        res.json(response.success(`Layer ${name} updated successfully`).getResponse());
+        res.status(200).json(response.success(`Layer ${name} updated successfully`).getResponse());
     } else {
-        res.status(401).send(response.error(`Unable to update layer "${name}"`).getResponse());
+        res.status(401).json(response.error(`Unable to update layer "${name}"`).getResponse());
     }
 });
 
