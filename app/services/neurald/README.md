@@ -57,7 +57,6 @@
 - https://github.com/coqui-ai/TTS
 - https://news.ycombinator.com/item?id=37514952
 - https://github.com/SYSTRAN/faster-whisper
-- 
 
 ### General tools
 
