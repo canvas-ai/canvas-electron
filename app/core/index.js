@@ -32,7 +32,7 @@ class Context extends EE {
 
     #meta = {};
 
-    // TODO: Implement a DI framework
+    // TODO: Refactor to not set the context url in the constructor
     constructor(url, canvas, options = {}) {
 
         // Initialize event emitter
@@ -55,7 +55,7 @@ class Context extends EE {
 
         // Set the context url
         this.setUrl(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
-        debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
+        debug(`Context with url "${this.#url}", runtime id: "${this.#id}" initialized`);
 
         // Maps containing pointers to global in-memory
         // bitmap cache
