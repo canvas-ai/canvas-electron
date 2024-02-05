@@ -168,7 +168,7 @@ class Canvas extends EventEmitter {
             layerPath: path.join(USER.paths.db, 'layers.json')
         })
 
-
+        // TODO: Refactor
         this.layers = this.tree.layers;
 
 
@@ -255,6 +255,53 @@ class Canvas extends EventEmitter {
 
 
     /**
+     * Contexts
+     */
+
+    createContext(url = '/', options = {}) {
+        let context = new Context(url, this, options)
+        this.activeContexts.set(context.id, context)
+        return context
+    }
+
+    openContext(id, url, options = {}) {
+        if (this.status != 'running') throw new Error('Application not fully initialized')
+        if (this.activeContexts.size >= MAX_CONTEXTS) throw new Error('Maximum number of contexts reached')
+
+        if (this.activeContexts.has(id)) {
+            log.warning(`Context with id ${id} already exists`)
+            if (url) return this.openContext(id + "-clone", url, options)
+            return this.activeContexts.get(id)
+        }
+
+        let context = new Context(url, this, options)
+        this.activeContexts.set(id, context)
+
+        log.info(`Opened context ${id} at ${url}`)
+        return context
+    }
+
+    closeContext(id) {
+        if (!this.activeContexts.has(id)) {
+            log.error(`Context with id ${id} not running`)
+            return false
+        }
+
+        let context = this.activeContexts.get(id)
+        if (!context.destroy()) {
+            log.error(`Error destroying context ${id}`)
+            return false
+        }
+
+        this.activeContexts.delete(id)
+        log.info(`Context with id ${id} closed`)
+        return true
+    }
+
+    listContexts() { return this.activeContexts.values(); }
+
+
+    /**
      * Services
      */
 
@@ -313,69 +360,6 @@ class Canvas extends EventEmitter {
 
     async initializeApps() {
         return true
-    }
-
-
-    /**
-     * Context
-     */
-
-    openContext(id, url, options = {}) {
-        if (this.status != 'running') throw new Error('Application not fully initialized')
-        if (this.activeContexts.size >= MAX_CONTEXTS) throw new Error('Maximum number of contexts reached')
-
-        if (this.activeContexts.has(id)) {
-            log.warning(`Context with id ${id} already exists`)
-            if (url) return this.openContext(id + "-clone", url, options)
-            return this.activeContexts.get(id)
-        }
-
-        let context = new Context(url, this, options)
-        this.activeContexts.set(id, context)
-
-        log.info(`Opened context ${id} at ${url}`)
-        return context
-    }
-
-    closeContext(id) {
-        if (this.status != 'running') throw new Error('Application not fully initialized')
-        if (!this.activeContexts.has(id)) {
-            log.error(`Context with id ${id} does not exist`)
-            return false
-        }
-
-        let context = this.activeContexts.get(id)
-        if (!context.destroy()) {
-            log.error(`Error destroying context ${id}`)
-            return false
-        }
-
-        this.activeContexts.delete(id)
-        log.info(`Closed context ${id}`)
-
-        return true
-    }
-
-
-    createContext(url = '/', options = {}) {
-        let context = new Context(url, this, options)
-        this.activeContexts.set(context.id, context)
-        return context
-    }
-
-    removeContext(id) {
-        if (this.status != 'running') throw new Error('Application not fully initialized')
-
-        let context = this.activeContexts.get(id)
-        if (context) {
-            context.destroy()
-            this.activeContexts.delete(id)
-        }
-    }
-
-    listContexts() {
-        if (this.status != 'running') throw new Error('Application not fully initialized')
-        return this.activeContexts.values()
     }
 
 
