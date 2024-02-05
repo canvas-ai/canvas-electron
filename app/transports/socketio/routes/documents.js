@@ -1,19 +1,9 @@
 // Utils
 const debug = require('debug')('canvas-transport-socketio-route-documents')
+const ResponseObject = require('../../../utils/ResponseObject');
 
 /**
- * Constants
- */
-
-const DOCUMENTS_GET = 'documents:get'; // Return all documents of the current context
-const RESPONSE_OBJECT = {
-    status: 'success',
-    data: null,
-    error: null
-}
-
-/**
- * Context routes
+ * Documents routes
  * @param {*} socket
  * @param {*} context
  */
