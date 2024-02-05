@@ -1,15 +1,14 @@
 // Utils
-const debug = require('debug')('canvas-transport-socketio-route-context')
+const debug = require('debug')('canvas/transport/socketio/route/documents')
+const ResponseObject = require('../../../utils/ResponseObject');
+
 
 /**
  * Constants
  */
 
-const CONTEXT_GET_URL = 'context:get:url';
-const CONTEXT_SET_URL = 'context:set:url';
-const CONTEXT_GET_PATH = 'context:get:path';
-const CONTEXT_INSERT_PATH = 'context:insert:path';
-const CONTEXT_REMOVE_PATH = 'context:remove:path';
+const ROUTES = require('../routes.js')
+
 
 /**
  * Context routes
@@ -17,179 +16,129 @@ const CONTEXT_REMOVE_PATH = 'context:remove:path';
  * @param {*} context
  */
 
-module.exports = function (socket, context) {
-
-
-    /**
-     * Setters
-     */
-
-    socket.on('context:set:url', (data) => {
-        debug('Context:set:url event')
-        context.url = data.url;
-    });
-
-    socket.on('context:insert:path', (path) => {
-        debug(`context:insert:path event with path "${path}"`)
-        context.insertPath(path, true)
-    })
-
-    socket.on('context:remove:path', (path) => {
-        debug(`context:remove:path event with path "${path}"`)
-        context.removePath(path)
-    })
-
-    socket.on('context:move:path', (pathFrom, pathTo, recursive) => {
-        debug(`context:move:path event with parms "${pathFrom}" -> "${pathTo}", recursive: ${recursive}`)
-        context.movePath(pathFrom, pathTo, recursive)
-    })
+module.exports = function(socket, context) {
 
 
     /**
      * Getters
      */
 
-    socket.on('context:get:stats', (callback) => {
-        debug('Context:get:stats event')
-        callback(context.stats());
+    socket.on(ROUTES.CONTEXT_GET_ID, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_ID} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.id).getResponse());
     });
 
-    socket.on('context:get:url', (callback) => {
-        debug('Context:get:url event')
-        RESPONSE_OBJECT.data = context.url;
-        callback(RESPONSE_OBJECT);
+    socket.on(ROUTES.CONTEXT_GET_URL, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_URL} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.url).getResponse());
     });
 
-    socket.on('context:get:path', (callback) => {
-        debug('Context:get:path event')
-        RESPONSE_OBJECT.data = context.path;
-        callback(RESPONSE_OBJECT);
+    socket.on(ROUTES.CONTEXT_GET_TREE, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_TREE} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.tree).getResponse());
     });
 
-    socket.on('context:get:tree', (callback) => {
-        debug('Context:get:tree event')
-        RESPONSE_OBJECT.data = context.tree;
-        callback(RESPONSE_OBJECT);
+    socket.on(ROUTES.CONTEXT_GET_PATH, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_PATH} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.path).getResponse());
+    });    
+
+    socket.on(ROUTES.CONTEXT_GET_BITMAPS, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_BITMAPS} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.bitmaps).getResponse());
     });
 
-    socket.on('context:get:contextArray', (callback) => {
-        debug('Context:get:contextArray event')
-        RESPONSE_OBJECT.data = context.contextArray;
-        callback(RESPONSE_OBJECT);
+    socket.on(ROUTES.CONTEXT_GET_CONTEXT_ARRAY, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_CONTEXT_ARRAY} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.contextArray).getResponse());
     });
 
-    socket.on('context:get:featureArray', (callback) => {
-        debug('Context:get:featureArray event')
-        RESPONSE_OBJECT.data = context.featureArray;
-        callback(RESPONSE_OBJECT);
+    socket.on(ROUTES.CONTEXT_GET_FEATURE_ARRAY, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_FEATURE_ARRAY} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.featureArray).getResponse());
     });
 
-    socket.on('context:get:filterArray', (callback) => {
-        debug('Context:get:filterArray event')
-        RESPONSE_OBJECT.data = context.filterArray;
-        callback(RESPONSE_OBJECT);
+    socket.on(ROUTES.CONTEXT_GET_FILTER_ARRAY, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_FILTER_ARRAY} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.filterArray).getResponse());
+    });
+
+
+    /** 
+     * Setters
+     */
+
+    socket.on(ROUTES.CONTEXT_SET_URL, (url, /* autocreateLayers, */ callback) => {
+        debug(`${ROUTES.CONTEXT_SET_URL} event with url "${url}"`);
+        const response = new ResponseObject();
+
+        try {            
+            const result = context.setUrl(url, true);
+            callback(response.success(result).getResponse());
+        } catch (err) {
+            callback(response.serverError(err).getResponse());
+        }
+    });
+
+    socket.on(ROUTES.CONTEXT_PATH_INSERT, (path, /* autocreateLayers, */ callback) => {
+        debug(`${ROUTES.CONTEXT_PATH_INSERT} event with path "${path}"`)
+        const response = new ResponseObject();
+
+        try {            
+            const result = context.insertPath(path, true);
+            // TODO: Implement additional return statuses
+            callback(response.created(result).getResponse());
+        } catch (err) {
+            callback(response.serverError(err).getResponse());
+        }
+    });
+
+    socket.on(ROUTES.CONTEXT_PATH_REMOVE, (path, recursive = false, callback) => {
+        debug(`${ROUTES.CONTEXT_PATH_REMOVE} event with path "${path}", recursive "${recursive}"`)
+        const response = new ResponseObject();
+
+        try {            
+            const result = context.removePath(path, recursive);
+            callback(response.deleted(result).getResponse());
+        } catch (err) {
+            callback(response.serverError(err).getResponse());
+        }
+    });
+
+    socket.on(ROUTES.CONTEXT_PATH_MOVE, (pathFrom, pathTo, recursive, callback) => {
+        debug(`${ROUTES.CONTEXT_PATH_MOVE} event with pathFrom "${pathFrom}", pathTo "${pathTo}", recursive "${recursive}"`)
+        const response = new ResponseObject();
+
+        try {            
+            const result = context.movePath(pathFrom, pathTo, recursive);
+            callback(response.updated(result).getResponse());
+        } catch (err) {
+            callback(response.serverError(err).getResponse());
+        }
     });
 
 
     /**
-     * Document routes
+     * Context document routes
      */
 
-    socket.on('context:get:documents', async (data, callback) => {
-        debug('context:get:documents event')
-        debug(data)
-
-        const documents = await context.listDocuments(data.type);
-        RESPONSE_OBJECT.data = documents
-
-        if (callback) {
-            debug('Executing documents:get callback function')
-            callback(RESPONSE_OBJECT)
-        } else {
-            socket.emit('context:get:documents:response', RESPONSE_OBJECT)
-        }
-
-    });
-
-    socket.on('context:insert:document', async (document, callback) => {
-        debug('context:insert:document event')
-        debug(document)
-
+    socket.on(ROUTES.CONTEXT_DOCUMENT_LIST, async (callback) => {
+        debug(`${ROUTES.CONTEXT_DOCUMENT_LIST} event`);
+        const response = new ResponseObject();
         try {
-            const res = await context.insertDocument(document);
-            RESPONSE_OBJECT.data = res
-            if (callback) {
-                debug('Executing insertDocumentArray callback function')
-                callback(RESPONSE_OBJECT)
-            } else {
-                socket.emit('context:insert:document:response', RESPONSE_OBJECT)
-            }
+            const result = await context.listDocuments();
+            callback(response.success(result).getResponse());
         } catch (err) {
-            debug('Error inserting document', err)
-            RESPONSE_OBJECT.error = err
-            RESPONSE_OBJECT.status = 'error'
-            if (callback) {
-                debug('Executing insertDocument callback function')
-                callback(RESPONSE_OBJECT)
-            } else {
-                socket.emit('context:insert:document:response', RESPONSE_OBJECT)
-            }
+            callback(response.error(err).getResponse());
         }
-
-    });
-
-    socket.on('context:remove:document', async (id, callback) => {
-        debug('context:remove:document event')
-        debug(id)
-
-        try {
-            const res = await context.removeDocument(id);
-            RESPONSE_OBJECT.data = res
-            if (callback) {
-                debug('Executing removeDocument callback function')
-                callback(RESPONSE_OBJECT)
-            } else {
-                socket.emit('context:remove:document:response', RESPONSE_OBJECT)
-            }
-        } catch (err) {
-            debug('Error removing document', err)
-            RESPONSE_OBJECT.error = err
-            RESPONSE_OBJECT.status = 'error'
-            if (callback) {
-                debug('Executing removeDocument callback function')
-                callback(RESPONSE_OBJECT)
-            } else {
-                socket.emit('context:remove:document:response', RESPONSE_OBJECT)
-            }
-        }
-
-    });
-
-    socket.on('context:insert:documentArray', async (documentArray, callback) => {
-        debug('context:insert:documentArray event')
-        debug(documentArray)
-
-        try {
-            const res = await context.insertDocumentArray(documentArray);
-            RESPONSE_OBJECT.data = res
-            if (callback) {
-                debug('Executing insertDocumentArray callback function')
-                callback(RESPONSE_OBJECT)
-            } else {
-                socket.emit('context:insert:documentArray:response', RESPONSE_OBJECT)
-            }
-        } catch (err) {
-            debug('Error inserting document array', err)
-            RESPONSE_OBJECT.error = err
-            RESPONSE_OBJECT.status = 'error'
-            if (callback) {
-                debug('Executing insertDocumentArray callback function')
-                callback(RESPONSE_OBJECT)
-            } else {
-                socket.emit('context:insert:documentArray:response', RESPONSE_OBJECT)
-            }
-        }
-
     });
 
     /**
@@ -197,15 +146,10 @@ module.exports = function (socket, context) {
      */
 
     context.on('url', (url) => {
-        debug('Emitting context:url change event')
-        socket.emit('context:url', url);
+        debug(`Emitting event ${ROUTES.EVENT_CONTEXT_URL}`)
+        const response = new ResponseObject().success(url).getResponse();
+        socket.emit(ROUTES.EVENT_CONTEXT_URL, response);
     });
-
-    context.on('context:documentInserted', (docMeta) => {
-        debug('Emitting db:documentInserted event')
-        socket.emit('context:documentInserted', docMeta);
-    })
-
 
 };
 

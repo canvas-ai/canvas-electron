@@ -33,10 +33,10 @@ class Document {
         // Set meta information
         const now = new Date().toISOString();
         this.meta = {
-            created: meta.created || now,
+            created: now,
             modified: now,
-            contentType: meta.contentType || DOCUMENT_DATA_FORMAT,
-            contentEncoding: meta.contentEncoding || DOCUMENT_DATA_ENCODING,
+            contentType: DOCUMENT_DATA_FORMAT,
+            contentEncoding: DOCUMENT_DATA_ENCODING,
             source: {},
             ...meta,
         };
@@ -113,7 +113,7 @@ class Document {
         return document;
     }
 
-    calculateChecksum(data, fields) {
+    calculateChecksum(data, fields = []) {
         const checksumData = fields.length ? fields.reduce((acc, field) => {
             acc[field] = data[field];
             return acc;

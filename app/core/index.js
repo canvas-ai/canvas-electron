@@ -54,7 +54,7 @@ class Context extends EE {
         this.#layerIndex = canvas.layers
 
         // Set the context url
-        this.set(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
+        this.setUrl(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
         debug(`Context with url "${this.#url}", runtime id: "${this.id}" initialized`);
 
         // Maps containing pointers to global in-memory
@@ -109,9 +109,13 @@ class Context extends EE {
      * Context management
      */
 
-    set url(url) { this.set(url); }
+    set url(url) { this.setUrl(url); }
 
     set(url = CONTEXT_URL_BASE, autoCreateLayers = CONTEXT_AUTOCREATE_LAYERS) {
+        return this.setUrl(url, autoCreateLayers)
+    }
+
+    setUrl(url = CONTEXT_URL_BASE, autoCreateLayers = CONTEXT_AUTOCREATE_LAYERS) {
         if (!url || typeof url !== 'string') throw new Error(`Context url must be of type string, "${typeof url}" given`)
 
         let parsed = new Url(url)
@@ -122,8 +126,6 @@ class Context extends EE {
             debug(`Context url "${parsed.url}" not set, path "${parsed.path}" not found`)
             return false
         }
-
-        //this.#initializeLayers(parsed.array, autoCreateLayers)
 
         // Update context variables
         this.#url = parsed.url
