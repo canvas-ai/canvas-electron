@@ -12,9 +12,9 @@
 
 <br />
 
-## Foreword / warning
+## Foreword / Beware!  
 
-This project was started a looong time ago (first named "Workspaces") and was my first-ever full-featured Node.js + Electron project. Some code snippets you'll find here date back to the early stages of my JS knowledge and are slowly being refactored or outright removed. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion euro/dollar project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please always follow the development branch of this project.
+This project was started a looong time ago (first named "Workspaces") and was my first-ever Node.js + Electron endeavour. Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion euro/dollar project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
 
 ## Basic Concepts | What is Canvas
 
