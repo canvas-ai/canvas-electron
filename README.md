@@ -12,6 +12,11 @@
 
 <br />
 
+## Foreword / warning
+
+This project was started a loooong time ago(first named "Workspaces") and was my first-ever full-featured nodejs + electron project. Some code snippets you'll find here are dating back to the dark agents of my JS knowledge and are slowly being refactored or outright removed. Adding to that, as primarily a DevOPS engineer/freelancer, 2020 to 2022 I took on a fin-tech project of a major retail bank which meant putting everything else besides the bare necessities on hold(people who suffered through a multimilion euro/dollar project behind schedule in this industry may know and most probably still vividly recall the pain). With that being said, if you want to ask questions or need assistance setting up this app, do not hesitate to contact me directly, will be more than happy to help! For the time being, please always follow the development branch of this project.
+
+
 ## Basic Concepts | What is Canvas
 
 Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** into separate "contexts".
