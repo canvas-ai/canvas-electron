@@ -70,10 +70,7 @@ class Tree extends EventEmitter {
     insert(path = '/', node, autoCreateLayers = true) {
 
         debug(`Inserting path "${path}" to the context tree`);
-        if (path === '/' && !node) {
-            debug('Nothing to insert');
-            return false;
-        }
+        if (path === '/' && !node) { return true; }
 
         let currentNode = this.root;
         let child;
@@ -85,7 +82,7 @@ class Tree extends EventEmitter {
                 if (autoCreateLayers) {
                     layer = this.dblayers.createLayer(layerName)
                 } else {
-                    debug(`Layer "${layerName}" not found at path "${path}"`)
+                    debug(`Layer "${layerName}" not found at path "${path} and autoCreateLayers is disabled"`)
                     return false
                 }
             }

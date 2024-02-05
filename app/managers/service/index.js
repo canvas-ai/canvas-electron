@@ -9,9 +9,6 @@
  * In general this is ugly and needs to be refactored
  */
 
-// Environment
-const { APP, USER, DEVICE } = require('../../env.js')
-
 // Utils
 const EventEmitter = require("eventemitter2");
 const path = require("path");
