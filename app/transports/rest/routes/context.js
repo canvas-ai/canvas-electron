@@ -221,7 +221,7 @@ router.post('/documents', async (req, res) => {
     const filterArray = req.body.filterArray;
 
     try {
-        await context.insertDocument(
+        await context.insertDocumentArray(
             documentArray,
             contextArray,
             featureArray,
