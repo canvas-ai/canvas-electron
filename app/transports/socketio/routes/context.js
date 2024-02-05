@@ -1,5 +1,5 @@
 // Utils
-const debug = require('debug')('canvas-transport-socketio-route-context')
+const debug = require('debug')('canvas/transport/socketio/route/documents')
 const ResponseObject = require('../../../utils/ResponseObject');
 
 
@@ -16,247 +16,140 @@ const ROUTES = require('../routes.js')
  * @param {*} context
  */
 
-module.exports = function (socket, context) {
-
-
-    /**
-     * Setters
-     */
-
-    socket.on('context:set:url', (data) => {
-        try {
-            debug('Context:set:url event');
-            context.url = data.url;
-        } catch (err) {
-            debug('Error setting context URL:', err);
-        }
-    });
-
-    socket.on(ROUTES.CONTEXT_PATH_INSERT, (path, /* autocreateLayers, */ callback) => {
-        try {
-            debug(`context:insert:path event with path "${path}"`);
-            const result = context.insertPath(path, true);
-
-            // Check if the client expects a callback
-            if (typeof callback === 'function') {
-                // If so, use the callback to send a direct response to the client
-                callback(new ResponseObject().success(result).getResponse());
-            } else {
-                // If not, emit an event with the result for any listening clients
-                socket.emit(ROUTES.CONTEXT_PATH_INSERT, new ResponseObject().success(result).getResponse());
-            }
-        } catch (err) {
-            debug('Error inserting path:', err);
-            const errorResponse = new ResponseObject().error(`Error inserting path: ${err.message}`).getResponse();
-
-            // Similarly, use callback if available, or emit an event if not
-            if (typeof callback === 'function') {
-                callback(errorResponse);
-            } else {
-                socket.emit(ROUTES.CONTEXT_PATH_INSERT, errorResponse);
-            }
-        }
-    });
-
-
-    socket.on('context:remove:path', (path) => {
-        try {
-            debug(`context:remove:path event with path "${path}"`);
-            context.removePath(path);
-        } catch (err) {
-            debug('Error removing path:', err);
-        }
-    });
-
-    socket.on('context:set:url', (data) => {
-        try {
-            debug('Context:set:url event');
-            context.url = data.url;
-        } catch (err) {
-            debug('Error setting context URL:', err);
-        }
-    });
-
-    socket.on('context:insert:path', (path) => {
-        try {
-            debug(`context:insert:path event with path "${path}"`);
-            context.insertPath(path, true);
-        } catch (err) {
-            debug('Error inserting path:', err);
-        }
-    });
-
-    socket.on('context:move:path', (pathFrom, pathTo, recursive) => {
-        try {
-            debug(`context:move:path event with parms "${pathFrom}" -> "${pathTo}", recursive: ${recursive}`);
-            context.movePath(pathFrom, pathTo, recursive)
-        } catch (err) {
-            debug('Error removing path:', err);
-        }
-    });
+module.exports = function(socket, context) {
 
 
     /**
      * Getters
      */
 
-    socket.on('context:get:url', (callback) => {
-        debug('Context:get:url event');
+    socket.on(ROUTES.CONTEXT_GET_ID, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_ID} event`);
         const response = new ResponseObject();
-        try {
-            response.success(context.url);
-        } catch (err) {
-            response.error(`Failed to get context URL: ${err.message}`);
-        }
-        callback(response.getResponse());
+        callback(response.success(context.id).getResponse());
     });
 
-    socket.on('context:get:path', (callback) => {
-        debug('Context:get:path event');
+    socket.on(ROUTES.CONTEXT_GET_URL, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_URL} event`);
         const response = new ResponseObject();
-        try {
-            response.success(context.path);
-        } catch (err) {
-            response.error(`Failed to get context path: ${err.message}`);
-        }
-        callback(response.getResponse());
+        callback(response.success(context.url).getResponse());
     });
 
-    socket.on('context:get:tree', (callback) => {
-        debug('Context:get:tree event');
+    socket.on(ROUTES.CONTEXT_GET_TREE, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_TREE} event`);
         const response = new ResponseObject();
-        try {
-            response.success(context.tree);
-        } catch (err) {
-            response.error(`Failed to get context tree: ${err.message}`);
-        }
-        callback(response.getResponse());
+        callback(response.success(context.tree).getResponse());
     });
 
-    socket.on('context:get:contextArray', (callback) => {
-        debug('Context:get:contextArray event');
+    socket.on(ROUTES.CONTEXT_GET_PATH, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_PATH} event`);
         const response = new ResponseObject();
-        try {
-            response.success(context.contextArray);
-        } catch (err) {
-            response.error(`Failed to get context array: ${err.message}`);
-        }
-        callback(response.getResponse());
+        callback(response.success(context.path).getResponse());
+    });    
+
+    socket.on(ROUTES.CONTEXT_GET_BITMAPS, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_BITMAPS} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.bitmaps).getResponse());
     });
 
-    socket.on('context:get:featureArray', (callback) => {
-        debug('Context:get:featureArray event');
+    socket.on(ROUTES.CONTEXT_GET_CONTEXT_ARRAY, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_CONTEXT_ARRAY} event`);
         const response = new ResponseObject();
-        try {
-            response.success(context.featureArray);
-        } catch (err) {
-            response.error(`Failed to get feature array: ${err.message}`);
-        }
-        callback(response.getResponse());
+        callback(response.success(context.contextArray).getResponse());
     });
 
-    socket.on('context:get:filterArray', (callback) => {
-        debug('Context:get:filterArray event');
+    socket.on(ROUTES.CONTEXT_GET_FEATURE_ARRAY, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_FEATURE_ARRAY} event`);
         const response = new ResponseObject();
-        try {
-            response.success(context.filterArray);
-        } catch (err) {
-            response.error(`Failed to get filter array: ${err.message}`);
-        }
-        callback(response.getResponse());
+        callback(response.success(context.featureArray).getResponse());
     });
 
-    
-    /**
-     * Document routes
+    socket.on(ROUTES.CONTEXT_GET_FILTER_ARRAY, (callback) => {
+        debug(`${ROUTES.CONTEXT_GET_FILTER_ARRAY} event`);
+        const response = new ResponseObject();
+        callback(response.success(context.filterArray).getResponse());
+    });
+
+
+    /** 
+     * Setters
      */
 
-    socket.on('context:get:documents', async (data, callback) => {
-        debug('context:get:documents event');
+    socket.on(ROUTES.CONTEXT_SET_URL, (url, /* autocreateLayers, */ callback) => {
+        debug(`${ROUTES.CONTEXT_SET_URL} event with url "${url}"`);
         const response = new ResponseObject();
-        try {
-            const documents = await context.listDocuments(data.type);
-            response.success(documents);
-        } catch (err) {
-            response.error(`Failed to get documents: ${err.message}`);
-        }
 
-        if (callback) {
-            debug('Executing documents:get callback function');
-            callback(response.getResponse());
-        } else {
-            socket.emit('context:get:documents:response', response.getResponse());
+        try {            
+            const result = context.setUrl(url, true);
+            callback(response.success(result).getResponse());
+        } catch (err) {
+            callback(response.serverError(err).getResponse());
         }
     });
 
-    socket.on('context:insert:document', async (document, callback) => {
-        debug('context:insert:document event');
+    socket.on(ROUTES.CONTEXT_PATH_INSERT, (path, /* autocreateLayers, */ callback) => {
+        debug(`${ROUTES.CONTEXT_PATH_INSERT} event with path "${path}"`)
         const response = new ResponseObject();
-        try {
-            const res = await context.insertDocument(document);
-            response.success(res);
+
+        try {            
+            const result = context.insertPath(path, true);
+            // TODO: Implement additional return statuses
+            callback(response.created(result).getResponse());
         } catch (err) {
-            response.error(`Error inserting document: ${err.message}`);
-        }
-        if (callback) {
-            debug('Executing insertDocument callback function');
-            callback(response.getResponse());
-        } else {
-            socket.emit('context:insert:document:response', response.getResponse());
+            callback(response.serverError(err).getResponse());
         }
     });
 
-    socket.on('context:remove:document', async (id, callback) => {
-        debug('context:remove:document event');
+    socket.on(ROUTES.CONTEXT_PATH_REMOVE, (path, recursive = false, callback) => {
+        debug(`${ROUTES.CONTEXT_PATH_REMOVE} event with path "${path}", recursive "${recursive}"`)
         const response = new ResponseObject();
-        try {
-            const res = await context.removeDocument(id);
-            response.success(res);
+
+        try {            
+            const result = context.removePath(path, recursive);
+            callback(response.deleted(result).getResponse());
         } catch (err) {
-            response.error(`Error removing document: ${err.message}`);
-        }
-        if (callback) {
-            debug('Executing removeDocument callback function');
-            callback(response.getResponse());
-        } else {
-            socket.emit('context:remove:document:response', response.getResponse());
+            callback(response.serverError(err).getResponse());
         }
     });
 
-    socket.on('context:insert:documentArray', async (documentArray, callback) => {
-        debug('context:insert:documentArray event');
+    socket.on(ROUTES.CONTEXT_PATH_MOVE, (pathFrom, pathTo, recursive, callback) => {
+        debug(`${ROUTES.CONTEXT_PATH_MOVE} event with pathFrom "${pathFrom}", pathTo "${pathTo}", recursive "${recursive}"`)
         const response = new ResponseObject();
-        try {
-            const res = await context.insertDocumentArray(documentArray);
-            response.success(res);
+
+        try {            
+            const result = context.movePath(pathFrom, pathTo, recursive);
+            callback(response.updated(result).getResponse());
         } catch (err) {
-            response.error(`Error inserting document array: ${err.message}`);
-        }
-        if (callback) {
-            debug('Executing insertDocumentArray callback function');
-            callback(response.getResponse());
-        } else {
-            socket.emit('context:insert:documentArray:response', response.getResponse());
+            callback(response.serverError(err).getResponse());
         }
     });
 
-    // ... remaining code ...
 
+    /**
+     * Context document routes
+     */
+
+    socket.on(ROUTES.CONTEXT_DOCUMENT_LIST, async (callback) => {
+        debug(`${ROUTES.CONTEXT_DOCUMENT_LIST} event`);
+        const response = new ResponseObject();
+        try {
+            const result = await context.listDocuments();
+            callback(response.success(result).getResponse());
+        } catch (err) {
+            callback(response.error(err).getResponse());
+        }
+    });
 
     /**
      * Event listeners
      */
 
     context.on('url', (url) => {
-        debug('Emitting context:url change event')
-        socket.emit('context:url', url);
+        debug(`Emitting event ${ROUTES.EVENT_CONTEXT_URL}`)
+        const response = new ResponseObject().success(url).getResponse();
+        socket.emit(ROUTES.EVENT_CONTEXT_URL, response);
     });
-
-    context.on('context:documentInserted', (docMeta) => {
-        debug('Emitting db:documentInserted event')
-        socket.emit('context:documentInserted', docMeta);
-    })
-
 
 };
 

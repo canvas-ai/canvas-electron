@@ -1,57 +1,36 @@
 // Utils
-const debug = require('debug')('canvas-transport-socketio-route-documents')
+const debug = require('debug')('canvas/transport/socketio/route/documents')
 const ResponseObject = require('../../../utils/ResponseObject');
+
+
+/**
+ * Constants
+ */
+
+const ROUTES = require('../routes.js')
+
 
 /**
  * Documents routes
  * @param {*} socket
- * @param {*} context
+ * @param {*} db
  */
 
-module.exports = function (socket, context) {
+module.exports = function (socket, db) {
 
-    socket.on('documents:get', async (data, callback) => {
-        debug('documents:get event')
-        debug(data)
-
-        const documents = await context.listDocuments(data.type);
-        RESPONSE_OBJECT.data = documents
-
-        if (callback) {
-            debug('Executing documents:get callback function')
-            callback(RESPONSE_OBJECT)
-        } else {
-            socket.emit('documents:get:response', RESPONSE_OBJECT)
-        }
-
-    });
-
-    // TODO: Add featureArray and filterArray support
-    socket.on('documents:insertDocumentArray', async (documentArray, callback) => {
-        debug('documents:insertDocumentArray event')
-        debug(documentArray)
+    socket.on(ROUTES.CONTEXT_DOCUMENT_GET, (id, callback) => {
+        debug(`${ROUTES.CONTEXT_DOCUMENT_GET} event with id "${id}"`);
+        const response = new ResponseObject();
 
         try {
-            const res = await context.insertDocumentArray(documentArray);
-            RESPONSE_OBJECT.data = res
-            if (callback) {
-                debug('Executing insertDocumentArray callback function')
-                callback(RESPONSE_OBJECT)
-            } else {
-                socket.emit('documents:insertArray:response', RESPONSE_OBJECT)
-            }
+            const result = db.getDocumentById(id);
+            debug('Document:', result);
+            callback(response.success(result).getResponse());
         } catch (err) {
-            debug('Error inserting document array', err)
-            RESPONSE_OBJECT.error = err
-            RESPONSE_OBJECT.status = 'error'
-            if (callback) {
-                debug('Executing insertDocumentArray callback function')
-                callback(RESPONSE_OBJECT)
-            } else {
-                socket.emit('documents:insertArray:response', RESPONSE_OBJECT)
-            }
+            debug('Error getting document:', err);
+            const errorResponse = response.serverError(`Error getting document: ${err.message}`).getResponse();
+            callback(errorResponse);
         }
-
     });
 
 };
