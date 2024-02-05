@@ -18,6 +18,7 @@
 - https://github.com/turboderp/exllamav2
 - https://tvm.apache.org/
 - https://github.com/flexflow/FlexFlow
+- https://github.com/lyogavin/Anima/tree/main/air_llm
 
 
 ### Web UI
@@ -36,6 +37,8 @@
 ### LLM/Agent frameworks
 
 - https://github.com/geekan/MetaGPT
+- https://www.superagent.sh/
+- https://python.langchain.com/docs/langgraph
 - https://microsoft.github.io/autogen/
 - https://microsoft.github.io/autogen/blog/2023/12/01/AutoGenStudio/
 - https://github.com/OpenBMB/ChatDev
@@ -46,6 +49,7 @@
 - https://github.com/bentoml/BentoML
 - https://github.com/bentoml/OpenLLM
 - https://github.com/state-spaces/mamba
+- https://github.com/run-llama/llama_index
 
 ### Speech/audio
 
@@ -53,7 +57,6 @@
 - https://github.com/coqui-ai/TTS
 - https://news.ycombinator.com/item?id=37514952
 - https://github.com/SYSTRAN/faster-whisper
-- 
 
 ### General tools
 
@@ -61,6 +64,7 @@
 - https://docs.librechat.ai/install/configuration/ai_setup.html
 - https://github.com/NVIDIA/TensorRT-LLM/tree/main#quick-start
 - https://github.com/BerriAI/litellm
+- https://groq.com/
 
 ### Providers
 
@@ -81,18 +85,19 @@
 - https://github.com/nlpxucan/WizardLM
 - https://github.com/fauxpilot/fauxpilot
 
-
 #### Coding tools
 
 - https://tabby.tabbyml.com/
 - https://marketplace.visualstudio.com/items?itemName=TabbyML.vscode-tabby
 - https://github.com/xNul/code-llama-for-vscode
+- https://marketplace.visualstudio.com/items?itemName=Continue.continue
+- https://github.com/Codium-ai/AlphaCodium
+- https://news.ycombinator.com/item?id=39178886- 
 
 #### Mini
 
 - https://github.com/jzhang38/TinyLlama
 - https://huggingface.co/microsoft/phi-2
-
 
 ### Quantization
 
@@ -106,6 +111,7 @@ for Extreme Scale Deep Learning](https://arxiv.org/pdf/2104.07857.pdf)
 - [Efficient Large-Scale Language Model Training on GPU Clusters
 Using Megatron-LM](https://arxiv.org/pdf/2104.04473.pdf)
 - [SQUEEZELLM: DENSE-AND-SPARSE QUANTIZATION](https://arxiv.org/pdf/2306.07629v2.pdf)
+- https://deepmind.google/discover/blog/alphageometry-an-olympiad-level-ai-system-for-geometry/
 
 
 ### Snippets
