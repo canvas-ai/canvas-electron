@@ -22,8 +22,7 @@ const EventEmitter = require('eventemitter2');
 const MAX_CONTEXTS = 1024 // 2^10
 
 // Core services
-const Db = require('./services/db');
-const CanvasDB = require('./services/canvasdb/index.js');
+const CanvasDB = require('./services/canvasdb');
 const NeuralD = require('./services/neurald');
 const StoreD = require('./services/stored');
 
@@ -87,18 +86,12 @@ class Canvas extends EventEmitter {
          * Core services
          */
 
-        // Main database backend
-        this.db = new Db({
+        this.db = new CanvasDB({
             path: USER.paths.db,
             backupPath: path.join(USER.paths.db, 'backup'),
             backupOnOpen: true,
             backupOnClose: false,
-            compression: true,
-        })
-
-        this.documents = new CanvasDB({
-            db: this.db.createDataset('documents'),
-            index: this.db.createDataset('index')
+            compression: true
         })
 
         this.neurald = new NeuralD({
@@ -168,10 +161,6 @@ class Canvas extends EventEmitter {
             layerPath: path.join(USER.paths.db, 'layers.json')
         })
 
-        // TODO: Refactor
-        this.layers = this.tree.layers;
-
-
         this.activeContexts = new Map();
         this.context = null;
 
@@ -191,9 +180,12 @@ class Canvas extends EventEmitter {
     // Getters
     static get version() { return APP.version; }
     static get paths() { return APP.paths; }
-    get apps() { return this.apps; }
+    get appInfo() { return this.APP; }
+    get userInfo() { return this.USER; }
+    get deviceInfo() { return this.DEVICE; }
     get pid() { return this.PID; }
     get ipc() { return this.IPC; }
+
 
     /**
      * Canvas service controls
@@ -298,7 +290,7 @@ class Canvas extends EventEmitter {
         return true
     }
 
-    listContexts() { return this.activeContexts.values(); }
+    listActiveContexts() { return this.activeContexts.values(); }
 
 
     /**
@@ -323,13 +315,13 @@ class Canvas extends EventEmitter {
         await this.services.loadInitializeAndStartService('rest', {
             // TODO: Rework/refactor, are you serious!?
             context: this.context,
-            db: this.documents,
+            db: this.db,
             canvas: this
         })
 
         await this.services.loadInitializeAndStartService('socketio', {
             context: this.context,
-            db: this.documents,
+            db: this.db,
             canvas: this
         })
 
@@ -403,7 +395,7 @@ class Canvas extends EventEmitter {
         });
 
         process.on('exit', (code) => {
-            debug(`Bye: ${code}`);
+            console.log(`Bye: ${code}`);
         });
     }
 

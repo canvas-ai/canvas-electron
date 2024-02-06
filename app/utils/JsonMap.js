@@ -5,7 +5,6 @@
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
-const debug = require('debug')('canvas-utils-jsonMap')
 
 // TODO: Use https://www.npmjs.com/package/write-file-atomic
 const writeFile =  util.promisify(fs.writeFile);
@@ -72,9 +71,9 @@ class JsonMap extends Map {
 
         } catch (err) {
             if (err.code === 'ENOENT') {
-                debug(`The file ${this.filePath} does not exist, file will be created on first update`);
+                console.info(`The file ${this.filePath} does not exist, file will be created on first update`);
             } else {
-                debug(`An error occurred while loading the file: ${err}`);
+                console.error(`An error occurred while loading the file: ${err}`);
                 throw new Error(err);
             }
         }
@@ -90,9 +89,9 @@ class JsonMap extends Map {
 
         } catch (err) {
             if (err.code === 'ENOENT') {
-                debug(`The file ${this.filePath} does not exist, file will be created on first update`);
+                console.info(`The file ${this.filePath} does not exist, file will be created on first update`);
             } else {
-                debug(`An error occurred while loading the file: ${err}`);
+                console.error(`An error occurred while loading the file: ${err}`);
                 throw new Error(err);
             }
         }
