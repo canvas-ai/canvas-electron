@@ -12,6 +12,7 @@ const debug = require('debug')('canvas-db')
 const { open } = require('lmdb')
 
 // TODO: Rework extending using openAsClass()
+// TODO: Evaluate the use of PouchDB (sync support)
 
 /**
  * Canvas DB wrapper
@@ -32,11 +33,11 @@ class Db {
             options = {
                 // Database
                 path: options.path || path.join(os.homedir(), '.canvas/db'),
-                
+
                 // Backup options
                 backupOnOpen: options.backupOnOpen || false,
                 backupOnClose: options.backupOnClose || false,
-                
+
                 // Internals
                 maxDbs: options.maxDbs || 32,
                 readOnly: options.readOnly || false,
@@ -335,9 +336,9 @@ class Db {
      * Internal methods
      */
 
-    #backupDatabase(compact = true) {        
+    #backupDatabase(compact = true) {
         const backupPath = this.#generateBackupFolderPath();
-        
+
         // Create the backup folder
         try {
             mkdirp.sync(backupPath);
@@ -350,20 +351,20 @@ class Db {
         debug(`Backing up database "${this.path}" to "${backupPath}"`);
         // TODO: Rework, backup() is async
         this.db.backup(backupPath, compact);
-    }    
+    }
 
     #generateBackupFolderPath() {
         const dateString = new Date().toISOString().split('T')[0].replace(/-/g, '');
         let backupFolderName = dateString;
         let backupFolderPath = path.join(this.backupOptions.backupPath, backupFolderName);
-    
+
         let counter = 1;
         while (fs.existsSync(backupFolderPath)) {
             backupFolderName = `${dateString}.${counter}`;
             backupFolderPath = path.join(this.backupOptions.backupPath, backupFolderName);
             counter++;
         }
-    
+
         return backupFolderPath;
       }
 

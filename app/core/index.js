@@ -48,10 +48,10 @@ class Context extends EE {
 
         // Generate a runtime uuid
         this.#id = options?.id || uuid12()
-        this.documents = canvas.documents
+        this.documents = canvas.db
 
         this.#tree = canvas.tree
-        this.#layerIndex = canvas.layers
+        this.#layerIndex = this.#tree.layers // TODO: Refactor
 
         // Set the context url
         this.setUrl(url ? url : CONTEXT_URL_PROTO + '://' + CONTEXT_URL_BASE, CONTEXT_AUTOCREATE_LAYERS);
@@ -263,7 +263,7 @@ class Context extends EE {
 
     async listDocuments(featureArray = this.#featureArray, filterArray) {
         if (typeof featureArray === 'string') featureArray = [featureArray]
-        const result = await this.documents.listDocuments(this.#contextArray, featureArray, filterArray);
+        const result = await this.documents.getDocuments(this.#contextArray, featureArray, filterArray);
         return result;
     }
 

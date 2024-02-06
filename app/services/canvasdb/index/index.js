@@ -38,7 +38,7 @@ class Index extends EE {
         this.bitmapCache = new MemCache() // Shared Map() to cache bitmaps in memory
 
         // HashMap(s)
-        // To decide whether to use a single dataset
+        // To decide whether to use a single dataset with a hash type prefix
         // sha1/<hash> | oid
         // md5/<hash> | oid
         // or a separate dataset per hash type
@@ -91,6 +91,10 @@ class Index extends EE {
      * Main Index methods
      */
 
+    hash2oid(hash) {
+        return this.hash2oid.get(hash) || null
+    }
+
     async insert(id, contextArray, featureArray, filterArray) {}
 
     async update(id, contextArray, featureArray, filterArray) {}
@@ -115,6 +119,9 @@ class Index extends EE {
 
     async listFilters() {}
 
+
+
+
     async tickFeatureArray(id, featureArray) {
         if (!id) throw new Error('Document ID required')
         if (!featureArray) throw new Error('Feature array required')
@@ -127,7 +134,7 @@ class Index extends EE {
         }
     }
 
-    async tickContextArray(id, contextArray) {    
+    async tickContextArray(id, contextArray) {
 
     }
 

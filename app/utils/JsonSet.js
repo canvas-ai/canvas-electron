@@ -5,7 +5,6 @@
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
-const debug = require('debug')('canvas-utils-jsonSet')
 
 // TODO: Use https://www.npmjs.com/package/write-file-atomic
 const writeFile = util.promisify(fs.writeFile);
