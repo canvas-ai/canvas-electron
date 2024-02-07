@@ -50,6 +50,7 @@
 - https://github.com/bentoml/OpenLLM
 - https://github.com/state-spaces/mamba
 - https://github.com/run-llama/llama_index
+- https://superagi.com/
 
 ### Speech/audio
 
