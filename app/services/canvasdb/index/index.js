@@ -91,10 +91,6 @@ class Index extends EE {
      * Main Index methods
      */
 
-    hash2oid(hash) {
-        return this.hash2oid.get(hash) || null
-    }
-
     async insert(id, contextArray, featureArray, filterArray) {}
 
     async update(id, contextArray, featureArray, filterArray) {}
