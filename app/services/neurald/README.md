@@ -42,6 +42,7 @@
 - https://microsoft.github.io/autogen/
 - https://microsoft.github.io/autogen/blog/2023/12/01/AutoGenStudio/
 - https://github.com/OpenBMB/ChatDev
+- https://github.com/OpenBMB/AgentVerse
 - https://github.com/joaomdmoura/crewai
 - https://github.com/Ironclad/rivet
 - https://github.com/langchain-ai/langchain
@@ -51,6 +52,10 @@
 - https://github.com/state-spaces/mamba
 - https://github.com/run-llama/llama_index
 - https://superagi.com/
+- https://developer.nvidia.com/blog/building-your-first-llm-agent-application/
+- https://docs.haystack.deepset.ai/docs/agent
+- https://github.com/joonspk-research/generative_agents
+- https://www.phidata.com/
 
 ### Speech/audio
 
