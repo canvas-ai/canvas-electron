@@ -132,6 +132,8 @@ class Context extends EE {
         this.#path = parsed.path
         this.#array = parsed.array
 
+        this.#initializeLayers(parsed.array)
+
         this.emit('url', this.#url)
         return this.#url
     }

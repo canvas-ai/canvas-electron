@@ -93,19 +93,25 @@ class CanvasDB extends EE {
         let bitmaps = []
 
         if (!contextArray.length && !featureArray.length) {
+            debug('No context or feature array, returning all documents')
             documents = await this.documents.listValues()
             return documents
         }
 
         if (contextArray.length) {
+            debug('Adding context bitmaps to AND operation')
             bitmaps.push(this.index.contextArrayAND(contextArray))
         }
 
         if (featureArray.length) {
+            debug('Adding feature bitmaps to AND operation')
             bitmaps.push(this.index.featureArrayAND(featureArray))
         }
 
-        if (bitmaps.length === 0) return []
+        if (bitmaps.length === 0) {
+            debug('No bitmaps to AND, returning an empty array')
+            return []
+        }
 
         let result = this.index.AND(bitmaps)
         debug('Result IDs', result.toArray())
