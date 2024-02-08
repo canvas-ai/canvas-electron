@@ -14,7 +14,7 @@
 
 ## Foreword / Beware!  
 
-This project was started a looong time ago (first named "Workspaces") and was my first-ever Node.js + Electron endeavour. Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion euro/dollar project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
+This project was started a long^looong time ago (first named "Workspaces") and was my first-ever Node.js + Electron endeavour. Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
 
 ## Basic Concepts | What is Canvas
 
@@ -134,6 +134,7 @@ Some of the technologies used in no particular order:
 - [cacache](https://www.npmjs.com/package/cacache) - Integral part of storeD for caching remote data locally
 - [vLLM](https://github.com/vllm-project/vllm) - Currently evaluating as the LLM backend
 - [electron](https://www.electronjs.org/) - Well ..it should be easy enough to migrate to a more lightweight solution later on
+- [AI/ML links](app/services/neurald/README.md)
 
 <br />
 
@@ -142,7 +143,8 @@ Some of the technologies used in no particular order:
 ### ! Slowly separating some of the modules into their own repos for easier maintainability
 
 - https://github.com/idncsk/canvas-ui-shell
-- https://github.com/idncsk/canvas-ui-firefox-ext
+- https://github.com/idncsk/canvas-ui-firefox
+- https://github.com/idncsk/canvas-ui-chrome
 - https://github.com/idncsk/canvas-ui-electron
 
 ### Canvas server
