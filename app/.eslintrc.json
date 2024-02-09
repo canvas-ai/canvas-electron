@@ -10,5 +10,11 @@
         "ecmaVersion": "latest"
     },
     "rules": {
-    }
+    },
+    "ignorePatterns": [
+        "**/_test*.js",
+        "**/_test/",
+        "**/_old_/",
+        "**/_SCRATCH_/"
+    ]
 }
