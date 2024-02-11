@@ -235,7 +235,7 @@ router.post('/documents', async (req, res) => {
             featureArray,
             filterArray
         );
-        res.status(200).json(response.success('Document inserted successfully').getResponse());
+        res.status(200).json(response.success('Documents inserted successfully').getResponse());
     } catch (error) {
         res.status(400).json(response.error('Failed to insert documents: '. error).getResponse());
     }
