@@ -1,4 +1,5 @@
 // Common response object for API responses over supported transports
+// TODO: Move to transports
 
 class ResponseObject {
 
