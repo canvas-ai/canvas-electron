@@ -1,6 +1,6 @@
 // Utils
-const debug = require('debug')('canvas-db-index')
 const EE = require('eventemitter2')
+const debug = require('debug')('@canvas:db:index')
 
 // App includes
 const BitmapManager = require('./lib/BitmapManager')
@@ -16,7 +16,7 @@ const INTERNAL_BITMAP_ID_MAX = 1000000
 
 
 /**
- * Canvas DB Index
+ * Main index class
  */
 
 class Index extends EE {
@@ -28,7 +28,7 @@ class Index extends EE {
     constructor(options = {}) {
 
         // Initialize event emitter
-        super()
+        super(options.eventEmitter || {})
 
         // Bind/initialize the database backend
         this.#db = options.db
@@ -148,12 +148,12 @@ class Index extends EE {
     }
 
     async updateContextBitmaps(contextArray, oidOrArray) {
-
+        debug(`updateContextBitmaps(): contextArray: ${contextArray}, oidOrArray: ${oidOrArray}`)
         await this.bmContexts.tickMany(contextArray, oidOrArray)
     }
 
     async updateFeatureBitmaps(featureArray, oidOrArray) {
-        debug(`Updating feature bitmaps for ${featureArray.length} features`)
+        debug(`updateFeatureBitmaps(): featureArray: ${featureArray}, oidOrArray: ${oidOrArray}`)
         await this.bmFeatures.tickMany(featureArray, oidOrArray)
     }
 

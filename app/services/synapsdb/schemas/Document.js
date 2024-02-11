@@ -10,57 +10,47 @@ const DOCUMENT_DATA_CHECKSUM_ALGO = 'sha1';
 const DOCUMENT_DATA_FORMAT = 'application/json';
 const DOCUMENT_DATA_ENCODING = 'utf8';
 
+// TODO: Add data index fields
+
 // Document class
 class Document {
 
     constructor({
-        id,
-        type,
-        version,
-        schemaVersion,
-        meta,
-        data,
-        dataChecksumFields,
+        id = null,
+        type = DOCUMENT_SCHEMA_TYPE,
+        schemaVersion = DOCUMENT_SCHEMA_VERSION,
+        version = 0,
+        meta = {},
+        data = null,
+        dataChecksumFields = [],
         dataChecksumAlgorithm = DOCUMENT_DATA_CHECKSUM_ALGO,
-        versions
+        dataIndexFields = []
     }) {
 
         this.id = id;
         this.type = type;
-
         this.schemaVersion = schemaVersion;
 
         // Set meta information
         const now = new Date().toISOString();
         this.meta = {
-            created: now,
+            created: meta.created || now,
             modified: now,
             contentType: DOCUMENT_DATA_FORMAT,
             contentEncoding: DOCUMENT_DATA_ENCODING,
-            source: {},
-            ...meta,
+            ...meta
         };
 
-        this.checksum = this.calculateChecksum(data, dataChecksumFields);
-
-        // TODO: Temporary
-        const defaultHash = this.createHash(
-            JSON.stringify(data),
-            dataChecksumAlgorithm,
-            DOCUMENT_DATA_ENCODING
-        );
-
-        this.checksum = `${dataChecksumAlgorithm}/${defaultHash}`
-
-        // Check and set document data
-        if (!data) { throw new Error('Document data is a mandatory parameter'); }
+        // Document data
         this.data = data;
+
+        // Generate checksum
+        let dataChecksum = this.calculateChecksum(dataChecksumFields, data);
+        this.checksum = `${dataChecksumAlgorithm}/${dataChecksum}`
 
         // Set version information
         this.version = version;
-        this.versions = versions;
     }
-
 
     toJSON() {
         return {
@@ -113,7 +103,7 @@ class Document {
         return document;
     }
 
-    calculateChecksum(data, fields = []) {
+    calculateChecksum(fields = this.dataChecksumFields, data = this.data) {
         const checksumData = fields.length ? fields.reduce((acc, field) => {
             acc[field] = data[field];
             return acc;
@@ -131,10 +121,28 @@ class Document {
     }
 
     static createHash(str, algorithm = DOCUMENT_DATA_CHECKSUM_ALGO, encoding = DOCUMENT_DATA_ENCODING) {
+        if (typeof str === 'object') str = JSON.stringify(str)
         return crypto
             .createHash(algorithm)
             .update(str, encoding)
             .digest('hex')
+    }
+
+    // TODO: Should replace the toJSON and fromJSON methods
+    serialize() {
+        return JSON.stringify(this);
+    }
+
+    // TODO: Should replace the toJSON and fromJSON methods
+    static deserialize(data) {
+        const obj = JSON.parse(data);
+        return new Document(obj);
+    }
+
+    validate() {
+        if (!this.type) throw new Error('Document type is not defined')
+        if (!this.data) throw new Error('Document data is not defined')
+        return true;
     }
 
     static validate(document) {
@@ -143,15 +151,18 @@ class Document {
         // Check for mandatory parameters (TODO)
         return (
             document.type &&
-            document.data) || false
+            document.data
+        ) || false
     }
 
+    get schema() { return this.toJSON(); }
     static get schema() { return Document.toJSON(); }
 
     static get schemaVersion() {
         return DOCUMENT_SCHEMA_VERSION;
     }
 
+    get schemaType() { return this.type; }
     static get schemaType() {
         return DOCUMENT_SCHEMA_TYPE;
     }

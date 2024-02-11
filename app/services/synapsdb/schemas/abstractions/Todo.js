@@ -16,10 +16,14 @@ class Todo extends Document {
             schemaVersion: DOCUMENT_SCHEMA_VERSION,
         })
 
-        if (!params.data) {
-            throw new Error('No TODO data submitted');
-        }
+        this.data = params.data || {};
+    }
 
+    validate() {
+        super.validate();
+        if (!this.data.content) {
+            throw new Error('TODO content is a mandatory parameter');
+        }
     }
 
     static toJSON() {

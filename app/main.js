@@ -22,7 +22,7 @@ const EventEmitter = require('eventemitter2');
 const MAX_CONTEXTS = 1024 // 2^10
 
 // Core services
-const CanvasDB = require('./services/canvasdb');
+const SynapsDB = require('./services/synapsdb');
 const NeuralD = require('./services/neurald');
 const StoreD = require('./services/stored');
 
@@ -86,7 +86,7 @@ class Canvas extends EventEmitter {
          * Core services
          */
 
-        this.db = new CanvasDB({
+        this.db = new SynapsDB({
             path: USER.paths.db,
             backupPath: path.join(USER.paths.db, 'backup'),
             backupOnOpen: true,

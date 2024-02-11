@@ -1,5 +1,5 @@
 const { RoaringBitmap32 } = require("roaring");
-const debug = require('debug')('canvasdb:bitmap');
+const debug = require('debug')('@canvas:db:index:bitmap');
 
 class Bitmap extends RoaringBitmap32 {
 
@@ -26,7 +26,7 @@ class Bitmap extends RoaringBitmap32 {
         this.add(oid);
     }
 
-    tickMany(...oidArray) {
+    tickMany(oidArray) {
         if (!this.#arrayIsWithinRange(oidArray)) {
             throw new Error(`Invalid oidArray: ${oidArray}, range: ${this.rangeMin} - ${this.rangeMax}`);
         }
@@ -61,7 +61,7 @@ class Bitmap extends RoaringBitmap32 {
         this.remove(oid);
     }
 
-    untickMany(...oidArray) {
+    untickMany(oidArray) {
         if (!this.#arrayIsWithinRange(oidArray)) {
             throw new Error(`Out of range: ${oidArray}, range: ${this.rangeMin} - ${this.rangeMax}`);
         }

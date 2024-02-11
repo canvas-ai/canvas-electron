@@ -1,11 +1,8 @@
 {
-  "name": "canvas-synapsd",
+  "name": "@canvas/synapsdb",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "directories": {
-    "lib": "lib"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,6 +10,8 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "date-fns": "^2.29.3",
-    "stored-map": "^1.0.6"
+    "eventemitter2": "^6.4.9",
+    "flexsearch": "^0.7.43",
+    "lmdb": "^2.7.9"
   }
 }

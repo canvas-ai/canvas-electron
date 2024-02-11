@@ -6,17 +6,15 @@ const os = require('os')
 const path = require('path')
 const fs = require('fs')
 const mkdirp = require('mkdirp')
-const debug = require('debug')('canvas-db')
+const debug = require('debug')('@canvas:db:backend:lmdb')
 
 // Database backend
 const { open } = require('lmdb')
 
 // TODO: Rework extending using openAsClass()
-// TODO: Evaluate the use of PouchDB (sync support)
 
 /**
- * Canvas DB wrapper
- * Uses LMDB, originally LevelDB
+ * LMDB storage backend, originally LevelDB
  */
 
 class Db {
@@ -52,12 +50,12 @@ class Db {
             }
 
             this.db = new open(options)
-            debug(`Initialized database at "${options.path}"`)
+            debug(`Initialized LMDB database backend at "${options.path}"`)
 
         } else {
             this.db = options
             this.#dataset = dataset
-            debug(`Initialized dataset "${dataset}"`)
+            debug(`Initialized LMDB dataset "${dataset}"`)
         }
 
         // Set the db path in the wrapper class
@@ -115,6 +113,7 @@ class Db {
 
     // Creates a new dataset using the same wrapper class
     createDataset(dataset, options = {}) {
+        debug(`Creating new dataset "${dataset}" using options: ${JSON.stringify(options)}`)
         let db = this.db.openDB(dataset, options);
         return new Db(db, dataset);
     }

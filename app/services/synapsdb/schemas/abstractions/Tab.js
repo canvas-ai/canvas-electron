@@ -1,24 +1,30 @@
 /**
- * Data abstraction for storing Notes
+ * Data abstraction for storing browser tab data
  */
 
 const Document = require('../Document')
 const DOCUMENT_SCHEMA_VERSION = '2.0'
-const DOCUMENT_SCHEMA_TYPE = 'data/abstraction/note';
+const DOCUMENT_SCHEMA_TYPE = 'data/abstraction/tab';
 
-class Note extends Document {
+class Tab extends Document {
 
     constructor(params) {
         super({
             ...params,
+            dataChecksumFields: ['url'],
             type: DOCUMENT_SCHEMA_TYPE,
             schemaVersion: DOCUMENT_SCHEMA_VERSION,
-            data: {
-                title: params.data.title || 'Canvas | Note',
-                content: params.data.content || 'Note content'
-            }
-
         })
+
+        this.data = params.data || {};
+
+    }
+
+    validate() {
+        super.validate();
+        if (!this.data.url) {
+            throw new Error('Tab URL is a mandatory parameter');
+        }
     }
 
     static toJSON() {
@@ -27,16 +33,17 @@ class Note extends Document {
         let base = super.toJSON();
 
         // Set schema version and type
+        base.checksumDataFields = ['url'];
         base.schemaVersion = DOCUMENT_SCHEMA_VERSION;
         base.type = DOCUMENT_SCHEMA_TYPE;
 
         // Set document data
-        base.data.title = 'Canvas | Note';
-        base.data.content = 'Note content';
+        base.data.url = 'https://getcanvas.org/';
+        base.data.title = 'Canvas | GetCanvas.org';
 
         return base;
     }
 
 }
 
-module.exports = Note;
+module.exports = Tab
