@@ -106,6 +106,16 @@ class SynapsDB extends EE {
         return this.documents.get(id);
     }
 
+    // TODO: Remove or refactor
+    async listDocuments(
+        contextArray = [],
+        featureArray = [],
+        filterArray = []
+    ) {
+        return this.getDocuments(contextArray, featureArray, filterArray, true);
+    }
+
+    // TODO: Remove or refactor
     async getDocuments(
         contextArray = [],
         featureArray = [],
@@ -338,7 +348,7 @@ class SynapsDB extends EE {
 
     }
 
-    async updateDocumentArray(documentArray, contextArray, featureArray, filterArray) {
+    async updateDocumentArray(documentArray, contextArray = [], featureArray = [], filterArray = []) {
         debug(`updateDocumentArray(): ContextArray: ${contextArray}; FeatureArray: ${featureArray}`);
 
         if (!Array.isArray(documentArray) || documentArray.length < 1) {
@@ -368,6 +378,14 @@ class SynapsDB extends EE {
     async deleteDocument(id) {
         // We are not removing the entry, just updating meta: {} to mark it as deleted
         // We also clear all bitmaps, tick the "removed" bitmap and remove the data: {} part
+        debug(`deleteDocument(): ID: ${id}`);
+        if (!id) throw new Error("Document ID required");
+
+        let document = this.documents.get(id);
+        if (!document) return false;
+
+        // Clear bitmaps
+
     }
 
     async deleteDocumentArray(idArray) {}
@@ -377,15 +395,7 @@ class SynapsDB extends EE {
      * Bitmap methods
      */
 
-    async addDocumentFeatures(id, featureArray) {}
 
-    async removeDocumentFeatures(id, featureArray) {}
-
-    async addDocumentContexts(id, contextArray) {}
-
-    async removeDocumentContexts(id, contextArray) {}
-
-    // TODO: To be removed
     async removeDocument(id, contextArray, featureArray, filterArray) {
         debug(`removeDocument(): ID: ${id}; ContextArray: ${contextArray}; FeatureArray: ${featureArray}`);
         if (!id) throw new Error("Document ID required");
@@ -398,6 +408,12 @@ class SynapsDB extends EE {
         if (Array.isArray(featureArray) && featureArray.length > 0) {
             await this.index.untickFeatureArray(featureArray, document.id);
         }
+    }
+
+    async removeDocumentArray(idArray, contextArray, featureArray, filterArray) {
+        debug(`removeDocumentArray(): IDArray: ${idArray}; ContextArray: ${contextArray}; FeatureArray: ${featureArray}`);
+        if (!Array.isArray(idArray) || idArray.length < 1) throw new Error("Array of document IDs required");
+
     }
 
 
