@@ -133,6 +133,10 @@ class SynapsDB extends EE {
         return documents;
         }
 
+        /**
+         * TODO: Most of this logic has to be moved to the index!!
+         */
+
         if (contextArray.length) {
         debug("Adding context bitmaps to AND operation");
         bitmaps.push(this.index.contextArrayAND(contextArray));
@@ -148,7 +152,7 @@ class SynapsDB extends EE {
         return [];
         }
 
-        let result = this.index.AND(bitmaps);
+        let result = this.index.bitmapAND(bitmaps);
         debug("Result IDs", result.toArray());
         if (!result.toArray().length) return [];
 
