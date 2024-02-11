@@ -141,6 +141,21 @@ module.exports = function(socket, context) {
         }
     });
 
+    socket.on(ROUTES.CONTEXT_DOCUMENT_INSERT_ARRAY, async (data, callback) => {
+        debug(`${ROUTES.CONTEXT_DOCUMENT_INSERT_ARRAY} event`);
+
+        // TODO: Input validation
+        let documents = data;
+
+        const response = new ResponseObject();
+        try {
+            const result = await context.insertDocumentArray(documents);
+            callback(response.success(result).getResponse());
+        } catch (err) {
+            callback(response.error(err).getResponse());
+        }
+    });    
+
     /**
      * Event listeners
      */
