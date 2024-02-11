@@ -1,8 +1,6 @@
 class Timeline {
 
-
     constructor() {}
-
 
     today() {
         return bitmap(20211226)
@@ -63,3 +61,5 @@ class Timeline {
     }
 
 }
+
+module.exports = Timeline

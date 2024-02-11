@@ -1,17 +1,20 @@
 const { RoaringBitmap32 } = require("roaring");
-const debug = require('debug')('canvasdb:bitmap');
+const debug = require('debug')('@canvas:db:index:bitmap');
 
 class Bitmap extends RoaringBitmap32 {
 
     constructor(oidArrayOrBitmap, options = {
         type: 'static', // 'static' or 'dynamic
-        rangeMin: 0,
-        rangeMax: 4294967296 - 1    // 2^32 - 1
     }) {
 
         super(oidArrayOrBitmap);
         this.type = options.type;
         this.key = options.key;
+
+        if (!options.rangeMin || !options.rangeMax) {
+            throw new Error(`Invalid range: ${options.rangeMin} - ${options.rangeMax}`);
+        }
+
         this.rangeMin = options.rangeMin;
         this.rangeMax = options.rangeMax;
 
@@ -26,7 +29,7 @@ class Bitmap extends RoaringBitmap32 {
         this.add(oid);
     }
 
-    tickMany(...oidArray) {
+    tickMany(oidArray) {
         if (!this.#arrayIsWithinRange(oidArray)) {
             throw new Error(`Invalid oidArray: ${oidArray}, range: ${this.rangeMin} - ${this.rangeMax}`);
         }
@@ -61,7 +64,7 @@ class Bitmap extends RoaringBitmap32 {
         this.remove(oid);
     }
 
-    untickMany(...oidArray) {
+    untickMany(oidArray) {
         if (!this.#arrayIsWithinRange(oidArray)) {
             throw new Error(`Out of range: ${oidArray}, range: ${this.rangeMin} - ${this.rangeMax}`);
         }
@@ -92,7 +95,7 @@ class Bitmap extends RoaringBitmap32 {
     static create(oidArrayOrBitmap, options = {
         type: 'static',
         rangeMin: 0,
-        rangeMax: 4294967296 - 1
+        rangeMax: 4294967296
     }) {
 
         // Perform validation

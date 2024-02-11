@@ -8,7 +8,13 @@ const DOCUMENT_SCHEMA_TYPE = 'data/abstraction/file';
 
 class File extends Document {
 
-    constructor() {}
+    constructor(params) {
+        super({
+            ...params,
+            type: DOCUMENT_SCHEMA_TYPE,
+            schemaVersion: DOCUMENT_SCHEMA_VERSION
+        })
+    }
 
     static toJSON() {
 

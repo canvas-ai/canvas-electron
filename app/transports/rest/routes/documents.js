@@ -6,6 +6,29 @@ const debug = require('debug')('canvas/transports/rest:documents');
  * Canvas document DB routes
  */
 
+// Insert documents to the database
+router.post('/', async (req, res) => {
+    const context = req.context;
+    const response = new req.ResponseObject();
+    const documentArray = req.body.document;
+    const contextArray = req.body.contextArray;
+    const featureArray = req.body.featureArray;
+    const filterArray = req.body.filterArray;
+
+    try {
+        await context.insertDocumentArray(
+            documentArray,
+            contextArray,
+            featureArray,
+            filterArray
+        );
+        debug('[POST] Documents route triggered');
+        res.status(200).json(response.success('Document inserted successfully').getResponse());
+    } catch (error) {
+        res.status(400).json(response.error('Failed to insert documents: '. error).getResponse());
+    }
+});
+
 // List all documents
 router.get('/', async (req, res) => {
     const db = req.db;
@@ -19,6 +42,8 @@ router.get('/', async (req, res) => {
         res.status(500).json(response.error('Failed to retrieve documents', error).getResponse());
     }
 });
+
+
 
 // Get a document by ID
 router.get('/id/:id', async (req, res) => {
