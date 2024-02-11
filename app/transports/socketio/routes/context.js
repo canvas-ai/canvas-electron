@@ -145,6 +145,8 @@ module.exports = function(socket, context) {
         debug(`${ROUTES.CONTEXT_DOCUMENT_INSERT_ARRAY} event`);
         const response = new ResponseObject();
         // TODO: Input validation
+        // TODO: Add featureArray, filterArray, use data.documentArray 
+        // to be compliant with the REST API
         let documents = data;
 
         try {
