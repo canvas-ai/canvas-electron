@@ -116,8 +116,6 @@ class Index extends EE {
     async listFilters() {}
 
 
-
-
     async tickFeatureArray(id, featureArray) {
         if (!id) throw new Error('Document ID required')
         if (!featureArray) throw new Error('Feature array required')

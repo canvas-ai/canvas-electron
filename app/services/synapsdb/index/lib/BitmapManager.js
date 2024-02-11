@@ -2,7 +2,6 @@
 
 const RoaringBitmap32 = require('roaring/RoaringBitmap32')
 const Bitmap = require('./Bitmap');
-const { id } = require('date-fns/locale');
 const debug = require('debug')('@canvas:db:index:bitmapManager');
 
 
@@ -18,16 +17,26 @@ class BitmapManager {
      * @param {*} cache
      * @param {*} options
      */
-    constructor(db = new Map(), cache = new Map(), options = {
-        rangeMin: 0,
-        rangeMax: 4294967296 // 2^32
-    }) {
+    constructor(db = new Map(), cache = new Map(), options = {}) {
+
+        const defaultOptions = {
+            rangeMin: 0,
+            rangeMax: 4294967296 // 2^32
+        }
+
+        // Merge default options with provided options
+        options = { ...defaultOptions, ...options };
+
         // A suitable DB backend with a Map() like interface
         this.#db = db
         // A suitable Caching backend with a Map() like interface
         this.#cache = cache // Not used for now
 
         // This should probably be implemented one abstraction layer up
+        if (typeof options.rangeMin !== 'number' || typeof options.rangeMax !== 'number') {
+            throw new TypeError('Invalid range: rangeMin and rangeMax must be numbers');
+        }
+
         this.rangeMin = options.rangeMin
         this.rangeMax = options.rangeMax
 
@@ -316,6 +325,8 @@ class BitmapManager {
         }
 
         let bitmap = new RoaringBitmap32();
+        console.log(this.rangeMin, this.rangeMax)
+
         return Bitmap.create(bitmap.deserialize(bitmapData, true), {
             type: 'static',
             key: key,

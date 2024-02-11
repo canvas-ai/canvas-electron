@@ -5,13 +5,16 @@ class Bitmap extends RoaringBitmap32 {
 
     constructor(oidArrayOrBitmap, options = {
         type: 'static', // 'static' or 'dynamic
-        rangeMin: 0,
-        rangeMax: 4294967296 - 1    // 2^32 - 1
     }) {
 
         super(oidArrayOrBitmap);
         this.type = options.type;
         this.key = options.key;
+
+        if (!options.rangeMin || !options.rangeMax) {
+            throw new Error(`Invalid range: ${options.rangeMin} - ${options.rangeMax}`);
+        }
+
         this.rangeMin = options.rangeMin;
         this.rangeMax = options.rangeMax;
 
@@ -92,7 +95,7 @@ class Bitmap extends RoaringBitmap32 {
     static create(oidArrayOrBitmap, options = {
         type: 'static',
         rangeMin: 0,
-        rangeMax: 4294967296 - 1
+        rangeMax: 4294967296
     }) {
 
         // Perform validation

@@ -212,10 +212,10 @@ class SynapsDB extends EE {
         // Check if document already exists based on its checksum
         if (this.index.hash2oid.has(parsed.checksum)) {
             let existingDocument = this.getDocumentByHash(parsed.checksum);
-            debug(`Document hash already found in the database, updating exiting record: ${existingDocument.id}`);
+            debug(`Document hash ${parsed.checksum} already found in the database, updating exiting record: ${existingDocument.checksum}/${existingDocument.id}`);
             parsed.id = existingDocument.id;
         } else {
-            debug(`Inserting new document into the database: ${parsed.id}`);
+            debug(`Inserting new document into the database index: ${parsed.checksum} -> ${parsed.id}`);
             try {
                 await this.index.hash2oid.db.put(parsed.checksum, parsed.id);
             } catch (error) {
@@ -224,6 +224,7 @@ class SynapsDB extends EE {
         }
 
         try {
+            debug(`Inserting document into the database: ${parsed.id}`)
             await this.documents.put(parsed.id, parsed);
         } catch (error) {
             throw new Error(`Error inserting document to the database: ${error.message}`);
