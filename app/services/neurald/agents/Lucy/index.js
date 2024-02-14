@@ -3,10 +3,13 @@
 const Agent = require('../lib/Agent')
 
 
-class AgentLucy extends Agent {
+class Lucy extends Agent {
 
 
     constructor() {
+
+        super()
+        
         this.name = "Lucy";
         this.type = "Secretary";
         this.description = "A secretary that can help you with your daily tasks";
@@ -69,3 +72,6 @@ class AgentLucy extends Agent {
     }
 
 }
+
+
+module.exports = Lucy;

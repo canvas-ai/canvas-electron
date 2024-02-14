@@ -1,6 +1,12 @@
 {
+    "settings": {
 
-    "system": "",
-    "user": ""
+    },
+
+    "prompt": {
+        "system": "",
+        "user": ""        
+    }
+
 
 }
