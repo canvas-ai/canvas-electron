@@ -58,7 +58,7 @@ class Index extends EE {
             this.bitmaps.createDataset('contexts'),
             this.bitmapCache,
             {
-                rangeMin: INTERNAL_BITMAP_ID_MAX,
+                rangeMin: INTERNAL_BITMAP_ID_MIN,
             })
 
         // Features
@@ -66,7 +66,7 @@ class Index extends EE {
             this.bitmaps.createDataset('features'),
             this.bitmapCache,
             {
-                rangeMin: INTERNAL_BITMAP_ID_MAX,
+                rangeMin: INTERNAL_BITMAP_ID_MIN,
             })
 
         // Filters
@@ -74,7 +74,7 @@ class Index extends EE {
             this.bitmaps.createDataset('filters'),
             this.bitmapCache,
             {
-                rangeMin: INTERNAL_BITMAP_ID_MAX,
+                rangeMin: INTERNAL_BITMAP_ID_MIN,
             })
 
         // Queues

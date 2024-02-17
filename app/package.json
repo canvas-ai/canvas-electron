@@ -54,6 +54,7 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
+    "electron-builder": "^24.9.1",
     "eslint": "^8.56.0",
     "jsdoc": "^4.0.2"
   }
