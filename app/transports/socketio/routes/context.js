@@ -45,7 +45,7 @@ module.exports = function(socket, context) {
         debug(`${ROUTES.CONTEXT_GET_PATH} event`);
         const response = new ResponseObject();
         callback(response.success(context.path).getResponse());
-    });    
+    });
 
     socket.on(ROUTES.CONTEXT_GET_BITMAPS, (callback) => {
         debug(`${ROUTES.CONTEXT_GET_BITMAPS} event`);
@@ -72,7 +72,7 @@ module.exports = function(socket, context) {
     });
 
 
-    /** 
+    /**
      * Setters
      */
 
@@ -80,7 +80,7 @@ module.exports = function(socket, context) {
         debug(`${ROUTES.CONTEXT_SET_URL} event with url "${url}"`);
         const response = new ResponseObject();
 
-        try {            
+        try {
             const result = context.setUrl(url, true);
             callback(response.success(result).getResponse());
         } catch (err) {
@@ -92,7 +92,7 @@ module.exports = function(socket, context) {
         debug(`${ROUTES.CONTEXT_PATH_INSERT} event with path "${path}"`)
         const response = new ResponseObject();
 
-        try {            
+        try {
             const result = context.insertPath(path, true);
             // TODO: Implement additional return statuses
             callback(response.created(result).getResponse());
@@ -105,7 +105,7 @@ module.exports = function(socket, context) {
         debug(`${ROUTES.CONTEXT_PATH_REMOVE} event with path "${path}", recursive "${recursive}"`)
         const response = new ResponseObject();
 
-        try {            
+        try {
             const result = context.removePath(path, recursive);
             callback(response.deleted(result).getResponse());
         } catch (err) {
@@ -117,7 +117,7 @@ module.exports = function(socket, context) {
         debug(`${ROUTES.CONTEXT_PATH_MOVE} event with pathFrom "${pathFrom}", pathTo "${pathTo}", recursive "${recursive}"`)
         const response = new ResponseObject();
 
-        try {            
+        try {
             const result = context.movePath(pathFrom, pathTo, recursive);
             callback(response.updated(result).getResponse());
         } catch (err) {
@@ -130,11 +130,11 @@ module.exports = function(socket, context) {
      * Context document routes
      */
 
-    socket.on(ROUTES.CONTEXT_DOCUMENT_LIST, async (callback) => {
+    socket.on(ROUTES.CONTEXT_DOCUMENT_LIST, async (featureArray, filterArray, callback) => {
         debug(`${ROUTES.CONTEXT_DOCUMENT_LIST} event`);
         const response = new ResponseObject();
         try {
-            const result = await context.listDocuments();
+            const result = await context.listDocuments(featureArray, filterArray);
             callback(response.success(result).getResponse());
         } catch (err) {
             callback(response.error(err).getResponse());
@@ -145,7 +145,7 @@ module.exports = function(socket, context) {
         debug(`${ROUTES.CONTEXT_DOCUMENT_INSERT_ARRAY} event`);
         const response = new ResponseObject();
         // TODO: Input validation
-        // TODO: Add featureArray, filterArray, use data.documentArray 
+        // TODO: Add featureArray, filterArray, use data.documentArray
         // to be compliant with the REST API
         let documents = data;
 
@@ -155,7 +155,7 @@ module.exports = function(socket, context) {
         } catch (err) {
             callback(response.error(err).getResponse());
         }
-    });    
+    });
 
     /**
      * Event listeners
