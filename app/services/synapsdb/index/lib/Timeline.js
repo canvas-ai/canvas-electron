@@ -1,3 +1,5 @@
+const bitmap = {}
+
 class Timeline {
 
     constructor() {}

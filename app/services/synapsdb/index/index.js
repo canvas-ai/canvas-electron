@@ -7,10 +7,10 @@ const BitmapManager = require('./lib/BitmapManager')
 const MemCache = require('./lib/MemCache')
 
 // Constants
-const MAX_DOCUMENTS = 4294967296 // 2^32
-const MAX_CONTEXTS = 1024 // 2^10
-const MAX_FEATURES = 65536 // 2^16
-const MAX_FILTERS = 65536 // 2^16
+//const MAX_DOCUMENTS = 4294967296 // 2^32
+//const MAX_CONTEXTS = 1024 // 2^10
+//const MAX_FEATURES = 65536 // 2^16
+//const MAX_FILTERS = 65536 // 2^16
 const INTERNAL_BITMAP_ID_MIN = 1000
 const INTERNAL_BITMAP_ID_MAX = 1000000
 
@@ -58,7 +58,7 @@ class Index extends EE {
             this.bitmaps.createDataset('contexts'),
             this.bitmapCache,
             {
-                rangeMin: INTERNAL_BITMAP_ID_MAX,
+                rangeMin: INTERNAL_BITMAP_ID_MIN,
             })
 
         // Features
@@ -66,7 +66,7 @@ class Index extends EE {
             this.bitmaps.createDataset('features'),
             this.bitmapCache,
             {
-                rangeMin: INTERNAL_BITMAP_ID_MAX,
+                rangeMin: INTERNAL_BITMAP_ID_MIN,
             })
 
         // Filters
@@ -74,7 +74,7 @@ class Index extends EE {
             this.bitmaps.createDataset('filters'),
             this.bitmapCache,
             {
-                rangeMin: INTERNAL_BITMAP_ID_MAX,
+                rangeMin: INTERNAL_BITMAP_ID_MIN,
             })
 
         // Queues
@@ -88,62 +88,80 @@ class Index extends EE {
     }
 
     /**
-     * Main Index methods
+     * Main Index API
      */
 
-    async insert(id, contextArray, featureArray, filterArray) {}
+    /*
+    async getObject(id) { }
 
-    async update(id, contextArray, featureArray, filterArray) {}
+    async getObjectByHash(hash) { }
 
-    async remove(id, contextArray, featureArray, filterArray) {
-        if (!id) throw new Error('Document ID required')
-        if (!contextArray) throw new Error('Context array required')
-        debug(`Removing document ${id} from context bitmaps ${contextArray}`)
+    async insertObject(id, contextArray, featureArray, filterArray) {}
 
-    }
+    async updateObject(id, contextArray, featureArray, filterArray) {}
 
-    async delete(id) {
-        if (!id) throw new Error('Document ID required')
-        debug(`Deleting document ${id} from index`)
-    }
+    async removeObject(id, contextArray, featureArray, filterArray) {}
 
-    async listEntries(contextArray, featureArray, filterArray) {}
+    async deleteObject(id) { }
 
-    async listContexts() {}
+    async getObjectContexts(id) { }
 
-    async listFeatures() {}
+    async addObjectFeatures(id, feature) { }
 
-    async listFilters() {}
+    async removeObjectFeatures(id, feature) { }
 
+    async getObjectFeatures(id) { } */
 
-    async tickFeatureArray(id, featureArray) {
-        if (!id) throw new Error('Document ID required')
-        if (!featureArray) throw new Error('Feature array required')
-    }
-
-    async untickFeatureArray(id, featureArray) {
-        if (!id) throw new Error('Document ID required')
-        if (!featureArray) {
-            debug(`untickFeatureArray(): No feature array provided, unticking all features for document ${id}`)
-        }
-    }
-
-    async tickContextArray(id, contextArray) {
-
-    }
-
-    async untickContextArray(id, contextArray) {
-
-    }
 
 
     /**
      * Bitmap methods
      */
 
-    AND(bitmaps) {
-        return BitmapManager.AND(bitmaps)
+    async tickContextArray(idOrArray, contextArray = []) {
+        if (!idOrArray) throw new Error('Document ID required')
+        if (!contextArray || !contextArray.length) throw new Error('Context array required')
+
+        if (typeof idOrArray === 'number') {
+            return this.bmContexts.tick(idOrArray, contextArray)
+        }
+
+        return this.bmContexts.tickMany(idOrArray, contextArray)
     }
+
+    async untickContextArray(idOrArray, contextArray = []) {
+        if (!idOrArray) throw new Error('Document ID required')
+        if (!contextArray || !contextArray.length) throw new Error('Context array required')
+
+        if (typeof idOrArray === 'number') {
+            return this.bmContexts.untick(idOrArray, contextArray)
+        }
+
+        return this.bmContexts.untickMany(idOrArray, contextArray)
+    }
+
+    async tickFeatureArray(idOrArray, featureArray = []) {
+        if (!idOrArray) throw new Error('Document ID required')
+        if (!featureArray || !featureArray.length) throw new Error('Feature array required')
+
+        if (typeof idOrArray === 'number') {
+            return this.bmFeatures.untick(idOrArray, featureArray)
+        }
+
+        return this.bmFeatures.untickMany(idOrArray, featureArray)
+    }
+
+    async untickFeatureArray(idOrArray, featureArray = []) {
+        if (!idOrArray) throw new Error('Document ID required')
+        if (!featureArray || !featureArray.length) throw new Error('Feature array required')
+
+        if (typeof idOrArray === 'number') {
+            return this.bmFeatures.untick(idOrArray, featureArray)
+        }
+
+        return this.bmFeatures.untickMany(idOrArray, featureArray)
+    }
+
 
     async updateContextBitmaps(contextArray, oidOrArray) {
         debug(`updateContextBitmaps(): contextArray: ${contextArray}, oidOrArray: ${oidOrArray}`)
@@ -155,39 +173,34 @@ class Index extends EE {
         await this.bmFeatures.tickMany(featureArray, oidOrArray)
     }
 
-    /**
-     * Calculate the AND of an array of roaring bitmaps IDs
-     * @param {Array} idArray: Array of bitmap IDs
-     * @returns {Array|RoaringBitmap32} Array of bitmap IDs or RoaringBitmap32
-     */
-    async idArrayAND(idArray, returnAsBitmap = false) {
+    bitmapAND(bitmaps, returnAsArray = false) {
+        if (!bitmaps || !bitmaps.length) throw new Error('Bitmap array required')
+        if (returnAsArray) {
+            let bitmap = BitmapManager.AND(bitmaps)
+            return bitmap.toArray()
+        }
 
+        return BitmapManager.AND(bitmaps)
     }
 
     contextArrayAND(bitmapArray, returnAsArray = false) {
+        if (!bitmapArray || !bitmapArray.length) throw new Error('Bitmap array required')
+        if (returnAsArray) {
+            let bitmap = this.bmContexts.AND(bitmapArray)
+            return bitmap.toArray()
+        }
+
         return this.bmContexts.AND(bitmapArray)
     }
 
     featureArrayAND(bitmapArray, returnAsArray = false) {
+        if (!bitmapArray || !bitmapArray.length) throw new Error('Bitmap array required')
+        if (returnAsArray) {
+            let bitmap = this.bmFeatures.AND(bitmapArray, returnAsArray)
+            return bitmap.toArray()
+        }
+
         return this.bmFeatures.AND(bitmapArray)
-    }
-
-    /**
-     * Calculate the OR of an array of roaring bitmaps IDs
-     * @param {Array} idArray: Array of bitmap IDs
-     * @returns {Array|RoaringBitmap32} Array of bitmap IDs or RoaringBitmap32
-     */
-    async idArrayOR(idArray, returnAsBitmap = false) {
-
-    }
-
-    /**
-     * Calculate the OR of an array of roaring bitmaps
-     * @param {Array} bitmapArray
-     * @returns {RoaringBitmap32|Array} RoaringBitmap32 or Array of bitmap IDs
-     */
-    async bitmapArrayOR(bitmapArray, returnAsArray = false) {
-
     }
 
 }

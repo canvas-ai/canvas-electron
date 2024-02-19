@@ -26,7 +26,8 @@ class ServiceManager extends EventEmitter {
         debug('Initializing Canvas Service Manager')
         super();
 
-        this.dirs = options.serviceDirs || [path.join(APP_ROOT, 'services')];
+        if (!options.serviceDirs) throw new Error('ServiceManager requires a serviceDirs path')
+        this.dirs = options.serviceDirs
 
         this.services = new Map();
         this.loadedServices = new Map();
