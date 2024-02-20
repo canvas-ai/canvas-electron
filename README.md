@@ -140,12 +140,11 @@ Some of the technologies used in no particular order:
 
 ## Installation instructions
 
-### ! Slowly separating some of the modules into their own repos for easier maintainability
+### ! Slowly separating *some* of the modules into their own repos for easier maintainability
 
 - https://github.com/idncsk/canvas-ui-shell
 - https://github.com/idncsk/canvas-ui-firefox
 - https://github.com/idncsk/canvas-ui-chrome
-- https://github.com/idncsk/canvas-ui-electron
 
 ### Canvas server
 
