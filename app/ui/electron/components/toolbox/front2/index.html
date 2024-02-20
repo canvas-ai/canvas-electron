@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <link type="text/css" rel="stylesheet" href="css/jqtree.css"  media="screen,projection"/>
+<style>
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+table {
+	font-size: 1em;
+}
+
+</style>
+  <style rel="stylesheet" type="text/css" src="./css/jqtree.css"></style>
+  <script src="js/jquery-3.6.0.js"></script>
+  <script src="js/tree.jquery.js"></script>
+</head>
+<body>
+  <div id="tree1"></div>
+</body>
+<script>
+
+
+var data = [
+    {
+        name: 'node1',
+        children: [
+            { name: 'child1' },
+            { name: 'child2' }
+        ]
+    },
+    {
+        name: 'node2',
+        children: [
+            { name: 'child3' }
+        ]
+    }
+];
+
+$(document).ready(function(){
+    $('#tree1').tree({
+        data: data
+    });
+
+});
+
+
+window.addEventListener("variable-update", (event) => {
+         console.log("Variable updated: ",event.detail);
+  //You can update your UI here or save the value in a variable
+});
+
+let context = window.ipc;
+
+console.log(context)
+context.setUrl('foo/bar/baz')
+context.on('change', (...data) => {
+    console.log(data)
+})
+
+</script>
+</html>

@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1,minimal-ui" name="viewport">
+    <link rel="stylesheet" href="themes/default/style.css">
+    <link rel="stylesheet" href="main.css">
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #context-url {
+            margin-top: 32px;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background-color: #333;
+            color: #fff;
+            font-size: 12px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        #context-url a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .context-url-link {
+            margin-right: 5px;
+            color: #fff;
+        }
+
+    </style>
+    <title>Canvas</title>
+</head>
+<body>
+
+<div id="context-url"></div>
+<div id="context-tree"></div>
+
+<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+<script src="jquery-3.6.4.min.js"></script>
+<script src="jstree.min.js"></script>
+<script src="socket.io.min.js"></script>
+<script>if (window.module) module = window.module;</script>
+<script>
+
+const socket = io.connect('http://127.0.0.1:8001');
+let context = {}
+
+function updateContextTree() {
+  socket.emit('context:get', 'tree', function(res) {
+    // Parse the response data as JSON
+    var treeData = [res];
+
+    // Update the jstree data with the received data
+    $('#context-tree').jstree(true).settings.core.data = treeData;
+    $('#context-tree').jstree(true).refresh(() => {
+        $('#context-tree').jstree(true).open_all();
+        $('#context-tree').jstree('open_all');
+    });
+  });
+}
+
+function updateContextBreadcrums(url) {
+
+    // Get the #context-url div
+    const contextUrlDiv = $('#context-url');
+
+    // Clear the contents of the div
+    contextUrlDiv.empty();
+
+    // Split the URL into parts
+    url = new URL(url)
+    const urlParts = url.pathname.split('/').filter(Boolean);
+
+    // Iterate over the URL parts and create links
+    for (let i = 0; i < urlParts.length; i++) {
+        // Create a link element for the URL part
+        const linkEl = $('<a>', {
+        text: urlParts[i],
+        class: 'context-url-link',
+        href: '#',
+        click: function(e) {
+            e.preventDefault();
+            // Do something when the link is clicked (e.g. navigate to the URL)
+        }
+        });
+
+        // Append the link element to the #context-url div
+        contextUrlDiv.append(linkEl);
+
+        // Add a separator between URL parts (except for the last part)
+        if (i < urlParts.length - 1) {
+            contextUrlDiv.append($('<span>', { text: '/' }));
+        }
+    }
+}
+
+
+$('#context-tree').jstree({
+    "core" : {
+        "animation" : 0,
+        "multiple" : false,
+        "themes" : { "stripes" : true },
+        'data' : updateContextTree(),
+        "themes" : {
+            "variant" : "large"
+        }
+    },
+    "types" : {
+        "#" : {
+            "max_children" : 1,
+            "max_depth" : 4,
+            "valid_children" : ["root"]
+        },
+        "root" : {
+            "icon" : "/static/3.3.15/assets/images/tree_icon.png",
+            "valid_children" : ["default"]
+        },
+        "default" : {
+            "valid_children" : ["default","file"]
+        },
+        "file" : {
+            "icon" : "glyphicon glyphicon-file",
+            "valid_children" : []
+        }
+    },
+    "plugins" : [
+        "contextmenu",
+        "types", "wholerow" // "state"  "dnd", "search",
+    ]
+});
+
+$('#context-tree').on('select_node.jstree', function(e, data) {
+    const nodePath = sanitizePath(data.instance.get_path(data.node, '/', false))
+    console.log('Selected node path:', nodePath);
+    socket.emit('context:set', nodePath)
+});
+
+$('#context-tree').on('create_node.jstree', function(e, data) {
+  const nodePath = sanitizePath(data.instance.get_path(data.node, '/', false));
+  const newNode = data.node;
+  console.log('New node:', newNode);
+});
+
+$('#context-tree').on('rename_node.jstree', function(e, data) {
+
+    const nodePath = sanitizePath(data.instance.get_path(data.node, '/', false))
+
+    // Get the old name of the node
+    const oldName = data.old;
+
+    // Get the renamed node
+    const newName = data.node.text;
+
+    // Send an event to the backend
+    console.log('Renamed node:', newName)
+    console.log('Old name:', oldName)
+    //socket.emit('node:rename', oldName, newName);
+
+    // Send an event to the backend
+    console.log('New node path to insert:', nodePath)
+    socket.emit('context:insert', nodePath);
+
+});
+
+socket.emit('context:get', 'url', (res) => {
+    context.url = res
+    console.log(`Current context URL: "${context.url}"`)
+})
+
+socket.on('context:url', (url) => {
+    console.log(`Context URL changed to: "${context.url}"`);
+    updateContextBreadcrums(url)
+    updateContextTree()
+})
+
+socket.on('context:tree', (res) => {
+    context.tree = res
+    $('#context-tree').jstree(true).settings.core.data = [res];
+    $('#context-tree').jstree(true).refresh(() => {
+        $('#context-tree').jstree(true).open_all();
+        $('#context-tree').jstree('open_all');
+    });
+
+})
+
+function selectPath(path) {
+    if (path == '/' || path == 'universe') return 'universe:///'
+}
+
+function sanitizePath(path) {
+    if (path == '/' || path == 'universe') return 'universe:///'
+    path = path.replace(/universe/, '')
+    path = 'universe://' + path
+    path = path.replace(/\/\//g, '/')
+    return path
+}
+
+
+</script>
+</body>
+<!--
+
+    Simplicty is the ultimate sophistication
+
+-->
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+    <!-- 
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    -->
+    <style>
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+table {
+	font-size: 1em;
+}
+
+.ui-draggable, .ui-droppable {
+	background-position: top;
+}
+
+
+        #tab {
+            position: absolute;
+            top: 0;
+            left: 8px;
+            width: 200px;
+            height: 50px;
+            border-bottom: 0;
+            background-color: white;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            padding: 8px 0 0 8px;
+            font-size: 2em;
+            font-weight: 800;
+        }
+        
+        #content {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-color: white;
+            border-radius: 6px;
+        
+        }
+        
+        #url {
+            display: box;
+            margin: 32px auto;
+            width: 80%;
+            height: 42px;
+            background: #ccc;
+            
+        }
+        
+    </style>    
+  
+  <link rel="stylesheet" href="jquery-ui.css">
+  <style>
+  #sortable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+  #sortable li { margin: 0 5px 5px 5px; padding: 5px; font-size: 1.2em; height: 1.5em; }
+  html>body #sortable li { height: 1.5em; line-height: 1.2em; }
+  .ui-state-highlight { height: 1.5em; line-height: 1.2em; }
+  </style>
+  <script src="jquery-3.6.0.js"></script>
+  <script
+  src="jquery-ui.min.js"
+  integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0="
+  crossorigin="anonymous"></script>
+
+  <script>
+  $( function() {
+    $( "#sortable" ).sortable({
+      placeholder: "ui-state-highlight"
+    });
+    $( "#sortable" ).disableSelection();
+  } );
+  </script>    
+</head>
+<body>
+
+    <div id="tab">
+        Context
+    </div>
+
+    <div id="content">
+        <div id="url">
+
+        </div>
+
+        <div id="tree">
+            <ul id="sortable">
+                <li class="ui-state-default">Item 1</li>
+                <li class="ui-state-default">Item 2</li>
+                <li class="ui-state-default">Item 1</li>
+                <li class="ui-state-default">Item 2</li>
+                <li class="ui-state-default">Item 7</li>
+                <li class="ui-state-default">Item 3</li>
+                <li class="ui-state-default">Item 4</li>
+                <li class="ui-state-default">Item 5</li>
+                <li class="ui-state-default">Item 6</li>
+                <li class="ui-state-default">Item 7</li>
+              </ul>            
+
+        </div>
+    </div>
+
+    <!--JavaScript at end of body for optimized loading-->
+    <script type="text/javascript" src="js/materialize.min.js"></script>
+  </body>
+</html>
