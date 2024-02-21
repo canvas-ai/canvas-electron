@@ -12,6 +12,7 @@
     "date-fns": "^2.29.3",
     "eventemitter2": "^6.4.9",
     "flexsearch": "^0.7.43",
-    "lmdb": "^2.7.9"
+    "lmdb": "^2.7.9",
+    "roaring": "^2.2.0"
   }
 }

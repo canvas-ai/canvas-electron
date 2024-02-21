@@ -1,24 +1,26 @@
-# Canvas UI | Electron
+# canvas-ui-electron
+Canvas UI (electron)
 
-#### ! Code moved to https://github.com/idncsk/canvas-ui-electron
+## ! Moving back to the canvas repo (monorepo ftw)
 
-#### Installation
+### Startup
 
-```bash
-# The following should do the trick
-$ ./install.sh
-```
+- Check if canvas-server is already running, if yes connect via socket.io(or net.ipc)
+- If canvas-server is not running, start it via pm2 as a service
 
-#### Manual installation
+### Notes
 
-```bash
-$ cd app/ui/electron
-$ git clone https://github.com/idncsk/canvas-ui-electron.git .
-```
+! Suggest Next Steps When Users Complete a Task  
+! Enable Recent History (ctrl+z / ctrl+y + nav buttons)  
+! Sidebars not per-item but 100% height, color-coded  
+! ~max 7 items per category menu(File/Note/Email/Contact..)  
 
-#### Quick start
+## CSS Frameworks
 
-```bash
-$ cd app
-$ npm run electron
-```
+https://onaircode.com/css-material-design-frameworks/  
+https://mdbootstrap.com/docs/standard/components  
+https://mui.com/material-ui/  
+
+## Refs
+
+https://github.com/sindresorhus/awesome-electron  

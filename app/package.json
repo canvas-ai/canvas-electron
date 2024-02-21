@@ -10,7 +10,7 @@
     "jsdoc": "jsdoc -r -c jsdoc.json",
     "cli": "node ui/cli/server.js",
     "repl": "node ui/cli/repl.js",
-    "electron": "electron ui/electron/main.js",
+    "electron": "electron ui/electron/init.js",
     "server:dev": "node canvas-server.js",
     "server:start": "PM2_HOME=../var/pm2 pm2 start ecosystem.config.js --watch",
     "server:stop": "PM2_HOME=../var/pm2 pm2 stop ecosystem.config.js",
@@ -32,6 +32,7 @@
     "deemon": "^1.8.0",
     "detect-libc": "^2.0.2",
     "dotenv": "^16.3.1",
+    "electron": "^28.2.3",
     "eventemitter2": "^6.4.9",
     "express": "^4.18.2",
     "file-type": "=18.5.0",
@@ -54,8 +55,12 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
+    "@electron/rebuild": "^3.6.0",
     "electron-builder": "^24.9.1",
     "eslint": "^8.56.0",
     "jsdoc": "^4.0.2"
+  },
+  "engines" : {
+    "node" : ">=18.0.0 <19.0.0"
   }
 }
