@@ -78,14 +78,6 @@ app.setAboutPanelOptions({
 */
 
 // TODO: Check if canvas server is running
-// Use IPC if it is, otherwise start it in-process
-const Canvas = require('../../main.js')
-const canvas = new Canvas({
-    sessionEnabled: true,
-    sessionRestoreOnStart: true,
-    enableUserRoles: true,
-    enableUserApps: true
-})
 
 // Register custom protocols
 registerProtocols()
@@ -95,33 +87,24 @@ registerProtocols()
  * Initialize Electron UI
  */
 
-app.on('ready', async function () {
+app.on('ready', () => {
 
     // Globals
     registerProcessSignalHandlers()
     registerGlobalEventListeners()
     registerGlobalShortcuts()
 
-    // App
-    app.services = canvas.services
-    app.roles = canvas.roles
-    app.apps = canvas.apps
-
-    app.user = canvas.user
-    app.device = DEVICE
-
-    app.contexts = canvas.contexts
-    app.context = await canvas.start()
-
     // UI elements
     app.ui = {}
 
     // Load Tray
-    let Tray = require('./components/tray')
-    app.ui.tray = new Tray({
+    const Tray = require('./components/tray')
+    const tray = new Tray({
         title: app.getName(),
-        icon: path.resolve(__dirname, '../assets/logo_1024x1024_v2.png'),
+        icon: path.join(__dirname, 'assets/logo_1024x1024_v2.png')
     })
+
+    console.log(tray)
 
 })
 
