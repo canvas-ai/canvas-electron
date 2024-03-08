@@ -388,9 +388,13 @@ class Context extends EE {
 	 * Internal methods
 	 */
 
+
+
+	
 	#initializeTreeEventListeners() {
 		this.#tree.on("update", (tree) => {
 		this.emit("context:tree:update", tree);
+		
 	});
 
 		/* this.#tree.on('insert', (tree) => {
