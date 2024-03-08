@@ -1,5 +1,4 @@
-
-const Layer = require('../lib/Layer')
+const Layer = require('../Layer')
 
 class Canvas extends Layer {
 

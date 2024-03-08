@@ -13,7 +13,7 @@ const TreeIndex = require('./TreeIndex')
 const TreeNode = require('./TreeNode')
 
 // Layers
-const rootLayer = require('../layers/Universe')
+const rootLayer = require('./layers/Universe')
 // const Universe = require('../layers/Universe')
 // const rootLayer = new Universe()
 
@@ -26,6 +26,7 @@ const rootLayer = require('../layers/Universe')
 class Tree extends EventEmitter {
 
     constructor(options = {
+        // TODO: Refactor!
         treePath: path.join(os.homedir(), '.canvas', 'tree.json'),
         layerPath: path.join(os.homedir(), '.canvas', 'layers.json')
     }) {

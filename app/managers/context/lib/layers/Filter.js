@@ -1,5 +1,5 @@
 
-const Layer = require('../lib/Layer')
+const Layer = require('../Layer')
 
 class Filter extends Layer {
 

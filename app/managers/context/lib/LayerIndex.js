@@ -2,7 +2,7 @@
 
 
 //const Conf = require('conf')
-const JsonMap = require('../../utils/JsonMap')
+const JsonMap = require('../../../utils/JsonMap')
 const Layer = require('./Layer')
 
 class LayerIndex  { //extends Conf {
