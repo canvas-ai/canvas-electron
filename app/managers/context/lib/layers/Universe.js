@@ -1,4 +1,4 @@
-const Layer = require('../lib/Layer')
+const Layer = require('../Layer')
 module.exports = new Layer({
     id: '/',
     name: 'universe',

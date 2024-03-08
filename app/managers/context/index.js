@@ -9,14 +9,16 @@ const Tree = require('./lib/Tree')
 // Constants
 const MAX_CONTEXTS = 1024 // 2^10
 
-class ContextManager extends EventEmitter2 {
+class ContextManager extends EventEmitter {
 
     #db;
     #tree;
     #layers;
 
-    constructor(db) {
-        this.#db = db;
+    constructor(options = {}) {
+        super()
+
+        this.#db = options.db;
         this.#tree = new Tree();
         this.#layers = this.#tree.layers;
         this.activeContexts = new Map()

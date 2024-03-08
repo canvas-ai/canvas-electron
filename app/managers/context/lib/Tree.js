@@ -13,7 +13,7 @@ const TreeIndex = require('./TreeIndex')
 const TreeNode = require('./TreeNode')
 
 // Layers
-const rootLayer = require('../layers/Universe')
+const rootLayer = require('./layers/Universe')
 // const Universe = require('../layers/Universe')
 // const rootLayer = new Universe()
 
