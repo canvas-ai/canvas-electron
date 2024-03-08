@@ -1,10 +1,10 @@
 // Utils
 const debug = require("debug")("canvas-context");
 const EE = require("eventemitter2");
-const { uuid12 } = require("./lib/utils");
+const { uuid12 } = require("./utils");
 
 // App includes
-const Url = require("./lib/Url");
+const Url = require("./Url");
 
 // Constants
 const CONTEXT_AUTOCREATE_LAYERS = true;
@@ -33,7 +33,7 @@ class Context extends EE {
 	#meta = {};
 
 	// TODO: Refactor to not set the context url in the constructor
-	constructor(url, canvas, options = {}) {
+	constructor(url, db, tree, options = {}) {
 		// Initialize event emitter
 		super({
 			wildcard: false, // set this to `true` to use wildcards
@@ -47,9 +47,9 @@ class Context extends EE {
 
 		// Generate a runtime uuid
 		this.#id = options?.id || uuid12();
-		this.documents = canvas.db;
+		this.documents = db;
 
-		this.#tree = canvas.tree;
+		this.#tree = tree
 		this.#layerIndex = this.#tree.layers; // TODO: Refactor
 
 		// Set the context url

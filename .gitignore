@@ -11,14 +11,6 @@
 !/config/jsonapi-server.json
 !/config/.keep
 
-## App extensions
-/extensions/**
-!/extensions/.keep
-!/extensions/apps/.keep
-!/extensions/roles/.keep
-!/extensions/services/.keep
-
-
 ## Var directories
 /var/**
 !/var/.keep

@@ -1,0 +1,1 @@
+docker run -d --network=host -e OLLAMA_API_BASE_URL="http://172.16.2.102:11434" -v ~/.canvas/roles/open-webui:/app/backend/data --name open-webui --restart=unless-stopped ghcr.io/open-webui/open-webui:main

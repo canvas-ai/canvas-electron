@@ -8,13 +8,13 @@
 <br />
 
 <h1 align="center">Canvas</h1>
-<h2 align="center">AI-powered context layer on top of your unstructured universe!</h2>
+<h2 align="center">Context layer on top of your unstructured universe!</h2>
 
 <br />
 
 ## Foreword / Beware!  
 
-This project was started a long^looong time ago (first named "Workspaces") and was my first-ever Node.js + Electron endeavour. Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
+This project was started a long^looong time ago (originally named "Workspaces") and was my first-ever Node.js + Electron endeavour. Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
 
 ## Basic Concepts | What is Canvas
 

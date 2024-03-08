@@ -1,22 +1,18 @@
 'use strict'
 
-
 // Environment
 const { APP, USER, DEVICE } = require('../../env.js')
 
-
 // Utils
 const EventEmitter = require("eventemitter2");
-const path = require("path");
-const debug = require("debug")("canvas:app-manager")
 
 
 /**
- * Identity manager
+ * Peer manager
  */
 
-class IdentityManager extends EventEmitter {}
+class PeerManager extends EventEmitter {}
 
 
 
-module.exports = IdentityManager;
+module.exports = PeerManager;

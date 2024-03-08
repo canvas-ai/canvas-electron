@@ -17,9 +17,7 @@ const debug = require('debug')('canvas-main'); // TODO: Replace with logger
 const Config = require('./utils/config');
 const Log = require('./utils/logger');
 const EventEmitter = require('eventemitter2');
-
-// Constants
-const MAX_CONTEXTS = 1024 // 2^10
+const { log } = require('console');
 
 // Core services
 const SynapsDB = require('./services/synapsdb');
@@ -27,10 +25,11 @@ const NeuralD = require('./services/neurald');
 const StoreD = require('./services/stored');
 
 // Manager classes
+const ServiceManager = require('./managers/service');
+const ContextManager = require('./managers/context');
 //const AppManager = require('./managers/app');
 //const PeerManager = require('./managers/peer');
 //const RoleManager = require('./managers/role');
-const ServiceManager = require('./managers/service');
 //const SessionManager = require('./managers/session');
 //const UserManager = require('./managers/user');
 //const IdentityManager = require('./managers/peer');
@@ -39,12 +38,6 @@ const ServiceManager = require('./managers/service');
 // Transports
 //const RestTransport = require('./transports/rest');
 //const SocketioTransport = require('./transports/socketio');
-
-// Context
-// TODO: Refactor! This setup does not make sense!
-const Tree = require('./core/lib/Tree');
-const Context = require('./core');
-const { log } = require('console');
 
 
 /**
@@ -121,6 +114,19 @@ class Canvas extends EventEmitter {
             ]
         });
 
+        /* this.session = new SessionManager({
+            dbPath: path.join(USER.paths.db, 'session.json')
+        }); */
+
+        // TODO: Replace with session manager
+        this.session = (options.sessionEnabled) ?
+            this.db.createDataset('session') :
+            null        
+
+        this.contexts = new ContextManager({
+            db: this.db
+        })
+
         /*
         this.roles = new RoleManager({
             config: path.join(USER.paths.config, 'roles.json')
@@ -145,24 +151,7 @@ class Canvas extends EventEmitter {
         this.peers = new PeerManager({
             dbPath: path.join(USER.paths.db, 'peers.json')
         });
-
-        this.session = new SessionManager({
-            dbPath: path.join(USER.paths.db, 'session.json')
-        }); */
-
-        // TODO: Replace with session manager
-        this.session = (options.sessionEnabled) ?
-            this.db.createDataset('session') :
-            null
-
-        // Global context tree
-        this.tree = new Tree({
-            treePath: path.join(USER.paths.db, 'tree.json'),
-            layerPath: path.join(USER.paths.db, 'layers.json')
-        })
-
-        this.activeContexts = new Map();
-        this.context = null;
+        */
 
         // Static variables
         this.APP = APP          // App runtime env
@@ -174,7 +163,6 @@ class Canvas extends EventEmitter {
         // App State
         this.isMaster = true
         this.status = 'stopped'
-
     }
 
     // Getters
@@ -251,47 +239,18 @@ class Canvas extends EventEmitter {
      */
 
     createContext(url = '/', options = {}) {
-        let context = new Context(url, this, options)
-        this.activeContexts.set(context.id, context)
+        let context = this.contexts.createContext(url, options)
         return context
     }
 
-    openContext(id, url, options = {}) {
-        if (this.status != 'running') throw new Error('Application not fully initialized')
-        if (this.activeContexts.size >= MAX_CONTEXTS) throw new Error('Maximum number of contexts reached')
+    removeContext(id) { return this.contexts.removeContext(id); }
 
-        if (this.activeContexts.has(id)) {
-            log.warning(`Context with id ${id} already exists`)
-            if (url) return this.openContext(id + "-clone", url, options)
-            return this.activeContexts.get(id)
-        }
+    listContexts() { return this.contexts.listContexts(); }
 
-        let context = new Context(url, this, options)
-        this.activeContexts.set(id, context)
+    lockContext(id, url) { return this.contexts.lockContext(url); }
 
-        log.info(`Opened context ${id} at ${url}`)
-        return context
-    }
-
-    closeContext(id) {
-        if (!this.activeContexts.has(id)) {
-            log.error(`Context with id ${id} not running`)
-            return false
-        }
-
-        let context = this.activeContexts.get(id)
-        if (!context.destroy()) {
-            log.error(`Error destroying context ${id}`)
-            return false
-        }
-
-        this.activeContexts.delete(id)
-        log.info(`Context with id ${id} closed`)
-        return true
-    }
-
-    listActiveContexts() { return this.activeContexts.values(); }
-
+    unlockContext(id) { return this.contexts.unlockContext(id); }
+    
 
     /**
      * Services
