@@ -1,12 +1,4 @@
-/**
- * UI \ Electron \ Tray
- */
-
 const { app, Menu, MenuItem, Tray, shell } = require("electron");
-
-// Utils
-const path = require("path");
-const debug = require("debug")("ui-electron-tray");
 
 /**
  * Canvas Tray
@@ -15,12 +7,6 @@ const debug = require("debug")("ui-electron-tray");
 class CanvasTray extends Tray {
 
   constructor(options = {}) {
-    options = {
-      title: "Tray",
-      icon: path.resolve(__dirname, "../../../assets/logo_1024x1024.png"),
-      ...options,
-    };
-
     // Initialize the Electron Tray object
     super(options.icon);
 
@@ -36,7 +22,6 @@ class CanvasTray extends Tray {
   }
 
   updateTrayMenu() {
-    debug("Updating tray menu");
     this.setContextMenu(null);
     let menu = new Menu();
 
