@@ -123,6 +123,11 @@ There are couple of motivating factors for this project:
 
 ## Architecture
 
+**Canvas server** manages your (not exclusively digital) universe. It hosts the global context tree, stores all layers and indexes all your apps, roles, utils, dotfiles and data. It is also a proxy between your data backends and your client, exporting your contextualized OS environment through various transports(REST API, socket.io, IPC, webdav). 
+
+**Canvas client** is managing the presentation layer (OS UI), and  OS integration. It ensures all configured apps(flatpak), local roles(docker/podman), utils(stored), dotfiles(git) and data(stored) are available on your host system. You can pin a canvas client to a specific workspace(context), lets say your work notebook to universe://work and your htpc to universe://home/living-room, both with its own (sub-)set of apps, roles, utils, dotfiles and data visibility limited to the pinned context subtree.
+
+
 Some of the technologies used in no particular order:
 
 - [Roaring bitmaps](https://roaringbitmap.org/)
