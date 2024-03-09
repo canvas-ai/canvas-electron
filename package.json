@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "bonjour": "^3.5.0"
+  }
+}
