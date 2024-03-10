@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "bonjour": "^3.5.0"
+    "socket.io-client": "^4.7.4"
   }
 }

@@ -123,9 +123,20 @@ There are couple of motivating factors for this project:
 
 ## Architecture
 
-**Canvas server** manages your (not exclusively digital) universe. It hosts the global context tree, stores all layers and indexes all your apps, roles, utils, dotfiles and data. It is also a proxy between your data backends and your client, exporting your contextualized OS environment through various transports(REST API, socket.io, IPC, webdav). 
+**Canvas server**  
+Moved to a separate repo: 
+- https://github.com/idncsk/canvas-server  
+  
+Manages your entire (not exclusively digital) universe. Server hosts your global context tree, stores all layers and indexes all your Apps, Roles, Utils, Dotfiles and data. It is also a proxy between your data backends and your client, exporting your contextualized OS environment configuration through various transports(REST API, socket.io, IPC, webdav).
 
-**Canvas client** is managing the presentation layer (OS UI), and  OS integration. It ensures all configured apps(flatpak), local roles(docker/podman), utils(stored), dotfiles(git) and data(stored) are available on your host system. You can pin a canvas client to a specific workspace(context), lets say your work notebook to universe://work and your htpc to universe://home/living-room, both with its own (sub-)set of apps, roles, utils, dotfiles and data visibility limited to the pinned context subtree.
+**Canvas client**  
+Client repositories:
+- https://github.com/idncsk/canvas (default desktop client)
+- https://github.com/idncsk/canvas-ui-shell
+- https://github.com/idncsk/canvas-ui-firefox
+- https://github.com/idncsk/canvas-ui-chrome
+
+Client runtime [on a linux OS] ensures all configured apps(flatpak), local roles(docker/podman), utils(stored), dotfiles(git) and data(stored) are available on your host system for the context you are currently working in. You can pin a canvas client to a specific workspace(context), for example say your work notebook to `universe://work` and your htpc to `universe://home/living-room`, both with its own (sub-)set of apps, roles, utils, dotfiles and data visibility limited to the pinned context subtree.
 
 
 Some of the technologies used in no particular order:
@@ -145,59 +156,13 @@ Some of the technologies used in no particular order:
 
 ## Installation instructions
 
-### ! Slowly separating *some* of the modules into their own repos for easier maintainability
+### Bash client
 
 - https://github.com/idncsk/canvas-ui-shell
+
+### Firefox extension
+
 - https://github.com/idncsk/canvas-ui-firefox
-- https://github.com/idncsk/canvas-ui-chrome
-
-### Canvas server
-
-```bash
-$ git clone git@github.com:idncsk/canvas.git /path/to/canvas
-$ cd /path/to/canvas/app
-$ npm install
-$ npm run server    # Server backend only
-$ npm run repl      # Server repl CLI
-```
-
-(Optional): Add `/path/to/canvas/bin` to your `$PATH`
-
-```bash
-$ echo PATH="$PATH:/path/to/canvas/bin" >> ~/.bashrc
-```
-
-### Canvas bash client
-
-You can also install a bare-bones bash REST client:
-
-```bash
-$ git clone git@github.com:idncsk/canvas-ui-shell.git /path/to/canvas-shell
-$ echo ". /path/to/canvas-shell/context.sh" >> ~/.bashrc
-$ cd /path/to/canvas/app && npm run server
-```
-
-Currently, we only support a very limited API used mainly for development/testing purposes
-
-- set: Sets a context URL
-- url: Returns the current context url
-- path: Returns the current context path
-- paths: Returns the path representation of the current context tree
-- tree: Returns the full Canvas context tree in plain JSON format
-- bitmaps: Returns a summary of all in-memory bitmaps for the current context
-- list: Lists all documents linked to the current context    
-  - tabs: data/abstraction/tab
-  - notes: data/abstraction/note
-  - todo: data/abstraction/todo
-
-### Canvas firefox extension
-
-To install the firefox browser extension:  
-
-- Open your browser and navigate to
-**about:debugging#/runtime/this-firefox**
-- Click on "Load Temporary Add-on"
-- Navigate to canvas/ext/browser/firefox
 
 
 ### Portable installation
@@ -212,9 +177,8 @@ For **portable** use, download and extract nodejs and electron into the canvas/r
 
 ## Configuration paths
 
-Global app config: ``canvas/config``  
-Default user home for portable use: ``canvas/user``  
-default user home: ``$HOME/.canvas``  
+Default user home for portable use: `canvas/user`  
+Default user home: `$HOME/.canvas`
 
 Environment variables:
 
@@ -226,21 +190,6 @@ Environment variables:
 - CANVAS_USER_VAR
 - NODE_ENV
 - LOG_LEVEL
-
-<br />
-
-
-## Using Canvas | CLI
-
-TODO
-
-## Using Canvas | REPL
-
-TODO
-
-## Using Canvas | RestAPI
-
-TODO
 
 ## Social
 
@@ -261,7 +210,6 @@ YT Channel + Some (royalty-free) music used in my videos
 - By sponsoring some quality coffee via
   - <https://opencollective.com/idncsk>
   - <https://www.buymeacoffee.com/idncsk>
-- **Or**, since I'd like to work on this project in an official part-time setup(stop saying open-source is free, it's not), by a monthly recurring payment of 10EUR (I tolerate some margin of error:) to IBAN: SK95 8330 0000 0023 0250 2806
 
 **Any suggestions welcome** ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a hobby-programmer this is really appreciated!
 

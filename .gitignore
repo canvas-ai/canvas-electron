@@ -1,22 +1,12 @@
 ## App config
 /config/**
-!/config/transports.json
-!/config/apps.json
-!/config/roles.json
-!/config/services.json
-!/config/identities.json
-!/config/aliases.json
-!/config/colors.json
-!/config/socket.io-server.json
-!/config/jsonapi-server.json
+!/config/canvas.json
+!/config/example-*.json
 !/config/.keep
 
 ## Var directories
 /var/**
 !/var/.keep
-#/var/log/**
-#/var/run/**
-#/var/tmp/**
 
 ## Portable runtimes
 /runtime/**
@@ -26,10 +16,6 @@
 /user/**
 !user/.keep
 !user/.ignore
-/data/**
-!data/.keep
-/home/**
-!home/.keep
 
 ## Dev
 /.vscode
