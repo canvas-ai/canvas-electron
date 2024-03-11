@@ -1,77 +1,47 @@
-const { app, Menu, MenuItem, Tray, shell } = require("electron");
+const { app, Menu, MenuItem, Tray } = require("electron");
+const debug = require('debug')('canvas-ui:tray');
+const EventEmitter = require('eventemitter2');
 
-/**
- * Canvas Tray
- */
+class CanvasTray { // extends Tray {
 
-class CanvasTray extends Tray {
+    constructor(options = {}) {
+        // Parse input parms
+        if (!options.title) throw new Error('"title" is a mandatory parameter');
+        if(!options.icon) throw new Error('"icon" is a mandatory parameter');
 
-  constructor(options = {}) {
-    // Initialize the Electron Tray object
-    super(options.icon);
+        // This is more a workaround than proper code
+        // https://github.com/electron/electron/issues/36269
+        this.title = options.title
+        this.icon = options.icon
 
-    // Set tray properties
-    this.title = options.title;
+        // Initialize Electron.Tray
+        this.tray = new Tray(this.icon)
+        this.tray.setTitle(this.title);
+        this.tray.setToolTip(this.title);
 
-    // https://github.com/electron/electron/issues/28131
-    this.setToolTip(options.title);
-    this.setTitle(options.title);
+        this.updateTrayMenu();
+        debug('Canvas Tray ready');
+    }
 
-    this.updateTrayMenu();
-    this.setIgnoreDoubleClickEvents(true);
-  }
+    // Event handler proxy
+    on(event, listener) {
+        this.tray.on(event, listener);
+    }
 
-  updateTrayMenu() {
-    this.setContextMenu(null);
-    let menu = new Menu();
+    updateTrayMenu() {
+        debug('Updating Tray menu')
+        const menu = new Menu();
+        menu.append(new MenuItem({ label: this.title, enabled: false }));
+        menu.append(new MenuItem({ type: "separator" }));
+        menu.append(new MenuItem({ label: "Toolbox", click: () => app.toolbox.toggle() }));
+        menu.append(new MenuItem({ type: "separator" }));
+        menu.append(new MenuItem({ label: "Settings", click: () => console.log("Settings window") }));
+        menu.append(new MenuItem({ label: "About", click: () => app.showAboutPanel(), role: "about" }));
+        menu.append(new MenuItem({ type: "separator" }));
+        menu.append(new MenuItem({ label: "Exit", click: () => { app.isQuitting = true; app.quit(); }, accelerator: "Command+Q" }));
+        this.tray.setContextMenu(menu);
+    }
 
-    menu.append(new MenuItem({ label: this.title, enabled: false }));
-    menu.append(new MenuItem({ type: "separator" }));
-    menu.append(
-      new MenuItem({
-        label: "Toolbox",
-        click() {
-          app.toolbox.toggle();
-        },
-      })
-    );
-
-    menu.append(new MenuItem({ type: "separator" }));
-    menu.append(
-      new MenuItem({
-        label: "Settings",
-        click() {
-          log("Settings window");
-        },
-      })
-    );
-
-    menu.append(
-      new MenuItem({
-        label: "About",
-        click() {
-          app.showAboutPanel();
-        },
-        role: "about",
-      })
-    );
-
-    menu.append(new MenuItem({ type: "separator" }));
-    menu.append(
-      new MenuItem({
-        label: "Exit",
-        click() {
-          console.log("Exit from tray");
-          app.isQuitting = true;
-          console.log(app.quit());
-          process.exit(0);
-        },
-        accelerator: "Command+Q",
-      })
-    );
-
-    this.setContextMenu(menu);
-  }
 }
 
 module.exports = CanvasTray;

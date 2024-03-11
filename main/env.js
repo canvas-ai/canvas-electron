@@ -28,7 +28,7 @@ const device = require('./managers/device').getCurrentDevice()
 const APP_ROOT = path.dirname(path.resolve(__dirname))
 const APP_HOME = path.join(APP_ROOT, 'main')
 const APP_CONFIG = path.join(APP_ROOT, 'config')
-const APP_USER = path.join(APP_ROOT, 'user')
+const APP_USER = path.join(APP_ROOT, 'user')    // Portable use
 const APP_VAR = path.join(APP_ROOT, 'var')
 
 // Check for portable setup
@@ -56,7 +56,6 @@ const isPortable = ! fs.existsSync(path.join(APP_USER, '.ignore'))
 
 // User env
 const USER_HOME = process.env['CANVAS_USER_HOME'] || getUserHome()
-const USER_CACHE = process.env['CANVAS_USER_CACHE'] || path.join(USER_HOME, 'cache')
 const USER_CONFIG = process.env['CANVAS_USER_CONFIG'] || path.join(USER_HOME, 'config')
 const USER_DATA = process.env['CANVAS_USER_DATA'] || path.join(USER_HOME, 'data')
 const USER_DB = process.env['CANVAS_USER_DB'] || path.join(USER_HOME, 'db')
@@ -72,15 +71,15 @@ const env = {
         isElectron,
         isPortable,
         paths: {
-            root: APP_ROOT,         // Path/to/canvas
-            home: APP_HOME,         // APP_ROOT/app
-            config: APP_CONFIG,     // APP_ROOT/config
-            var: APP_VAR            // APP_ROOT/var
+            root: APP_ROOT,
+            home: APP_HOME,
+            config: APP_CONFIG,
+            user: APP_USER,
+            var: APP_VAR
         }
     },
 
     USER: {
-        // TODO: Rework
         ...device.user,
         paths: {
             // TODO: Rework (to-be-done before OS integration)
@@ -89,14 +88,12 @@ const env = {
             // downloads
             home: USER_HOME,        // Path/to/canvas/user || ~/.canvas
             config: USER_CONFIG,    // USER_HOME/config
-            cache: USER_CACHE,      // USER_HOME/cache
             data: USER_DATA,        // USER_HOME/data
             db: USER_DB,            // USER_HOME/db
             var: USER_VAR           // USER_HOME/var
         }
     },
 
-    // TODO: Rework
     DEVICE: {
         id: device.id,
         endianness: device.endianness,
@@ -128,7 +125,6 @@ const INI = {
     // User
     CANVAS_PATHS_USER_HOME: env.USER.paths.home,
     CANVAS_PATHS_USER_CONFIG: env.USER.paths.config,
-    CANVAS_PATHS_USER_CACHE: env.USER.paths.cache,
     CANVAS_PATHS_USER_DATA: env.USER.paths.data,
     CANVAS_PATHS_USER_DB: env.USER.paths.db,
     CANVAS_PATHS_USER_VAR: env.USER.paths.var,
@@ -142,7 +138,7 @@ const INI = {
 }
 
 // Updates .env
-generateDotenvFile(INI, path.join(APP_HOME, '.env'))
+generateDotenvFile(INI, path.join(APP_VAR, '.env'))
 
 // Update process env vars
 // We could just run require('dotenv').config() at this point
@@ -165,25 +161,8 @@ function getUserHome() {
     return (isPortable) ? path.join(APP_ROOT, 'user') : path.join(os.homedir(), ".canvas");
 }
 
-async function ensureDirExists(dirPath) {
-    try {
-        await fs.mkdir(dirPath, { recursive: true });
-    } catch (err) {
-        if (err.code !== 'EEXIST') throw err;
-    }
-}
-
-/*
-ensureDirExists(dirPath).then(() => {
-    // ..
-}).catch(err => {
-    console.error('Failed to create directory', err);
-}); */
-
 function generateDotenvFile(iniVars, filePath) {
-
     let iniContent = '';
-
     Object.keys(iniVars).forEach((key) => {
         let value = iniVars[key];
         if (typeof value === 'object') {

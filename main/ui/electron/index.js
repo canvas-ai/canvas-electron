@@ -1,3 +1,7 @@
+// Utils
+const path = require('path');
+const debug = require('debug')('canvas-ui');
+
 // Electron includes
 const {
     app,
@@ -6,15 +10,6 @@ const {
     BrowserWindow,
     screen
 } = require('electron');
-
-// Utils
-const path = require('path');
-
-
-
-// TODO: Rework paths after refactoring,
-// fetch paths from ~/.canvas/run/env.ini?
-
 
 // Environment variables
 const {
@@ -72,40 +67,38 @@ app.setAboutPanelOptions({
     iconPath: path.join(__dirname, '/assets/logo_1024x1024.png')
 })
 
-
-/*
-* Initialize Canvas
-*/
-
-// TODO: Check if canvas server is running
+// Components
+const CanvasTray = require('./components/tray/index.js');
 
 // Register custom protocols
 registerProtocols()
-
 
 /**
  * Initialize Electron UI
  */
 
 app.on('ready', () => {
+    debug('App ready');
 
     // Globals
     registerProcessSignalHandlers()
     registerGlobalEventListeners()
     registerGlobalShortcuts()
 
-    // UI elements
-    app.ui = {}
+    // Initialize Canvas Toolbox
+    const Toolbox = require('./components/toolbox')
+    const toolbox = new Toolbox()
 
-    // Load Tray
-    const Tray = require('./components/tray')
-    const tray = new Tray({
+    // Load Canvas Tray
+    const TrayIcon = path.join(APP.paths.home, 'ui', 'assets', 'logo_256x256.png');
+    const tray = new CanvasTray({
         title: app.getName(),
-        icon: path.join(__dirname, 'assets/logo_1024x1024_v2.png')
+        icon: TrayIcon
     })
 
-    console.log(tray)
-
+    tray.on('click', () => {
+        toolbox.toggle()
+    });
 })
 
 
@@ -118,7 +111,6 @@ function registerGlobalShortcuts() {
 }
 
 function registerGlobalEventListeners() {
-
     // MacOS support was blatantly ignored for now
     app.on('activate', () => {
         // On macOS it's common to re-create a window in the app when the
@@ -140,17 +132,15 @@ function registerGlobalEventListeners() {
     app.on('will-quit', function (e) {
         console.log('app.will-quit')
         globalShortcut.unregisterAll()
-        //daemon.clearPidFile()
     })
 }
 
 function registerProcessSignalHandlers() {
-/*    process.on('SIGINT', () => {
+    process.on('SIGINT', () => {
         console.log('process > app.quit()')
         app.isQuitting = true
         app.quit() ||process.exit(0)
     })
-    */
 }
 
 function registerProtocols() {

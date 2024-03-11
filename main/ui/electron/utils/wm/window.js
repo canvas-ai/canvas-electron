@@ -1,26 +1,26 @@
 'use strict'
 
-
-const { 
+const {
     BrowserWindow,
     screen,
     display
-}                   = require('electron')
+} = require('electron')
 
+const debug = require('debug')('canvas-ui:wm')
 
 /*
 BrowserWindow :: options
 On Linux, possible types are desktop, dock, toolbar, splash, notification.
-- The desktop type places the window at the desktop background window level 
-  (kCGDesktopWindowLevel - 1). However, note that a desktop window will not receive 
-  focus, keyboard, or mouse events. You can still use globalShortcut to receive 
+- The desktop type places the window at the desktop background window level
+  (kCGDesktopWindowLevel - 1). However, note that a desktop window will not receive
+  focus, keyboard, or mouse events. You can still use globalShortcut to receive
   input sparingly.
 - The dock type creates a dock-like window behavior.
 - The toolbar type creates a window with a toolbar appearance.
-- The splash type behaves in a specific way. It is not draggable, even if the CSS 
-  styling of the window's body contains -webkit-app-region: drag. This type is commonly 
-  used for splash screens.        
-- The notification type creates a window that behaves like a system notification.    
+- The splash type behaves in a specific way. It is not draggable, even if the CSS
+  styling of the window's body contains -webkit-app-region: drag. This type is commonly
+  used for splash screens.
+- The notification type creates a window that behaves like a system notification.
 */
 
 class Window extends BrowserWindow {
@@ -28,7 +28,7 @@ class Window extends BrowserWindow {
     constructor(config = {}) {
         super(config)
         this.name = config.name || this.id
-        this.isDocked = config.docked || false        
+        this.isDocked = config.docked || false
     }
 
     /**
@@ -37,7 +37,7 @@ class Window extends BrowserWindow {
      * @param {number|string} height in px, strings/negative numbers "+num", "-num" treated as offsets
      * @param {boolean} animate
      */
-    resize (width, height, animate = true) {
+    resize(width, height, animate = true) {
 
         let display = screen.getPrimaryDisplay() // TODO: Fix
         var [wW, wH] = this.getSize()
@@ -47,7 +47,7 @@ class Window extends BrowserWindow {
         if (typeof width === 'string') {
           if (width.includes('%')) {
             // String treated as %
-            newW = Math.round(display.workAreaSize.width * parseInt(width.substring(0, width.length - 1))) / 100 // TODO: Assert             
+            newW = Math.round(display.workAreaSize.width * parseInt(width.substring(0, width.length - 1))) / 100 // TODO: Assert
           } else if (width[0] === '+') {
             // String treated as offset
             newW = wW + parseInt(width.substring(1))
@@ -66,7 +66,7 @@ class Window extends BrowserWindow {
             newW = width
           }
         }
-      
+
         if (typeof height === 'string') {
           if (height.includes('%')) {
             // String treated as %
@@ -86,7 +86,7 @@ class Window extends BrowserWindow {
             newH = height
           }
         }
-      
+
         if (newW > 0 && newH > 0) {
           this.setSize(newW, newH, animate)
         }
@@ -101,19 +101,18 @@ class Window extends BrowserWindow {
     align (position, offsetX = 0, offsetY = 0, relative = true) {
 
         if (typeof position !== 'string') {
-            console.log('Expecting a string as the possition input parameter')
+            console.error('Expecting a string as the position input parameter')
             return false
         }
 
         let display = screen.getPrimaryDisplay() // TODO: Handle multiple displays
         var [wW, wH] = this.getSize()
         var [wX, wY] = this.getPosition()
-    
-        console.log(this.getSize())
-        console.log(display.workAreaSize)
+
+        debug(this.getSize())
+        debug(display.workAreaSize)
 
         switch (position) {
-
         case 'top':
             this.setPosition(wX + offsetX, 0 + offsetY)
             break
@@ -142,7 +141,7 @@ class Window extends BrowserWindow {
             this.center()
             break
         default:
-            console.log('Align to ' + position + ' not defined')
+            console.error('Align to ' + position + ' not defined')
             return false
         }
 
@@ -174,6 +173,5 @@ class Window extends BrowserWindow {
     }
 
 }
-
 
 module.exports = Window

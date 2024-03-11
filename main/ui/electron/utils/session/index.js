@@ -9,8 +9,6 @@ class Session {
 
     }
 
-
-
     create() {}
 
     destroy() {}
