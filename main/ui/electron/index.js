@@ -73,6 +73,7 @@ const CanvasTray = require('./components/tray/index.js');
 // Register custom protocols
 registerProtocols()
 
+
 /**
  * Initialize Electron UI
  */
