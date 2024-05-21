@@ -16,6 +16,54 @@
 
 This project was started a long^looong time ago (originally named "Workspaces") and was my first-ever Node.js + Electron endeavour. Some code snippets you may stumble upon date back to the dark ages of my JS knowledge hence may insult, even hurt more experienced programmers. In addition, 2020 to 2022 I took on a role as a freelance DevOps engineer for a major retail bank, which meant putting everything else besides the bare necessities on hold(people who suffered through a multimillion $$$ project behind schedule in this industry may know and most probably still vividly recall the pain). That being said, if you have any questions or need assistance with the setup, please do not hesitate to contact me directly. I will be more than happy to help! For the time being, please follow the development branch.
 
+## Note
+
+We are just starting to work on the Electron UI part (this repo). More information about the progress at https://github.com/users/idncsk/projects/1  
+
+**To run this project without a UI (server+cli+browser)**  
+
+```bash
+# Canvas Server (can be run remotely, Dockerfile tbd)
+mkdir -p ~/Canvas
+git clone https://github.com/idncsk/canvas-server.git ~/Canvas/Server
+cd ~/Canvas/Server/main
+npm install
+npm run start
+
+# Canvas cli client
+git clone https://github.com/idncsk/canvas-ui-shell.git ~/Canvas/Shell
+mkdir -p ~/.canvas/config
+echo '{
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": "8001",
+    "baseUrl": "/rest/v1",
+    "auth": {
+        "token": "canvas-rest-api"
+    }
+}' > ~/.canvas/config/transport.rest.json
+echo ". ~/Canvas/Shell/context.sh" >> ~/.bashrc
+bash
+context connect # or context disconnect or canvas_connect or canvas_disconnect
+
+# Browser extension
+git clone https://github.com/idncsk/canvas-ui-browser.git ~/Canvas/Extensions
+cd ~/Canvas/Extensions
+yarn install
+yarn dev
+# Chrome
+# Manage extensions > Developer mode > Load unpacked > Navigate to packages
+# > Select chromium > profit!
+
+# Firefox
+# about:debugging#/runtime/this-firefox
+# > Load temporary addon
+# > Navigate to packages 
+
+# Make sure you pin both to your taskbar
+
+```
+
 ## Basic Concepts | What is Canvas
 
 Canvas is a cross-platform desktop overlay to help organize my work / workflows and **data** into separate "contexts".
@@ -133,8 +181,7 @@ Manages your entire (not exclusively digital) universe. Server hosts your global
 Client repositories:
 - https://github.com/idncsk/canvas (default desktop client)
 - https://github.com/idncsk/canvas-ui-shell
-- https://github.com/idncsk/canvas-ui-firefox
-- https://github.com/idncsk/canvas-ui-chrome
+- https://github.com/idncsk/canvas-ui-browser
 
 Client runtime [on a linux OS] ensures all configured apps(flatpak), local roles(docker/podman), utils(stored), dotfiles(git) and data(stored) are available on your host system for the context you are currently working in. You can pin a canvas client to a specific workspace(context), for example say your work notebook to `universe://work` and your htpc to `universe://home/living-room`, both with its own (sub-)set of apps, roles, utils, dotfiles and data visibility limited to the pinned context subtree.
 
