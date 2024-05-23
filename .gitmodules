@@ -1,0 +1,4 @@
+[submodule "server"]
+	path = server
+	url = https://github.com/idncsk/canvas-server.git
+	branch = dev
