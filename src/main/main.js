@@ -92,7 +92,7 @@ app.on('ready', async () => {
     createWindow();
 
     const defaultIcon = nativeImage.createFromPath(
-        path.resolve(__dirname, '..', '..', 'public', 'logo_128x128.png'),
+        path.resolve(__dirname, '..', '..', 'public', 'icons', 'logo_128x128.png'),
     );
 
     const tray = new Tray(defaultIcon);
