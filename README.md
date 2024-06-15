@@ -20,7 +20,7 @@ This project was started a long^looong time ago (originally named "Workspaces") 
 
 We are just starting to work on the Electron UI part (this repo). More information about the progress at https://github.com/users/idncsk/projects/1  
 
-**To run this project without a UI (server+cli+browser)**  
+**To run this project without a GUI (server+cli+browser)**  
 
 ```bash
 # Canvas Server (can be run remotely, Dockerfile tbd)
@@ -260,5 +260,13 @@ YT Channel + Some (royalty-free) music used in my videos
 
 **Any suggestions welcome** ("you should use \<module\> to do \<stuff\> instead of \<whatever nightmare you have currently implemented\>"), as a hobby-programmer this is really appreciated!
 
-
 Thank you!
+
+
+## Refs
+
+https://github.com/sindresorhus/awesome-electron  
+https://onaircode.com/css-material-design-frameworks/  
+https://mdbootstrap.com/docs/standard/components  
+https://mui.com/material-ui/  
+
