@@ -6,7 +6,19 @@ class RoleManager {
 
     constructor() {}
 
-    listRoles() {}
+    listDrivers() { }
+
+    getDriver() { }
+
+    listBackends() {}
+
+    getBackend() { }
+
+    listRoles() { }
+
+    getRole() { }
+
+
 
     startRole() { }
 
@@ -14,9 +26,9 @@ class RoleManager {
 
     restartRole() { }
 
-    removeRole() { }
-
     addRole() { }
+
+    removeRole() { }
 
     attachRole() { }
 

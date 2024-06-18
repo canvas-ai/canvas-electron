@@ -1,20 +1,24 @@
 {
     "example-role": {
-        "type": "docker",
+        "driver": {
+            "docker": {
+                "image": "example-image:latest",
+                "dockerfile": "roles/example-role/Dockerfile",
+                "ports": [
+                    {
+                        "containerPort": 3000,
+                        "hostPort": 3000
+                    }
+                ],
+                "env": {
+                    "EXAMPLE_ENV": "example-value"
+                }
+            }
+        },
+        "type": "service",
         "name": "example-role",
         "description": "Example role description",
-        "enabled": false,
-        "image": "example-image:latest",
-        "dockerfile": "roles/example-role/Dockerfile",
-        "ports": [
-            {
-                "containerPort": 3000,
-                "hostPort": 3000
-            }
-        ],
-        "env": {
-            "EXAMPLE_ENV": "example-value"
-        }
+        "enabled": false
     },
     "canvas-server": {
         "type": "docker",

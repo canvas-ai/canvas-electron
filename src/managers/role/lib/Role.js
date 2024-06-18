@@ -21,6 +21,8 @@ class Role {
         this.description = description
     }
 
+    getConfig() {}
+
     inspect() { }
 
     start() { }
