@@ -1,0 +1,31 @@
+{
+    "example-role": {
+        "driver": {
+            "docker": {
+                "image": "example-image:latest",
+                "dockerfile": "roles/example-role/Dockerfile",
+                "ports": [
+                    {
+                        "containerPort": 3000,
+                        "hostPort": 3000
+                    }
+                ],
+                "env": {
+                    "EXAMPLE_ENV": "example-value"
+                }
+            }
+        },
+        "type": "service",
+        "name": "example-role",
+        "description": "Example role description",
+        "enabled": false
+    },
+    "canvas-server": {
+        "type": "docker",
+        "name": "canvas-server",
+        "description": "Canvas server role",
+        "enabled": false,
+        "image": "canvas-server-image:latest",
+        "dockerCompose": "roles/canvas-server/docker-compose.yml"
+    }
+}
