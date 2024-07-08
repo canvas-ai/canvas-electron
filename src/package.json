@@ -1,0 +1,64 @@
+{
+  "name": "canvas",
+  "productName": "Canvas UI",
+  "version": "1.2.0",
+  "description": "Context layer on top of your unstructured universe",
+  "main": "main/main.js",
+  "scripts": {
+    "test": "eslint . --ext .js",
+    "test:fix": "eslint . --ext .js --fix",
+    "jsdoc": "jsdoc -r -c jsdoc.json",
+    "cli": "node cli",
+    "repl": "node repl",
+    "start": "electron .",
+    "build": "webpack --config webpack.config.js",
+    "package": "electron-builder"
+  },
+  "author": "me@idnc.sk",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "conf": "^10.2.0",
+    "date-fns": "^2.30.0",
+    "debug": "^4.3.4",
+    "detect-libc": "^2.0.3",
+    "dockerode": "^4.0.2",
+    "dockerode-compose": "^1.4.0",
+    "dotenv": "^16.3.1",
+    "electron": "^27.0.2",
+    "electron-localshortcut": "^3.2.1",
+    "eventemitter2": "^6.4.9",
+    "ip": "^2.0.1",
+    "is-electron": "^2.2.2",
+    "jquery": "^3.6.0",
+    "mkdirp": "^3.0.1",
+    "node-machine-id": "^1.1.12",
+    "node-notifier": "^10.0.1",
+    "pm2": "^5.3.1"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.9.1",
+    "eslint": "^8.56.0",
+    "jsdoc": "^4.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0 <21.0.0"
+  },
+  "build": {
+    "appId": "org.getcanvas.canvas-app",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}

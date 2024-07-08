@@ -1,21 +1,21 @@
 ## App config
 /config/**
-!/config/canvas.json
+!/config/roles**
 !/config/example-*.json
+!/config/default-*.json
 !/config/.keep
-
-## Var directories
-/var/**
-!/var/.keep
 
 ## Portable runtimes
 /runtime/**
 !/runtime/.keep
 
-## User directories
+## Data directories
 /user/**
 !user/.keep
 !user/.ignore
+/data/**
+!data/.keep
+!data/.ignore
 
 ## Dev
 /.vscode

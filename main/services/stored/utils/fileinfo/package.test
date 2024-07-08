@@ -1,9 +1,0 @@
-{
-  "name": "data-util-fileinfo",
-  "version": "1.0.0",
-  "main": "v1.js",
-  "license": "MIT",
-  "dependencies": {
-    "mmmagic": "^0.5.3",
-  }
-}
