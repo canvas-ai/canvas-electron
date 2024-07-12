@@ -8,15 +8,15 @@ const {
     USER,
     DEVICE,
     SERVER,
-} = require('../env.js');
+} = require('./env.js');
 
 // Utils
 const path = require('path');
 const debug = require('debug')('canvas');
 
 // App utils
-const Config = require('../utils/config');
-const log = require('../utils/log');
+const Config = require('./utils/config/index.js');
+const log = require('./utils/log/index.js');
 
 // Electron includes
 const {

@@ -1,9 +1,9 @@
 {
   "name": "canvas",
   "productName": "Canvas UI",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Context layer on top of your unstructured universe",
-  "main": "main/main.js",
+  "main": "src/main.js",
   "scripts": {
     "test": "eslint . --ext .js",
     "test:fix": "eslint . --ext .js --fix",
@@ -45,7 +45,7 @@
     "node": ">=20.0.0 <21.0.0"
   },
   "build": {
-    "appId": "org.getcanvas.canvas-app",
+    "appId": "org.getcanvas.app",
     "files": [
       "build/**/*",
       "node_modules/**/*",

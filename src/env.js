@@ -6,7 +6,7 @@
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const pkg = require('./package.json');
+const pkg = require('../package.json');
 const isElectron = require('is-electron')();
 const device = require('./utils/device');
 
