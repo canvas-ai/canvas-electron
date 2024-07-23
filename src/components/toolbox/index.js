@@ -1,5 +1,4 @@
-
-
+const EventEmitter = require('eventemitter2');
 
 class Toolbox extends EventEmitter {
     constructor() {
@@ -26,3 +25,6 @@ class Toolbox extends EventEmitter {
         this.emit('toolbox-toggled');
     }
 }
+
+// Singleton
+module.exports = new Toolbox();
