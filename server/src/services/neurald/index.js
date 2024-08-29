@@ -1,0 +1,57 @@
+const debug = require('debug')('canvas:neurald');
+
+// Power law
+// Scale invariance
+// 1000 brains
+// The universe is a huge resonance chamber
+
+class NeuralD {
+
+    constructor(options = {
+
+    }) {
+
+        debug('Initializing Canvas NeuralD');
+
+        // Inputs
+        //canvas(context changes, documents, ui events, etc)
+        //os (notifications, events, etc)
+        //text prompts (chat/cli etc)
+        //audio
+
+        // Outputs
+        //text
+        //notifier
+        //audio
+
+
+        // Actions
+        //os
+        //canvas
+        //
+
+
+        // Timestamp | bitmap
+        // Each change writes out the currently-active list of doc IDs + current context layer IDs
+        // to "STM". During inactivity, system goes through the "STM" activity log and feeds
+        // relevant documents the NN for training / finetuning
+
+
+        /**
+         *                  Layers (higher order circuits, column2plane)
+         *                   (inhibitory bitmap layer masks)
+         *                      \ /
+         *                       V       / STM => ihibit LTM
+         * => input feeds => ResC       / + Prediction => Feed back to RESC
+         *                  Output
+         *              output feeds
+         *                     Internal state
+         *
+         */
+
+    }
+
+}
+
+
+module.exports = NeuralD;

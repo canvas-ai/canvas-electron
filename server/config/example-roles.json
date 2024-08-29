@@ -1,0 +1,10 @@
+{
+    "ollama": {
+        "name": "Ollama",
+        "description": "Ollama",
+        "driver": "docker",
+        "driverOptions": {
+            "dockerCompose": "CANVAS_SERVER_EXT/roles/docker.ollama/docker-compose.yml"
+        }
+    }
+}

@@ -1,0 +1,33 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: canvas-server
+    image: canvas-server:latest
+    ports:
+      - "8000:8000"
+    environment:
+      NODE_ENV: development
+      CANVAS_SERVER_CONFIG: ${CANVAS_SERVER_CONFIG:-./config}
+      CANVAS_SERVER_DATA: ${CANVAS_SERVER_DATA:-./data}
+      CANVAS_SERVER_VAR: ${CANVAS_SERVER_VAR:-./var}
+      CANVAS_SERVER_EXT: ${CANVAS_SERVER_EXT:-./extensions}
+      CANVAS_USER_HOME: ${CANVAS_USER_HOME:-./user}
+      CANVAS_USER_CONFIG: ${CANVAS_USER_CONFIG:-./user/config}
+      CANVAS_USER_INDEX: ${CANVAS_USER_INDEX:-./user/index}
+      CANVAS_USER_DB: ${CANVAS_USER_DB:-./user/db}
+      CANVAS_USER_DATA: ${CANVAS_USER_DATA:-./user/data}
+      CANVAS_USER_WORKSPACES: ${CANVAS_USER_WORKSPACES:-./user/workspaces}
+    volumes:
+      - ${CANVAS_SERVER_CONFIG}:/opt/canvas-server/config
+      - ${CANVAS_SERVER_DATA}:/opt/canvas-server/data
+      - ${CANVAS_SERVER_VAR}:/opt/canvas-server/var
+      - ${CANVAS_SERVER_EXT}:/opt/canvas-server/extensions
+      - ${CANVAS_USER_HOME}:/opt/canvas-server/user
+      - ${CANVAS_USER_CONFIG}:/opt/canvas-server/user/config
+      - ${CANVAS_USER_INDEX}:/opt/canvas-server/user/index
+      - ${CANVAS_USER_DB}:/opt/canvas-server/user/db
+      - ${CANVAS_USER_DATA}:/opt/canvas-server/user/data
+      - ${CANVAS_USER_WORKSPACES}:/opt/canvas-server/user/workspaces
