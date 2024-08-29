@@ -1,0 +1,9 @@
+{
+    "vscode": {
+        "name": "Visual Studio Code",
+        "description": "Visual Studio Code",
+        "type": "portable",
+        "command": "PORTABLE/Apps/vscode-linux-x64/code",
+        "icon": "PORTABLE/Apps/vscode-linux-x64/vscode.png"
+    }
+}
