@@ -4,10 +4,9 @@
 
 // Environment variables
 const {
-    APP,
-    USER,
-    DEVICE,
-    SERVER,
+    app,
+    server,
+    user,
 } = require('./env.js');
 
 // Utils
@@ -66,13 +65,23 @@ if (process.argv.some(arg => arg === '-v' || arg === '--version')) {
     process.exit();
 }
 
+const Canvas = require('../server/main.js');
+const canvas = new Canvas({
+    mode: serverMode,
+    app: app,
+    paths: {
+        server: server.paths,
+        user: user.paths,
+    },
+});
+
 app.setAboutPanelOptions({
     applicationName: app.name,
     applicationVersion: `Version: ${app.getVersion()}`,
-    copyright: 'Zemetras ©2023 | All rights reserved',
+    copyright: 'Zemetras ©2024 | All rights reserved',
     authors: 'idnc_sk',
     website: 'https://getcanvas.org/',
-    iconPath: path.join(__dirname, '/assets/logo_1024x1024.png'),
+    iconPath: path.join(__dirname, '/public/icons/logo_1024x1024_v2.png'),
 });
 
 // Register custom protocols
@@ -91,11 +100,7 @@ app.on('ready', async () => {
     debug('App ready');
     createWindow();
 
-    const defaultIcon = nativeImage.createFromPath(
-        path.resolve(__dirname, '..', '..', 'public', 'icons', 'logo_128x128.png'),
-    );
-
-    const tray = new Tray(defaultIcon);
+    const tray = new Tray(path.resolve(__dirname, '..', 'public', 'icons', 'logo_1024x1024_v2.png'));
     //await createTrayMenu(tray);
 
 });
