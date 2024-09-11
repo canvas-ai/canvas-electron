@@ -26,9 +26,12 @@ const {
 	dialog,
 	Tray,
 	Menu,
+	shell,
 } = require("electron");
+
 const socketIO = require("socket.io-client");
 
+// Test
 const socket = socketIO.connect("http://138.124.180.38:8000");
 
 // Global variables
@@ -75,23 +78,10 @@ if (process.argv.some((arg) => arg === "-v" || arg === "--version")) {
 	process.exit();
 }
 
-// const Canvas = require('../server/main.js');
-// const canvas = new Canvas({
-//     mode: serverMode,
-//     app: app,
-//     paths: {
-//         server: server.paths,
-//         user: user.paths,
-//     },
-// });
-
 app.setAboutPanelOptions({
 	applicationName: app.name,
 	applicationVersion: `Version: ${app.getVersion()}`,
-	copyright: "Zemetras ©2024 | All rights reserved",
-	authors: "idnc_sk",
-	website: "https://getcanvas.org/",
-	iconPath: path.join(__dirname, "/public/icons/logo_1024x1024_v2.png"),
+	iconPath: "./public/icons/logo_1024x1024_v2.png",
 });
 
 // Register custom protocols
@@ -127,6 +117,7 @@ app.on("ready", async () => {
 		console.log(sessionTree);
 
 		socket.emit("context:get:tree", (data) => {
+			console.log(data);
 			contextTree = data.payload;
 
 			createWindow();
@@ -187,6 +178,8 @@ function createTray() {
 	);
 
 	const contextMenu = Menu.buildFromTemplate([
+
+		// On top there should be a context url (socket.emit('context:get:url')) as a disabled menu
 		{
 			label: "Context",
 			type: "submenu",
@@ -224,7 +217,7 @@ function createTray() {
 			],
 		},
 		{
-			label: "Role",
+			label: "Roles",
 			type: "normal",
 			click: () => {
 				console.log("Roles");
@@ -232,8 +225,12 @@ function createTray() {
 		},
 		{ label: "divided_line_2", type: "separator" },
 		{
-			label: "Setting",
+			label: "Settings",
 			type: "normal",
+			click: () => {
+				console.log("Settings");
+				shell.openPath(USER.paths.config, "config.json");
+			},
 		},
 		{
 			label: "About",
