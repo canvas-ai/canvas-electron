@@ -7,9 +7,6 @@
   "scripts": {
     "test": "eslint . --ext .js",
     "test:fix": "eslint . --ext .js --fix",
-    "jsdoc": "jsdoc -r -c jsdoc.json",
-    "cli": "node cli",
-    "repl": "node repl",
     "start": "electron .",
     "build": "webpack --config webpack.config.js",
     "package": "electron-builder"
@@ -22,8 +19,6 @@
     "date-fns": "^2.30.0",
     "debug": "^4.3.4",
     "detect-libc": "^2.0.3",
-    "dockerode": "^4.0.2",
-    "dockerode-compose": "^1.4.0",
     "dotenv": "^16.3.1",
     "electron": "^27.0.2",
     "electron-localshortcut": "^3.2.1",
@@ -35,13 +30,11 @@
     "node-machine-id": "^1.1.12",
     "node-notifier": "^10.0.1",
     "pm2": "^5.3.1",
-    "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
     "electron-builder": "^24.9.1",
-    "eslint": "^8.56.0",
-    "jsdoc": "^4.0.2"
+    "eslint": "^8.56.0"
   },
   "engines": {
     "node": ">=20.0.0 <21.0.0"
