@@ -1,7 +1,13 @@
+const EventEmitter = require('eventemitter2');
+
+class Canvas extends EventEmitter {
+
+    constructor() {
+        super();
+    }
 
 
-
-class Canvas { }
+}
 
 
 module.exports = Canvas;

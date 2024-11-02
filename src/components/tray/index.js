@@ -44,4 +44,5 @@ class CanvasTray { // extends Tray {
 
 }
 
-module.exports = CanvasTray;
+// Singleton
+module.exports = new CanvasTray();
