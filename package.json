@@ -4,6 +4,7 @@
   "version": "1.2.1",
   "description": "Context layer on top of your unstructured universe",
   "main": "src/main.js",
+  "type": "module",
   "scripts": {
     "test": "eslint . --ext .js",
     "test:fix": "eslint . --ext .js --fix",
