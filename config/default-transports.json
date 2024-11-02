@@ -1,0 +1,28 @@
+{
+    "ipc": {
+        "enabled": false
+    },
+    "rest": {
+        "protocol": "http",
+        "host": "127.0.0.1",
+        "port": 8000,
+        "baseUrl": "/rest/v2",
+        "auth": {
+            "enabled": true,
+            "user": "",
+            "password": "",
+            "token": "canvas-server-token"
+        }
+    },
+    "ws": {
+        "protocol": "http",
+        "host": "127.0.0.1",
+        "port": 8000,
+        "auth": {
+            "enabled": true,
+            "user": "",
+            "password": "",
+            "token": "canvas-server-token"
+        }
+    }
+}
