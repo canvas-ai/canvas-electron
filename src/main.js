@@ -34,6 +34,9 @@ const socketIO = require("socket.io-client");
 // Test
 const socket = socketIO.connect("http://138.124.180.38:8000");
 
+// Import the toolbox module
+const toolbox = require('./components/toolbox');
+
 // Global variables
 var contextTree;
 var sessionTree;
@@ -124,6 +127,10 @@ app.on("ready", async () => {
 			createTray();
 		});
 	});
+
+	// Create the toolbox window when the app is ready
+	toolbox.createWindow();
+	toolbox.registerGlobalShortcut();
 });
 
 // MacOS support was blatantly ignored for now

@@ -105,3 +105,29 @@ body, html {
     height: calc(var(--tile-height) * 4 + var(--tile-margin) * 3);
     line-height: calc(var(--tile-height) * 4 + var(--tile-margin) * 3);
 }
+
+/* Toolbox window */
+#toolbox {
+    position: fixed;
+    top: 20%;
+    bottom: 12%;
+    right: 98px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    z-index: 1000;
+}
+
+/* Toolbox modes */
+#toolbox.panel {
+    width: 96px;
+}
+
+#toolbox.default {
+    width: 480px;
+}
+
+#toolbox.extended {
+    width: 860px;
+}
