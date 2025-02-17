@@ -2,13 +2,6 @@
  * Canvas
  */
 
-// Environment variables
-const {
-	APP,
-	// server,
-	USER,
-} = require("./env.js");
-
 // Utils
 const path = require("path");
 const debug = require("debug")("canvas");
@@ -32,7 +25,8 @@ const {
 const socketIO = require("socket.io-client");
 
 // Test
-const socket = socketIO.connect("http://138.124.180.38:8000");
+//const socket = socketIO.connect("http://138.124.180.38:8000");
+const socket = socketIO.connect("http://127.0.0.1:8000");
 
 // Import the toolbox module
 const toolbox = require('./components/toolbox');
@@ -42,15 +36,16 @@ var contextTree;
 var sessionTree;
 
 // Set a few handy runtime variables
-app.setName(APP.name);
-app.version = APP.version;
+//app.setName(APP.name);
+//app.version = APP.version;
 app.isQuitting = false;
 
 // Enable default sandboxing
 app.enableSandbox();
 
 // Lets take care of some electron defaults
-const electronHome = path.join(USER.paths.home, "electron"); // Stash electron-generated garbage here
+//const electronHome = path.join(USER.paths.home, "electron"); // Stash electron-generated garbage here
+const electronHome = "/tmp/test";
 app.setPath("appData", path.join(electronHome, "appData"));
 app.setPath("userData", path.join(electronHome, "userData"));
 app.setPath("cache", path.join(electronHome, "cache"));
