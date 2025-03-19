@@ -19,3 +19,9 @@ $ cd path/to/Canvas
 $ yarn install
 $ yarn start
 ```
+
+## Canvas(the UI element) plugins test-list
+
+- https://www.rowsncolumns.app/
+- https://konvajs.org/api
+- https://pixijs.com/
