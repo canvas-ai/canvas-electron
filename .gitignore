@@ -1,42 +1,38 @@
-## App config
-/config/**
-!/config/roles**
-!/config/example-*.json
-!/config/default-*.json
-!/config/.keep
+# dotenv environment variables file
+.env
+.env*
 
-## Portable runtimes
-/runtime/**
-!/runtime/.keep
+# Portable runtimes
+/runtimes/**
 
-## Data directories
-/user/**
-!user/.keep
+# Data directories
+/server/**
+!/server/config/example-*.json
+!/server/config/default-*.json
 /data/**
-!data/.keep
+!/data/.keep
+/user/**
+!/user/.keep
+/users/**
+!/users/.keep
+/multiverse/**
+!/multiverse/.keep
 
-## Dev
+# Test files and directories(well, non-production files)
+tests/data/**
+_test*
+
+# Dev
 /.vscode
 /.fossil-settings
 /_SCRATCH_
-/_TODO_
 /_OLD_
 
-## Documentation
-/docs/**
-!/docs/.keep
-!/docs/ui
-!/docs/ui/*
-
-## Logs
+# Logs
 *.log
 */*/logs/*
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
 
-## Node
+# Node
 **/node_modules/
 **/node_modules.linux/
 **/node_modules.linux-musl/
@@ -60,10 +56,6 @@ typings/
 
 # Yarn Integrity file
 .yarn-integrity
-
-# dotenv environment variables file
-.env
-.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -89,11 +81,12 @@ typings/
 # Cache objects
 packer_cache/
 
-## Files
+# Files extensions (generic)
 *.box
 *.bz
 *.bz2
 *.db
+*.sqlite
 *.gz
 *.lcov
 *.lock
@@ -103,9 +96,8 @@ packer_cache/
 *.tar
 *.tsbuildinfo
 *.zip
-_test*
 
-## Runtime
+# Runtime
 *.pid
 *.pid.lock
 *.seed
@@ -130,3 +122,6 @@ bower_components
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
+
+# Include all .keep files
+!**/.keep

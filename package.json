@@ -1,16 +1,24 @@
 {
   "name": "canvas",
   "productName": "Canvas UI",
-  "version": "1.2.1",
+  "version": "2.0.0-alpha.1",
   "description": "Context layer on top of your unstructured universe",
   "main": "src/main.js",
   "scripts": {
     "test": "eslint . --ext .js",
     "test:fix": "eslint . --ext .js --fix",
     "start": "electron .",
+    "install:server": "cd server && npm run update-submodules && npm install",
     "build": "webpack --config webpack.config.js",
-    "package": "electron-builder"
+    "package": "electron-builder",
+    "update-submodules": "git submodule update --init --remote && git submodule foreach \"git add .\"",
+    "server:start": "npm run start --prefix server",
+    "server:dev": "npm run start:dev --prefix server",
+    "server:build": "npm run build --prefix server"
   },
+  "workspaces": [
+    "."
+  ],
   "author": "me@idnc.sk",
   "license": "AGPL-3.0-or-later",
   "dependencies": {

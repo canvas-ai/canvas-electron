@@ -26,7 +26,12 @@ const socketIO = require("socket.io-client");
 
 // Test
 //const socket = socketIO.connect("http://138.124.180.38:8000");
-const socket = socketIO.connect("http://127.0.0.1:8000");
+let socket = null;
+let serverUrl = "http://127.0.0.1:8000"; // Default local URL
+let isLocalServer = false;
+
+// Import the server manager module
+const serverManager = require('./components/server-manager');
 
 // Import the toolbox module
 const toolbox = require('./components/toolbox');
