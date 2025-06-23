@@ -24,21 +24,13 @@ const {
 
 const socketIO = require("socket.io-client");
 
-// Test
-//const socket = socketIO.connect("http://138.124.180.38:8000");
-let socket = null;
-let serverUrl = "http://127.0.0.1:8000"; // Default local URL
-let isLocalServer = false;
-
 // Import the server manager module
 const serverManager = require('./components/server-manager');
 
-// Import the toolbox module
+// Import UI components
+const canvas = require('./components/canvas');
+const context = require('./components/context');
 const toolbox = require('./components/toolbox');
-
-// Global variables
-var contextTree;
-var sessionTree;
 
 // Set a few handy runtime variables
 //app.setName(APP.name);
@@ -114,23 +106,13 @@ protocol.registerSchemesAsPrivileged([
 app.on("ready", async () => {
 	debug("App ready");
 
-	socket.emit("session:list", (data) => {
-		sessionTree = data.payload;
-
-		console.log(sessionTree);
-
-		socket.emit("context:get:tree", (data) => {
-			console.log(data);
-			contextTree = data.payload;
-
-			createWindow();
-			createTray();
-		});
-	});
-
-	// Create the toolbox window when the app is ready
-	toolbox.createWindow();
+	// Register global shortcuts for all components
+	canvas.registerGlobalShortcut();
+	context.registerGlobalShortcut();
 	toolbox.registerGlobalShortcut();
+
+	// Initialize the context sidebar
+	context.setAlignment('left');
 });
 
 // MacOS support was blatantly ignored for now
@@ -143,9 +125,8 @@ app.on("activate", () => {
 // Apparently need to keep this one around to avoid app->quit()
 app.on("window-all-closed", () => {
 	console.log("app.window-all-closed");
-	if (process.platform !== "darwin") {
-		app.quit();
-	}
+	// Don't quit the app when all windows are closed - keep it running for the toolbar toggle
+	// The app can be quit via the tray menu
 });
 
 // Before all windows are closed
@@ -190,12 +171,12 @@ function createTray() {
 		{
 			label: "Context",
 			type: "submenu",
-			submenu: renderContextTree([contextTree]),
+			submenu: contextTree ? renderContextTree([contextTree]) : [{ label: "Not connected", enabled: false }],
 		},
 		{
 			label: "Sessions",
 			type: "submenu",
-			submenu: renderSessionTree(sessionTree),
+			submenu: sessionTree ? renderSessionTree(sessionTree) : [{ label: "Not connected", enabled: false }],
 		},
 		{ label: "divided_line_1", type: "separator" },
 		{
@@ -236,7 +217,8 @@ function createTray() {
 			type: "normal",
 			click: () => {
 				console.log("Settings");
-				shell.openPath(USER.paths.config, "config.json");
+				// TODO: Implement settings functionality
+				// shell.openPath(configPath);
 			},
 		},
 		{
