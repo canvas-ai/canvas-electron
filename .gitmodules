@@ -1,3 +1,0 @@
-[submodule "server"]
-	path = server
-	url = https://github.com/canvas-ai/canvas-server.git
