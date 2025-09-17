@@ -1,138 +1,244 @@
-# Canvas Electron App
+# Canvas UI - Modern Electron AI Assistant
 
-A desktop application for Canvas with integrated local server capabilities.
+A modern, lightweight Electron application that provides a toolbox-style AI chat interface with support for multiple AI providers (Ollama, OpenAI, Anthropic) and MCP (Model Context Protocol) tools.
 
-## Setup
+## Features
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/canvas-ai/canvas-electron.git
-   cd canvas-electron
-   ```
+### 🚀 Core Features
+- **System Tray Application**: Runs in the background with easy access via tray icon
+- **Toolbox Interface**: Popup window (Super+Space) positioned optimally on screen
+- **Multi-Provider Support**: Works with Ollama, OpenAI, and Anthropic APIs
+- **Conversation Management**: Persistent chat history stored locally
+- **MCP Tools Integration**: Support for Model Context Protocol tools
+- **Modern UI**: Built with shadcn/ui components and Tailwind CSS
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### 🎯 Toolbox Window
+- **Dimensions**: 640px wide × 452px high (1:√2 ratio)
+- **Positioning**: 460px from right edge, vertically centered
+- **Shortcut**: `Super+Space` (or `Ctrl+Alt+Space` as fallback)
+- **Layout**: Chat history sidebar + main chat area
+- **Multimodal Support**: Text input with planned support for files, voice, and images
 
-3. Initialize the server submodule and install its dependencies:
-   ```bash
-   npm run update-submodules
-   npm run install:server
-   ```
+### ⚙️ Settings System
+- **Agent Configuration**: Multiple AI agents with different settings
+- **API Management**: Support for different runtimes and endpoints
+- **Model Parameters**: Temperature, Top-P, Max Tokens configuration
+- **MCP Tools**: Enable/disable and configure context protocol tools
 
-## Running the App
+### 💾 Data Storage
+- **Linux/Mac**: `~/.canvas/electron/agents/<agent-name>/`
+- **Windows**: `%APPDATA%/Canvas/electron/agents/<agent-name>/`
+- **Format**: Plain JSON files with datetime stamps
+- **Structure**: `YYYY-MM-DDTHH-mm-ss-conversation.json`
 
-### Development Mode
+## Architecture
 
-Start the application in development mode:
-```bash
-npm start
+### Modern Electron Structure
+```
+src/
+├── main/           # Electron main process (Node.js)
+│   ├── main.ts     # Application entry point
+│   ├── tray.ts     # System tray management
+│   ├── toolbox.ts  # Toolbox window management
+│   ├── settings.ts # Settings window management
+│   └── services/   # Business logic services
+├── renderer/       # Frontend (React + TypeScript)
+│   ├── components/ # UI components (shadcn/ui)
+│   ├── pages/      # Application pages
+│   └── lib/        # Utilities and helpers
+└── shared/         # Shared types and constants
+    ├── types.ts    # TypeScript interfaces
+    └── constants.ts # Application constants
 ```
 
-When started, the app will:
-1. Attempt to start a local Canvas server instance using PM2
-2. If local server fails, it will attempt to connect to the default remote server
-3. You can switch between local and remote server connections via the tray menu
+### Security Features
+- **Context Isolation**: Renderer processes are sandboxed
+- **Preload Scripts**: Secure IPC communication
+- **No Node Integration**: Renderer processes don't have direct Node.js access
+- **Input Validation**: All user inputs are validated
 
-### Running the Server Separately
+## Development
 
-You can also run the server separately using:
+### Prerequisites
+- Node.js 20.x or higher
+- npm or yarn package manager
+
+### Setup
 ```bash
-# Start the server with normal logging
-npm run server:start
+# Clone the repository
+git clone <repository-url>
+cd canvas
 
-# Start the server with debug logging
-npm run server:dev
+# Install dependencies
+npm install
 
-# Build the server UI components
-npm run server:build
+# Development mode
+npm run dev
+
+# Build for production
+npm run build
+
+# Package the application
+npm run package
 ```
 
-### Build and Package
+### Development Scripts
+- `npm run dev` - Start both main and renderer in development mode
+- `npm run dev:main` - Build and run main process only
+- `npm run dev:renderer` - Start Vite dev server for renderer
+- `npm run build` - Build both main and renderer for production
+- `npm run build:main` - Build main process only
+- `npm run build:renderer` - Build renderer only
+- `npm run lint` - Run ESLint on all TypeScript files
+- `npm run type-check` - Run TypeScript type checking
 
-Build the application:
+### Project Structure
+The application follows Electron best practices with clear separation between:
+- **Main Process**: Handles system integration, window management, and native APIs
+- **Renderer Process**: Handles UI rendering and user interactions
+- **Preload Scripts**: Provide secure bridge between main and renderer
+
+## Configuration
+
+### Agent Configuration
+Each agent can be configured with:
+- **Name**: Display name for the agent
+- **System Prompt**: Instructions for the AI model
+- **Runtime**: `ollama`, `openai`, or `anthropic`
+- **API URL**: Endpoint for the API service
+- **API Token**: Authentication token
+- **Model**: Specific model name (e.g., `llama3.2`, `gpt-4`, `claude-3-sonnet`)
+- **Parameters**: Temperature, Top-P, Max Tokens
+- **MCP Tools**: List of enabled context protocol tools
+
+### Default Configuration
+```json
+{
+  "name": "Default Agent",
+  "systemPrompt": "You are a helpful AI assistant.",
+  "runtime": "ollama",
+  "apiUrl": "http://localhost:11434",
+  "apiToken": "",
+  "model": "llama3.2",
+  "temperature": 0.7,
+  "topP": 0.9,
+  "maxTokens": 2048,
+  "mcpTools": []
+}
+```
+
+## API Integration
+
+### Ollama
+```bash
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Pull a model
+ollama pull llama3.2
+
+# Default endpoint: http://localhost:11434
+```
+
+### OpenAI
+```javascript
+// Configuration
+{
+  "runtime": "openai",
+  "apiUrl": "https://api.openai.com/v1",
+  "apiToken": "sk-...",
+  "model": "gpt-4"
+}
+```
+
+### Anthropic
+```javascript
+// Configuration
+{
+  "runtime": "anthropic",
+  "apiUrl": "https://api.anthropic.com",
+  "apiToken": "sk-ant-...",
+  "model": "claude-3-sonnet-20240229"
+}
+```
+
+## MCP (Model Context Protocol) Integration
+
+The application includes support for MCP tools, allowing AI agents to use external tools and services. MCP tools can be:
+- Enabled/disabled per agent
+- Configured with custom parameters
+- Used for extending AI capabilities
+
+### Adding MCP Tools
+1. Open Settings
+2. Select an agent
+3. Navigate to MCP Tools section
+4. Click "+" to add a new tool
+5. Configure tool name and parameters
+6. Save settings
+
+## Keyboard Shortcuts
+
+- `Super+Space` - Toggle toolbox window
+- `Ctrl+Alt+Space` - Alternative toolbox toggle
+- `Enter` - Send message in chat
+- `Shift+Enter` - New line in message input
+
+## Building and Packaging
+
+### Development Build
 ```bash
 npm run build
 ```
 
-Package the application for distribution:
+### Production Package
 ```bash
 npm run package
 ```
 
-## Server Connection Options
-
-The app provides multiple ways to connect to Canvas servers:
-
-1. **Local Server**: Runs an instance of the Canvas server locally within the app using PM2
-   - Automatically attempts to start on app launch
-   - Can be manually started/stopped via the tray menu
-   - PM2 manages the server process for improved reliability
-   - View server statistics (memory, CPU, uptime) in the tray menu
-
-2. **Remote Server**: Connect to a remote Canvas server instance
-   - Default remote server is pre-configured
-   - Custom remote servers can be added via the connection dialog
-
-## About PM2 Integration
-
-PM2 is used to manage the local server process for several benefits:
-- Process monitoring and auto-restart
-- Resource usage statistics
-- Reliable startup and shutdown
-- Log management
-
-The app uses PM2's programmatic API to:
-- Start and stop the server
-- Monitor server status
-- Collect performance metrics
-- Handle process lifecycle
+This creates platform-specific packages in the `release/` directory:
+- **Linux**: AppImage
+- **Windows**: NSIS installer
+- **macOS**: DMG file
 
 ## Troubleshooting
 
-If you encounter issues with the local server:
+### Common Issues
 
-1. Check that the server submodule is properly initialized:
-   ```bash
-   npm run update-submodules
-   npm run install:server
-   ```
+1. **Toolbox not opening**: Check if global shortcuts are registered properly
+2. **API connection failed**: Verify API URL and token configuration
+3. **Conversations not saving**: Check file system permissions for data directory
+4. **UI not loading**: Ensure renderer build completed successfully
 
-2. Make sure your system meets the requirements specified in the Canvas Server documentation
+### Debug Mode
+Run with debug flags to see detailed logs:
+```bash
+DEBUG=canvas* npm start
+```
 
-3. Check server logs by running with verbose logging:
-   ```bash
-   npm run server:dev
-   ```
+### Development Tools
+- Press `F12` in any window to open Chrome DevTools
+- Use the Debug Tools option in the tray menu
+- Check the main process logs in the terminal
 
-4. View PM2 process list to check server status:
-   ```bash
-   npx pm2 list
-   ```
+## Contributing
 
-5. View detailed PM2 logs:
-   ```bash
-   npx pm2 logs canvas-server
-   ```
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes following the coding standards
+4. Add tests for new functionality
+5. Submit a pull request
 
 ## License
 
-AGPL-3.0-or-later
+AGPL-3.0-or-later - see LICENSE file for details.
 
-## ! Refactor in progress
+## Roadmap
 
-- Contribute via https://github.com/orgs/canvas-ai/projects/2 (some contributions are paid)
-- (something vaguely resembling a) Documentation at https://github.com/canvas-ai
-
-## Components
-
-- Tray
-- Toolbox (super+c)
-- Canvas
-
-## Canvas(the UI element) plugins test-list
-
-- https://www.rowsncolumns.app/
-- https://konvajs.org/api
-- https://pixijs.com/
+- [ ] Voice input support
+- [ ] Image/file attachment support  
+- [ ] Plugin system for custom tools
+- [ ] Cloud synchronization
+- [ ] Multiple conversation tabs
+- [ ] Custom themes
+- [ ] Mobile companion app
