@@ -1,5 +1,6 @@
 import { app, Menu, Tray, nativeImage } from 'electron';
 import { join } from 'path';
+import { existsSync } from 'fs';
 
 interface TrayOptions {
   onToolboxToggle: () => void;
@@ -29,12 +30,10 @@ export class TrayManager {
       join(__dirname, '../../../public/icons/logo_1024x1024_v2.png'),
     ];
 
-    // For now, create a simple icon if none found
+    // Check each path for file existence
     for (const path of possiblePaths) {
-      try {
+      if (existsSync(path)) {
         return path;
-      } catch (error) {
-        continue;
       }
     }
 
