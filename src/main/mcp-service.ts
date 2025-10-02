@@ -100,18 +100,18 @@ export class MCPService {
   private safeMathEvaluator(expression: string): number {
     // Remove all whitespace
     const cleanExpression = expression.replace(/\s/g, '');
-    
+
     // Validate that the expression only contains allowed characters
     const allowedChars = /^[0-9+\-*/.()]+$/;
     if (!allowedChars.test(cleanExpression)) {
       throw new Error('Invalid characters in expression. Only numbers, +, -, *, /, ., and parentheses are allowed.');
     }
-    
+
     // Check for potential security issues
     if (cleanExpression.includes('..') || cleanExpression.includes('//')) {
       throw new Error('Invalid expression format');
     }
-    
+
     // Validate parentheses are balanced
     let parenCount = 0;
     for (const char of cleanExpression) {
@@ -120,7 +120,7 @@ export class MCPService {
       if (parenCount < 0) throw new Error('Mismatched parentheses');
     }
     if (parenCount !== 0) throw new Error('Mismatched parentheses');
-    
+
     // Parse and evaluate the expression safely
     return this.parseExpression(cleanExpression);
   }
@@ -129,18 +129,18 @@ export class MCPService {
     // Simple recursive descent parser for basic arithmetic
     const tokens = this.tokenize(expr);
     let index = 0;
-    
+
     const peek = () => tokens[index];
     const consume = () => tokens[index++];
-    
+
     const parseNumber = (): number => {
       const token = consume();
       if (token === undefined) throw new Error('Unexpected end of expression');
-      
+
       if (token === '-') {
         return -parseNumber();
       }
-      
+
       const num = parseFloat(token);
       if (isNaN(num)) {
         throw new Error(`Invalid number: ${token}`);
@@ -202,10 +202,10 @@ export class MCPService {
   private tokenize(expr: string): string[] {
     const tokens: string[] = [];
     let i = 0;
-    
+
     while (i < expr.length) {
       const char = expr[i];
-      
+
       if (char.match(/[+\-*/()]/)) {
         tokens.push(char);
         i++;
@@ -226,7 +226,7 @@ export class MCPService {
         throw new Error(`Unexpected character: ${char}`);
       }
     }
-    
+
     return tokens;
   }
 

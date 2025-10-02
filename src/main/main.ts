@@ -23,7 +23,7 @@ class CanvasApp {
     this.conversationManager = new ConversationManager();
     this.chatService = new ChatService();
     this.mcpService = new MCPService();
-    
+
     this.setupApp();
     this.setupIPC();
   }

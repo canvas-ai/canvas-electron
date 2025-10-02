@@ -4,11 +4,11 @@ import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 
 export class ChatService {
-  
+
   async sendMessage(message: ChatMessage, agentConfig: AgentConfig): Promise<ChatMessage> {
     try {
       let responseContent: string;
-      
+
       switch (agentConfig.runtime) {
         case 'openai':
           responseContent = await this.sendToOpenAI(message, agentConfig);
@@ -22,14 +22,14 @@ export class ChatService {
         default:
           throw new Error(`Unsupported runtime: ${agentConfig.runtime}`);
       }
-      
+
       return {
         id: uuidv4(),
         role: 'assistant',
         content: responseContent,
         timestamp: new Date(),
       };
-      
+
     } catch (error) {
       console.error('Error sending message:', error);
       throw error;
@@ -76,7 +76,7 @@ export class ChatService {
     if (content.type === 'text') {
       return content.text;
     }
-    
+
     return 'No text response generated';
   }
 

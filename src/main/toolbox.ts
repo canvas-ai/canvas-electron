@@ -79,7 +79,7 @@ export class ToolboxWindow {
       // Ensure correct position before showing
       const { x, y } = this.calculatePosition();
       this.window.setPosition(x, y);
-      
+
       this.window.show();
       this.window.focus();
     }

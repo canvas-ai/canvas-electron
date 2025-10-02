@@ -8,17 +8,17 @@ const api: IPC = {
   // Settings
   getSettings: () => ipcRenderer.invoke(IPC_CHANNELS.GET_SETTINGS),
   saveSettings: (settings) => ipcRenderer.invoke(IPC_CHANNELS.SAVE_SETTINGS, settings),
-  
+
   // Conversations
   getConversations: (agentName) => ipcRenderer.invoke(IPC_CHANNELS.GET_CONVERSATIONS, agentName),
   saveConversation: (conversation) => ipcRenderer.invoke(IPC_CHANNELS.SAVE_CONVERSATION, conversation),
-  deleteConversation: (conversationId, agentName) => 
+  deleteConversation: (conversationId, agentName) =>
     ipcRenderer.invoke(IPC_CHANNELS.DELETE_CONVERSATION, conversationId, agentName),
-  
+
   // Chat
-  sendMessage: (message, agentConfig) => 
+  sendMessage: (message, agentConfig) =>
     ipcRenderer.invoke(IPC_CHANNELS.SEND_MESSAGE, message, agentConfig),
-  
+
   // Window management
   openToolbox: () => ipcRenderer.invoke(IPC_CHANNELS.OPEN_TOOLBOX),
   closeToolbox: () => ipcRenderer.invoke(IPC_CHANNELS.CLOSE_TOOLBOX),

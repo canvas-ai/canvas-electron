@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TrayManager = void 0;
 const electron_1 = require("electron");
 const path_1 = require("path");
+const fs_1 = require("fs");
 class TrayManager {
     tray;
     options;
@@ -20,13 +21,10 @@ class TrayManager {
             (0, path_1.join)(process.resourcesPath, 'public/icons/logo_1024x1024_v2.png'),
             (0, path_1.join)(__dirname, '../../../public/icons/logo_1024x1024_v2.png'),
         ];
-        // For now, create a simple icon if none found
+        // Check each path for file existence
         for (const path of possiblePaths) {
-            try {
+            if ((0, fs_1.existsSync)(path)) {
                 return path;
-            }
-            catch (error) {
-                continue;
             }
         }
         // Fallback to a simple native image

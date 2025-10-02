@@ -45,25 +45,25 @@ export class SettingsManager {
   async saveAgent(agent: AgentConfig): Promise<void> {
     const settings = await this.getSettings();
     const existingIndex = settings.agents.findIndex(a => a.name === agent.name);
-    
+
     if (existingIndex >= 0) {
       settings.agents[existingIndex] = agent;
     } else {
       settings.agents.push(agent);
     }
-    
+
     await this.saveSettings(settings);
   }
 
   async deleteAgent(name: string): Promise<void> {
     const settings = await this.getSettings();
     settings.agents = settings.agents.filter(agent => agent.name !== name);
-    
+
     // If we deleted the default agent, set a new default
     if (settings.defaultAgent === name && settings.agents.length > 0) {
       settings.defaultAgent = settings.agents[0].name;
     }
-    
+
     await this.saveSettings(settings);
   }
 
