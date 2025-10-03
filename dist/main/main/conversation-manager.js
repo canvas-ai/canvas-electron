@@ -3,11 +3,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationManager = void 0;
 const fs_1 = require("fs");
 const path_1 = require("path");
+const os_1 = require("os");
 const uuid_1 = require("uuid");
-const constants_1 = require("../shared/constants");
+// Path helpers
+const getDataPath = () => {
+    if (process.platform === 'win32') {
+        return (0, path_1.join)(process.env.APPDATA || (0, os_1.homedir)(), 'Canvas', 'electron');
+    }
+    return (0, path_1.join)((0, os_1.homedir)(), '.canvas', 'electron');
+};
+const getAgentsPath = () => (0, path_1.join)(getDataPath(), 'agents');
+const getAgentPath = (agentName) => (0, path_1.join)(getAgentsPath(), agentName);
 class ConversationManager {
     async getConversations(agentName) {
-        const agentPath = (0, constants_1.getAgentPath)(agentName);
+        const agentPath = getAgentPath(agentName);
         try {
             // Ensure the agent directory exists
             await fs_1.promises.mkdir(agentPath, { recursive: true });
@@ -38,7 +47,7 @@ class ConversationManager {
         }
     }
     async saveConversation(conversation) {
-        const agentPath = (0, constants_1.getAgentPath)(conversation.agentName);
+        const agentPath = getAgentPath(conversation.agentName);
         try {
             // Ensure the agent directory exists
             await fs_1.promises.mkdir(agentPath, { recursive: true });
@@ -76,7 +85,7 @@ class ConversationManager {
         }
     }
     async deleteConversation(conversationId, agentName) {
-        const agentPath = (0, constants_1.getAgentPath)(agentName);
+        const agentPath = getAgentPath(agentName);
         try {
             // Read all conversation files to find the one with the matching ID
             const files = await fs_1.promises.readdir(agentPath);

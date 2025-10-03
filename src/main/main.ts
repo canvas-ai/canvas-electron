@@ -2,8 +2,6 @@ import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
 import { join } from 'path';
 import { TrayManager } from './tray';
 import { ToolboxWindow } from './toolbox';
-import { SettingsWindow } from './settings';
-import { SettingsManager } from './settings-manager';
 import { ConversationManager } from './conversation-manager';
 import { ChatService } from './chat-service';
 import { MCPService } from './mcp-service';
@@ -12,14 +10,11 @@ import { IPC_CHANNELS } from '../shared/constants';
 class CanvasApp {
   private tray: TrayManager | null = null;
   private toolbox: ToolboxWindow | null = null;
-  private settingsWindow: SettingsWindow | null = null;
-  private settingsManager: SettingsManager;
   private conversationManager: ConversationManager;
   private chatService: ChatService;
   private mcpService: MCPService;
 
   constructor() {
-    this.settingsManager = new SettingsManager();
     this.conversationManager = new ConversationManager();
     this.chatService = new ChatService();
     this.mcpService = new MCPService();
@@ -72,13 +67,9 @@ class CanvasApp {
   }
 
   private async initialize() {
-    // Initialize settings
-    await this.settingsManager.initialize();
-
     // Create tray
     this.tray = new TrayManager({
       onToolboxToggle: () => this.toggleToolbox(),
-      onSettingsOpen: () => this.openSettings(),
       onQuit: () => this.quit(),
     });
 
@@ -104,15 +95,6 @@ class CanvasApp {
   }
 
   private setupIPC() {
-    // Settings
-    ipcMain.handle(IPC_CHANNELS.GET_SETTINGS, async () => {
-      return await this.settingsManager.getSettings();
-    });
-
-    ipcMain.handle(IPC_CHANNELS.SAVE_SETTINGS, async (_, settings) => {
-      return await this.settingsManager.saveSettings(settings);
-    });
-
     // Conversations
     ipcMain.handle(IPC_CHANNELS.GET_CONVERSATIONS, async (_, agentName) => {
       return await this.conversationManager.getConversations(agentName);
@@ -140,13 +122,6 @@ class CanvasApp {
       this.toolbox?.hide();
     });
 
-    ipcMain.handle(IPC_CHANNELS.OPEN_SETTINGS, () => {
-      this.openSettings();
-    });
-
-    ipcMain.handle(IPC_CHANNELS.CLOSE_SETTINGS, () => {
-      this.settingsWindow?.close();
-    });
   }
 
   private toggleToolbox() {
@@ -160,17 +135,6 @@ class CanvasApp {
     }
   }
 
-  private openSettings() {
-    if (this.settingsWindow) {
-      this.settingsWindow.focus();
-      return;
-    }
-
-    this.settingsWindow = new SettingsWindow();
-    this.settingsWindow.on('closed', () => {
-      this.settingsWindow = null;
-    });
-  }
 
   private quit() {
     (app as any).isQuitting = true;

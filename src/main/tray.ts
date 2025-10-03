@@ -4,7 +4,6 @@ import { existsSync } from 'fs';
 
 interface TrayOptions {
   onToolboxToggle: () => void;
-  onSettingsOpen: () => void;
   onQuit: () => void;
 }
 
@@ -14,11 +13,11 @@ export class TrayManager {
 
   constructor(options: TrayOptions) {
     this.options = options;
-    
+
     // Create tray icon
     const iconPath = this.getIconPath();
     this.tray = new Tray(iconPath);
-    
+
     this.setupTray();
   }
 
@@ -45,7 +44,7 @@ export class TrayManager {
 
   private setupTray() {
     this.tray.setToolTip('Canvas UI - AI Assistant');
-    
+
     // Create context menu
     this.updateContextMenu();
 
@@ -66,11 +65,6 @@ export class TrayManager {
         label: 'Toolbox',
         accelerator: 'Super+Space',
         click: () => this.options.onToolboxToggle(),
-      },
-      { type: 'separator' },
-      {
-        label: 'Settings',
-        click: () => this.options.onSettingsOpen(),
       },
       {
         label: 'Debug Tools',

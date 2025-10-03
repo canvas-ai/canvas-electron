@@ -123,5 +123,10 @@ bower_components
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 
+# Build outputs
+dist/
+build/
+release/
+
 # Include all .keep files
 !**/.keep

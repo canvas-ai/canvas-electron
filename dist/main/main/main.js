@@ -3,8 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const tray_1 = require("./tray");
 const toolbox_1 = require("./toolbox");
-const settings_1 = require("./settings");
-const settings_manager_1 = require("./settings-manager");
 const conversation_manager_1 = require("./conversation-manager");
 const chat_service_1 = require("./chat-service");
 const mcp_service_1 = require("./mcp-service");
@@ -12,13 +10,10 @@ const constants_1 = require("../shared/constants");
 class CanvasApp {
     tray = null;
     toolbox = null;
-    settingsWindow = null;
-    settingsManager;
     conversationManager;
     chatService;
     mcpService;
     constructor() {
-        this.settingsManager = new settings_manager_1.SettingsManager();
         this.conversationManager = new conversation_manager_1.ConversationManager();
         this.chatService = new chat_service_1.ChatService();
         this.mcpService = new mcp_service_1.MCPService();
@@ -62,12 +57,9 @@ class CanvasApp {
         });
     }
     async initialize() {
-        // Initialize settings
-        await this.settingsManager.initialize();
         // Create tray
         this.tray = new tray_1.TrayManager({
             onToolboxToggle: () => this.toggleToolbox(),
-            onSettingsOpen: () => this.openSettings(),
             onQuit: () => this.quit(),
         });
         // Create toolbox window
@@ -87,13 +79,6 @@ class CanvasApp {
         });
     }
     setupIPC() {
-        // Settings
-        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.GET_SETTINGS, async () => {
-            return await this.settingsManager.getSettings();
-        });
-        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.SAVE_SETTINGS, async (_, settings) => {
-            return await this.settingsManager.saveSettings(settings);
-        });
         // Conversations
         electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.GET_CONVERSATIONS, async (_, agentName) => {
             return await this.conversationManager.getConversations(agentName);
@@ -115,12 +100,6 @@ class CanvasApp {
         electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.CLOSE_TOOLBOX, () => {
             this.toolbox?.hide();
         });
-        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.OPEN_SETTINGS, () => {
-            this.openSettings();
-        });
-        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.CLOSE_SETTINGS, () => {
-            this.settingsWindow?.close();
-        });
     }
     toggleToolbox() {
         if (!this.toolbox)
@@ -132,16 +111,6 @@ class CanvasApp {
             this.toolbox.show();
             this.toolbox.focus();
         }
-    }
-    openSettings() {
-        if (this.settingsWindow) {
-            this.settingsWindow.focus();
-            return;
-        }
-        this.settingsWindow = new settings_1.SettingsWindow();
-        this.settingsWindow.on('closed', () => {
-            this.settingsWindow = null;
-        });
     }
     quit() {
         electron_1.app.isQuitting = true;

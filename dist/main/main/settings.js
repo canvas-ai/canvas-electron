@@ -28,7 +28,7 @@ class SettingsWindow extends events_1.EventEmitter {
             this.window.loadURL('http://localhost:3000/settings.html');
         }
         else {
-            this.window.loadFile((0, path_1.join)(__dirname, '../renderer/settings.html'));
+            this.window.loadFile((0, path_1.join)(__dirname, '../../renderer/settings.html'));
         }
         // Window event handlers
         this.window.on('closed', () => {

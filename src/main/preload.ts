@@ -1,14 +1,19 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IPC_CHANNELS } from '../shared/constants';
-import { IPC } from '../shared/types';
+import type { IPC } from '../shared/types';
+
+// IPC channel names (inlined to avoid module loading issues in sandbox)
+const IPC_CHANNELS = {
+  GET_CONVERSATIONS: 'get-conversations',
+  SAVE_CONVERSATION: 'save-conversation',
+  DELETE_CONVERSATION: 'delete-conversation',
+  SEND_MESSAGE: 'send-message',
+  OPEN_TOOLBOX: 'open-toolbox',
+  CLOSE_TOOLBOX: 'close-toolbox',
+} as const;
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 const api: IPC = {
-  // Settings
-  getSettings: () => ipcRenderer.invoke(IPC_CHANNELS.GET_SETTINGS),
-  saveSettings: (settings) => ipcRenderer.invoke(IPC_CHANNELS.SAVE_SETTINGS, settings),
-
   // Conversations
   getConversations: (agentName) => ipcRenderer.invoke(IPC_CHANNELS.GET_CONVERSATIONS, agentName),
   saveConversation: (conversation) => ipcRenderer.invoke(IPC_CHANNELS.SAVE_CONVERSATION, conversation),
@@ -22,8 +27,6 @@ const api: IPC = {
   // Window management
   openToolbox: () => ipcRenderer.invoke(IPC_CHANNELS.OPEN_TOOLBOX),
   closeToolbox: () => ipcRenderer.invoke(IPC_CHANNELS.CLOSE_TOOLBOX),
-  openSettings: () => ipcRenderer.invoke(IPC_CHANNELS.OPEN_SETTINGS),
-  closeSettings: () => ipcRenderer.invoke(IPC_CHANNELS.CLOSE_SETTINGS),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', api);

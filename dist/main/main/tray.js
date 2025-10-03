@@ -51,11 +51,6 @@ class TrayManager {
                 accelerator: 'Super+Space',
                 click: () => this.options.onToolboxToggle(),
             },
-            { type: 'separator' },
-            {
-                label: 'Settings',
-                click: () => this.options.onSettingsOpen(),
-            },
             {
                 label: 'Debug Tools',
                 submenu: [

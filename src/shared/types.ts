@@ -41,32 +41,16 @@ export interface Conversation {
   updatedAt: Date;
 }
 
-export interface AppSettings {
-  agents: AgentConfig[];
-  defaultAgent?: string;
-  windowSettings: {
-    toolboxWidth: number;
-    toolboxHeight: number;
-    toolboxMarginRight: number;
-  };
-}
-
 export interface IPC {
-  // Settings
-  getSettings: () => Promise<AppSettings>;
-  saveSettings: (settings: AppSettings) => Promise<void>;
-  
   // Conversations
   getConversations: (agentName: string) => Promise<Conversation[]>;
   saveConversation: (conversation: Conversation) => Promise<void>;
   deleteConversation: (conversationId: string, agentName: string) => Promise<void>;
-  
+
   // Chat
   sendMessage: (message: ChatMessage, agentConfig: AgentConfig) => Promise<ChatMessage>;
-  
+
   // Window management
   openToolbox: () => Promise<void>;
   closeToolbox: () => Promise<void>;
-  openSettings: () => Promise<void>;
-  closeSettings: () => Promise<void>;
 }

@@ -1,8 +1,20 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { homedir } from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import { Conversation, ChatMessage } from '../shared/types';
-import { getAgentPath } from '../shared/constants';
+
+// Path helpers
+const getDataPath = (): string => {
+  if (process.platform === 'win32') {
+    return join(process.env.APPDATA || homedir(), 'Canvas', 'electron');
+  }
+  return join(homedir(), '.canvas', 'electron');
+};
+
+const getAgentsPath = (): string => join(getDataPath(), 'agents');
+
+const getAgentPath = (agentName: string): string => join(getAgentsPath(), agentName);
 
 export class ConversationManager {
 
