@@ -59,6 +59,10 @@ export interface IPC {
   // Window management
   openToolbox: () => Promise<void>;
   closeToolbox: () => Promise<void>;
+  minimizeWindow: () => Promise<void>;
+  toggleMaximizeWindow: () => Promise<void>;
+  closeWindow: () => Promise<void>;
+  quitApp: () => Promise<void>;
 
   // Auth
   getAuthSession: () => Promise<AuthSession | null>;

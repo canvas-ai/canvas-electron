@@ -62,6 +62,18 @@ export class WindowManager {
     return this.canvases.get(id);
   }
 
+  public openActiveCanvasDevTools(): void {
+    const id = this.lastActiveCanvasId ?? this.getCanvasIds()[0];
+    if (!id) return;
+    this.canvases.get(id)?.openDevTools();
+  }
+
+  public reloadActiveCanvas(): void {
+    const id = this.lastActiveCanvasId ?? this.getCanvasIds()[0];
+    if (!id) return;
+    this.canvases.get(id)?.reload();
+  }
+
   public getCanvasBounds(id: CanvasWindowId): WindowBounds | null {
     return this.canvases.get(id)?.getBounds() ?? null;
   }

@@ -37,5 +37,9 @@ exports.IPC_CHANNELS = {
     GET_AUTH_SESSION: 'get-auth-session',
     SET_AUTH_SESSION: 'set-auth-session',
     CLEAR_AUTH_SESSION: 'clear-auth-session',
+    WINDOW_MINIMIZE: 'window-minimize',
+    WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
+    WINDOW_CLOSE: 'window-close',
+    APP_QUIT: 'app-quit',
 };
 //# sourceMappingURL=constants.js.map

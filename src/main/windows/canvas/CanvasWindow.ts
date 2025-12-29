@@ -1,4 +1,4 @@
-import { BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
 import { join } from 'path';
 
 export type CanvasWindowId = string;
@@ -22,6 +22,14 @@ export class CanvasWindow {
 
   public get id(): CanvasWindowId {
     return this.options.id;
+  }
+
+  public openDevTools() {
+    this.window?.webContents.openDevTools({ mode: 'detach' });
+  }
+
+  public reload() {
+    this.window?.webContents.reload();
   }
 
   public getBounds(): WindowBounds | null {
@@ -88,6 +96,13 @@ export class CanvasWindow {
       this.window.loadFile(join(__dirname, '../../../../renderer/index.html'));
     }
 
+    // Keep window instance alive: close => hide (unless app is quitting)
+    this.window.on('close', (event) => {
+      if ((app as any).isQuitting) return;
+      event.preventDefault();
+      this.window?.hide();
+    });
+
     this.window.on('closed', () => {
       this.window = null;
     });
@@ -98,6 +113,17 @@ export class CanvasWindow {
 
     this.window.webContents.on('before-input-event', (event, input) => {
       if (input.type !== 'keyDown') return;
+
+      // DevTools shortcuts
+      const key = input.key?.toLowerCase?.() ?? '';
+      const isDevTools =
+        key === 'f12' || ((input.control || input.meta) && input.shift && key === 'i');
+      if (isDevTools) {
+        event.preventDefault();
+        this.openDevTools();
+        return;
+      }
+
       const isNew = (input.control || input.meta) && input.key.toLowerCase() === 'n';
       if (!isNew) return;
       event.preventDefault();

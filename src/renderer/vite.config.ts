@@ -5,6 +5,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   base: './',
+  // IMPORTANT: Vite root is `src/renderer` (see package.json "vite ... src/renderer"),
+  // so we must point publicDir at the repo-root `public/` to copy icons/images into dist.
+  publicDir: path.resolve(__dirname, '../../public'),
   build: {
     outDir: '../../dist/renderer',
     emptyOutDir: true,
@@ -19,7 +22,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, '.'),
     },
-  },       
+  },
   server: {
     port: 3000,
   },

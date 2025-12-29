@@ -74,6 +74,18 @@ class CanvasApp {
             getCanvases: () => this.windowManager.listCanvases(),
             onCanvasFocus: (id) => this.windowManager.focusCanvas(id),
             isToolboxEnabled: () => this.isAuthenticated(),
+            onOpenCanvasDevTools: () => this.windowManager.openActiveCanvasDevTools(),
+            onReloadCanvas: () => this.windowManager.reloadActiveCanvas(),
+            onOpenToolboxDevTools: () => {
+                if (!this.toolbox)
+                    this.toolbox = new toolbox_1.ToolboxWindow({ mode: 'minimized' });
+                this.toolbox.openDevTools();
+            },
+            onReloadToolbox: () => {
+                if (!this.toolbox)
+                    this.toolbox = new toolbox_1.ToolboxWindow({ mode: 'minimized' });
+                this.toolbox.reload();
+            },
             onQuit: () => this.quit(),
         });
         // Create launcher canvas window (centered)
@@ -120,6 +132,32 @@ class CanvasApp {
         electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.CLOSE_TOOLBOX, () => {
             this.toolbox?.hide();
         });
+        // Window controls (frameless window)
+        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.WINDOW_MINIMIZE, () => {
+            electron_1.BrowserWindow.getFocusedWindow()?.minimize();
+        });
+        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.WINDOW_TOGGLE_MAXIMIZE, () => {
+            const win = electron_1.BrowserWindow.getFocusedWindow();
+            if (!win)
+                return;
+            if (win.isMaximized())
+                win.unmaximize();
+            else
+                win.maximize();
+        });
+        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.WINDOW_CLOSE, () => {
+            // Close button should hide the window (keep app alive / keep window instance)
+            const win = electron_1.BrowserWindow.getFocusedWindow();
+            if (!win)
+                return;
+            if (electron_1.app.isQuitting)
+                win.close();
+            else
+                win.hide();
+        });
+        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.APP_QUIT, () => {
+            this.quit();
+        });
         // Auth session
         electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.GET_AUTH_SESSION, async () => {
             this.authSession = await (0, ui_settings_1.getUiAuthSession)();
@@ -151,7 +189,23 @@ class CanvasApp {
     }
     quit() {
         electron_1.app.isQuitting = true;
+        // Tear down tray first so it doesn't look like the app is still running.
+        this.tray?.destroy();
+        this.tray = null;
+        // Close windows (CanvasWindow prevents close unless isQuitting is set)
+        for (const win of electron_1.BrowserWindow.getAllWindows()) {
+            try {
+                win.close();
+            }
+            catch {
+                // ignore
+            }
+        }
+        this.toolbox?.close();
+        this.toolbox = null;
         electron_1.app.quit();
+        // In dev, app.quit() can sometimes leave the process around due to weird event loops.
+        setTimeout(() => electron_1.app.exit(0), 250);
     }
 }
 // Create the app instance

@@ -12,6 +12,10 @@ const IPC_CHANNELS = {
   GET_AUTH_SESSION: 'get-auth-session',
   SET_AUTH_SESSION: 'set-auth-session',
   CLEAR_AUTH_SESSION: 'clear-auth-session',
+  WINDOW_MINIMIZE: 'window-minimize',
+  WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
+  WINDOW_CLOSE: 'window-close',
+  APP_QUIT: 'app-quit',
 } as const;
 
 // Expose protected methods that allow the renderer process to use
@@ -30,6 +34,10 @@ const api: IPC = {
   // Window management
   openToolbox: () => ipcRenderer.invoke(IPC_CHANNELS.OPEN_TOOLBOX),
   closeToolbox: () => ipcRenderer.invoke(IPC_CHANNELS.CLOSE_TOOLBOX),
+  minimizeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
+  toggleMaximizeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_TOGGLE_MAXIMIZE),
+  closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
+  quitApp: () => ipcRenderer.invoke(IPC_CHANNELS.APP_QUIT),
 
   // Auth
   getAuthSession: () => ipcRenderer.invoke(IPC_CHANNELS.GET_AUTH_SESSION),

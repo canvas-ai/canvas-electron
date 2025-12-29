@@ -12,6 +12,10 @@ const IPC_CHANNELS = {
     GET_AUTH_SESSION: 'get-auth-session',
     SET_AUTH_SESSION: 'set-auth-session',
     CLEAR_AUTH_SESSION: 'clear-auth-session',
+    WINDOW_MINIMIZE: 'window-minimize',
+    WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
+    WINDOW_CLOSE: 'window-close',
+    APP_QUIT: 'app-quit',
 };
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -25,6 +29,10 @@ const api = {
     // Window management
     openToolbox: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.OPEN_TOOLBOX),
     closeToolbox: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.CLOSE_TOOLBOX),
+    minimizeWindow: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
+    toggleMaximizeWindow: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.WINDOW_TOGGLE_MAXIMIZE),
+    closeWindow: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
+    quitApp: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.APP_QUIT),
     // Auth
     getAuthSession: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.GET_AUTH_SESSION),
     setAuthSession: (session) => electron_1.ipcRenderer.invoke(IPC_CHANNELS.SET_AUTH_SESSION, session),

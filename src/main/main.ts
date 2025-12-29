@@ -83,6 +83,16 @@ class CanvasApp {
       getCanvases: () => this.windowManager.listCanvases(),
       onCanvasFocus: (id) => this.windowManager.focusCanvas(id),
       isToolboxEnabled: () => this.isAuthenticated(),
+      onOpenCanvasDevTools: () => this.windowManager.openActiveCanvasDevTools(),
+      onReloadCanvas: () => this.windowManager.reloadActiveCanvas(),
+      onOpenToolboxDevTools: () => {
+        if (!this.toolbox) this.toolbox = new ToolboxWindow({ mode: 'minimized' });
+        this.toolbox.openDevTools();
+      },
+      onReloadToolbox: () => {
+        if (!this.toolbox) this.toolbox = new ToolboxWindow({ mode: 'minimized' });
+        this.toolbox.reload();
+      },
       onQuit: () => this.quit(),
     });
 
@@ -141,6 +151,30 @@ class CanvasApp {
       this.toolbox?.hide();
     });
 
+    // Window controls (frameless window)
+    ipcMain.handle(IPC_CHANNELS.WINDOW_MINIMIZE, () => {
+      BrowserWindow.getFocusedWindow()?.minimize();
+    });
+
+    ipcMain.handle(IPC_CHANNELS.WINDOW_TOGGLE_MAXIMIZE, () => {
+      const win = BrowserWindow.getFocusedWindow();
+      if (!win) return;
+      if (win.isMaximized()) win.unmaximize();
+      else win.maximize();
+    });
+
+    ipcMain.handle(IPC_CHANNELS.WINDOW_CLOSE, () => {
+      // Close button should hide the window (keep app alive / keep window instance)
+      const win = BrowserWindow.getFocusedWindow();
+      if (!win) return;
+      if ((app as any).isQuitting) win.close();
+      else win.hide();
+    });
+
+    ipcMain.handle(IPC_CHANNELS.APP_QUIT, () => {
+      this.quit();
+    });
+
     // Auth session
     ipcMain.handle(IPC_CHANNELS.GET_AUTH_SESSION, async () => {
       this.authSession = await getUiAuthSession();
@@ -175,7 +209,24 @@ class CanvasApp {
 
   private quit() {
     (app as any).isQuitting = true;
+    // Tear down tray first so it doesn't look like the app is still running.
+    this.tray?.destroy();
+    this.tray = null;
+
+    // Close windows (CanvasWindow prevents close unless isQuitting is set)
+    for (const win of BrowserWindow.getAllWindows()) {
+      try {
+        win.close();
+      } catch {
+        // ignore
+      }
+    }
+    this.toolbox?.close();
+    this.toolbox = null;
+
     app.quit();
+    // In dev, app.quit() can sometimes leave the process around due to weird event loops.
+    setTimeout(() => app.exit(0), 250);
   }
 }
 

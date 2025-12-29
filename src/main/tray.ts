@@ -7,6 +7,10 @@ interface TrayOptions {
   getCanvases?: () => Array<{ id: string; label: string; isActive: boolean }>;
   onCanvasFocus?: (id: string) => void;
   isToolboxEnabled?: () => boolean;
+  onOpenCanvasDevTools?: () => void;
+  onReloadCanvas?: () => void;
+  onOpenToolboxDevTools?: () => void;
+  onReloadToolbox?: () => void;
   onQuit: () => void;
 }
 
@@ -109,17 +113,28 @@ export class TrayManager {
         label: 'Debug Tools',
         submenu: [
           {
-            label: 'Open DevTools',
+            label: 'Open Canvas DevTools',
             click: () => {
-              // This could open devtools for the toolbox window
-              console.log('Debug tools requested');
+              this.options.onOpenCanvasDevTools?.();
+            },
+          },
+          {
+            label: 'Reload Canvas UI',
+            click: () => {
+              this.options.onReloadCanvas?.();
+            },
+          },
+          { type: 'separator' },
+          {
+            label: 'Open Toolbox DevTools',
+            click: () => {
+              this.options.onOpenToolboxDevTools?.();
             },
           },
           {
             label: 'Reload Toolbox',
             click: () => {
-              // This could reload the toolbox window
-              console.log('Reload requested');
+              this.options.onReloadToolbox?.();
             },
           },
         ],

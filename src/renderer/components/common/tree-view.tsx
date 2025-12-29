@@ -1,22 +1,8 @@
-// Ported from server web UI: server/src/ui/web/src/components/common/tree-view.tsx
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  ChevronRight,
-  ChevronDown,
-  Folder,
-  FolderOpen,
-  MoreHorizontal,
-  Trash2,
-  Plus,
-  Clipboard,
-  Copy,
-  Scissors,
-  Edit,
-  Layers,
-} from 'lucide-react'
+import { ChevronRight, ChevronDown, Folder, FolderOpen, MoreHorizontal, Trash2, Plus, Clipboard, Copy, Scissors, Edit, Layers } from 'lucide-react'
+import { TreeNode } from '@/types/workspace'
 import { cn } from '@/lib/utils'
-import type { TreeNode } from '@/types/workspace'
 
 type TreeClipboardMode = 'copy' | 'cut'
 type TreeClipboard = { mode: TreeClipboardMode; paths: string[] }
@@ -107,26 +93,7 @@ interface ContextMenuProps {
   targetLayerPaths?: Set<string>
 }
 
-function ContextMenu({
-  isOpen,
-  onClose,
-  x,
-  y,
-  path,
-  onInsertPath,
-  onRemovePath,
-  onRenamePath,
-  onCopyPath,
-  onCutPath,
-  onPastePath,
-  onMergeLayer,
-  onSubtractLayer,
-  onPasteDocuments,
-  pastedDocumentIds,
-  clipboardPaths,
-  sourceLayerPath,
-  targetLayerPaths,
-}: ContextMenuProps) {
+function ContextMenu({ isOpen, onClose, x, y, path, onInsertPath, onRemovePath, onRenamePath, onCopyPath, onCutPath, onPastePath, onMergeLayer, onSubtractLayer, onPasteDocuments, pastedDocumentIds, clipboardPaths, sourceLayerPath, targetLayerPaths }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   const hasValidLayerSelection = sourceLayerPath && targetLayerPaths && targetLayerPaths.size > 0
@@ -134,62 +101,62 @@ function ContextMenu({
   const handleAction = async (action: string) => {
     try {
       switch (action) {
-        case 'insert': {
+        case 'insert':
           const newPath = prompt('Enter new path name:', '')
           if (newPath && onInsertPath) {
             const fullPath = path === '/' ? `/${newPath}` : `${path}/${newPath}`
             await onInsertPath(fullPath, true)
           }
           break
-        }
-        case 'rename': {
+        case 'rename':
           const currentName = path.split('/').pop() || ''
           const newName = prompt('Enter new name:', currentName)
           if (newName && newName !== currentName && onRenamePath) {
             await onRenamePath(path, newName)
           }
           break
-        }
-        case 'remove': {
+        case 'remove':
           if (confirm(`Are you sure you want to remove "${path}"?`)) {
-            if (onRemovePath) await onRemovePath(path, false)
+            if (onRemovePath) {
+              await onRemovePath(path, false)
+            }
           }
           break
-        }
-        case 'remove-recursive': {
+        case 'remove-recursive':
           if (confirm(`Are you sure you want to recursively remove "${path}" and all its children?`)) {
-            if (onRemovePath) await onRemovePath(path, true)
+            if (onRemovePath) {
+              await onRemovePath(path, true)
+            }
           }
           break
-        }
-        case 'merge-layer': {
+        case 'merge-layer':
           if (onMergeLayer && sourceLayerPath && targetLayerPaths) {
             const sourceLayerName = sourceLayerPath.split('/').filter(Boolean).pop() || sourceLayerPath
-            const targetLayerNames = Array.from(targetLayerPaths).map(
-              (p) => p.split('/').filter(Boolean).pop() || p
-            )
+            const targetLayerNames = Array.from(targetLayerPaths).map(p => p.split('/').filter(Boolean).pop() || p)
             await onMergeLayer(sourceLayerName, targetLayerNames)
           }
           break
-        }
-        case 'subtract-layer': {
+        case 'subtract-layer':
           if (onSubtractLayer && sourceLayerPath && targetLayerPaths) {
             const sourceLayerName = sourceLayerPath.split('/').filter(Boolean).pop() || sourceLayerPath
-            const targetLayerNames = Array.from(targetLayerPaths).map(
-              (p) => p.split('/').filter(Boolean).pop() || p
-            )
+            const targetLayerNames = Array.from(targetLayerPaths).map(p => p.split('/').filter(Boolean).pop() || p)
             await onSubtractLayer(sourceLayerName, targetLayerNames)
           }
           break
-        }
         case 'copy':
-          onCopyPath?.(path)
+          if (onCopyPath) {
+            onCopyPath(path)
+          }
           break
         case 'cut':
-          onCutPath?.(path)
+          if (onCutPath) {
+            onCutPath(path)
+          }
           break
         case 'paste-paths':
-          if (onPastePath) await onPastePath(path)
+          if (onPastePath) {
+            await onPastePath(path)
+          }
           break
         case 'paste-documents':
           if (onPasteDocuments && pastedDocumentIds && pastedDocumentIds.length > 0) {
@@ -299,8 +266,7 @@ function ContextMenu({
           </div>
         )}
       </div>
-    </>,
-    document.body
+    </>, document.body
   )
 }
 
@@ -333,19 +299,25 @@ function TreeNodeComponent({
   tree,
   sourceLayerPath,
   targetLayerPaths,
-  onLayerSelectionChange,
+  onLayerSelectionChange
 }: TreeNodeProps) {
+  // Build the current path
   const currentPath = parentPath === '/' ? `/${node.name}` : `${parentPath}/${node.name}`
 
+  // Determine if this node should be automatically expanded due to expandedPath
   const shouldBeAutoExpanded = () => {
     if (expandedPath && expandedPath !== '/') {
+      // If we have an expanded path, check if current path is part of that path
       const normalizedExpandedPath = expandedPath.startsWith('/') ? expandedPath : `/${expandedPath}`
       const normalizedCurrentPath = currentPath.startsWith('/') ? currentPath : `/${currentPath}`
+
+      // Node should be expanded if the expanded path starts with this node's path
       return normalizedExpandedPath.startsWith(normalizedCurrentPath) && normalizedExpandedPath !== normalizedCurrentPath
     }
     return defaultExpanded
   }
 
+  // Track manual expansion state separately from automatic expansion
   const [manuallyExpanded, setManuallyExpanded] = useState<boolean | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
@@ -353,32 +325,50 @@ function TreeNodeComponent({
   const hasChildren = node.children && node.children.length > 0
   const isDragOver = dragOverPath === currentPath
 
+  // Layer selection state
   const isSourceLayer = sourceLayerPath === currentPath
   const isTargetLayer = targetLayerPaths?.has(currentPath) || false
 
+  // Determine final expansion state: manual override takes precedence, otherwise use auto-expansion
   const isExpanded = manuallyExpanded !== null ? manuallyExpanded : shouldBeAutoExpanded()
 
-  useEffect(() => {}, [expandedPath, manuallyExpanded])
+  // Update auto-expansion when expandedPath changes, but don't override manual expansion
+  useEffect(() => {
+    if (manuallyExpanded === null) {
+      // Only update if user hasn't manually interacted with this node
+      // The state will update automatically due to shouldBeAutoExpanded() in the computed isExpanded
+    }
+  }, [expandedPath, manuallyExpanded])
 
   const handleToggle = () => {
-    if (hasChildren) setManuallyExpanded(!isExpanded)
+    if (hasChildren) {
+      // Mark as manually expanded/collapsed to override automatic behavior
+      setManuallyExpanded(!isExpanded)
+    }
   }
 
   const handleSelect = (e: React.MouseEvent) => {
+    // Layer selection logic for merge/subtract operations
     if (onLayerSelectionChange && (onMergeLayer || onSubtractLayer)) {
       if (e.ctrlKey || e.metaKey) {
+        // Ctrl+click: toggle this path as a target (red) if we have a source
         if (sourceLayerPath && currentPath !== sourceLayerPath) {
           const newTargets = new Set(targetLayerPaths || [])
-          if (newTargets.has(currentPath)) newTargets.delete(currentPath)
-          else newTargets.add(currentPath)
+          if (newTargets.has(currentPath)) {
+            newTargets.delete(currentPath)
+          } else {
+            newTargets.add(currentPath)
+          }
           onLayerSelectionChange(sourceLayerPath, newTargets)
         }
-        return
+        return // Don't change selectedPath on Ctrl+click
       } else {
+        // Normal click: set as source (blue) and clear targets
         onLayerSelectionChange(currentPath, new Set())
       }
     }
 
+    // Normal path selection
     onPathSelect(currentPath)
   }
 
@@ -393,13 +383,13 @@ function TreeNodeComponent({
     <div>
       <div
         className={cn(
-          'flex items-center py-1 px-2 rounded-sm text-sm relative group cursor-pointer',
-          readOnly && 'opacity-75',
-          isSourceLayer && 'bg-blue-100 hover:bg-blue-200',
-          !isSourceLayer && isTargetLayer && 'bg-red-100 hover:bg-red-200',
-          !isSourceLayer && !isTargetLayer && isSelected && 'bg-accent text-accent-foreground',
-          !isSourceLayer && !isTargetLayer && !isSelected && 'hover:bg-accent hover:text-accent-foreground',
-          isDragOver && !readOnly && 'border-2 border-blue-300'
+          "flex items-center py-1 px-2 rounded-sm text-sm relative group cursor-pointer",
+          readOnly && "opacity-75",
+          isSourceLayer && "bg-blue-100 hover:bg-blue-200",
+          !isSourceLayer && isTargetLayer && "bg-red-100 hover:bg-red-200",
+          !isSourceLayer && !isTargetLayer && isSelected && "bg-accent text-accent-foreground",
+          !isSourceLayer && !isTargetLayer && !isSelected && "hover:bg-accent hover:text-accent-foreground",
+          isDragOver && !readOnly && "border-2 border-blue-300"
         )}
         style={{ paddingLeft: `${level * 16 + 8}px` }}
         onClick={handleSelect}
@@ -409,6 +399,7 @@ function TreeNodeComponent({
         onDragOver={(e) => !readOnly && onDragOver(currentPath, e)}
         onDrop={(e) => !readOnly && onDrop(currentPath, e)}
       >
+        {/* Expand/Collapse button */}
         <div className="flex items-center justify-center w-4 h-4 mr-1">
           {hasChildren ? (
             <button
@@ -418,13 +409,18 @@ function TreeNodeComponent({
               }}
               className="hover:bg-muted rounded-sm p-0.5"
             >
-              {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
             </button>
           ) : (
             <div className="w-3 h-3" />
           )}
         </div>
 
+        {/* Folder icon */}
         <div className="flex items-center justify-center w-4 h-4 mr-2">
           {hasChildren && isExpanded ? (
             <FolderOpen className="h-3 w-3 text-blue-500" />
@@ -433,6 +429,7 @@ function TreeNodeComponent({
           )}
         </div>
 
+        {/* Node label with color indicator */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {node.color && node.color !== '#fff' && (
             <div
@@ -446,6 +443,7 @@ function TreeNodeComponent({
           </span>
         </div>
 
+        {/* Context menu trigger */}
         {!readOnly && (
           <button
             className="opacity-0 group-hover:opacity-100 hover:bg-muted rounded-sm p-1 ml-auto"
@@ -459,6 +457,7 @@ function TreeNodeComponent({
         )}
       </div>
 
+      {/* Custom context menu */}
       <ContextMenu
         isOpen={!!contextMenu}
         onClose={() => setContextMenu(null)}
@@ -481,6 +480,7 @@ function TreeNodeComponent({
         tree={tree}
       />
 
+      {/* Children */}
       {hasChildren && isExpanded && (
         <div>
           {node.children.map((child) => (
@@ -530,8 +530,8 @@ export function TreeView({
   readOnly = false,
   defaultExpanded = false,
   expandedPath,
-  title,
-  subtitle,
+  title: _title,
+  subtitle: _subtitle,
   onInsertPath,
   onRemovePath,
   onRenamePath,
@@ -542,12 +542,14 @@ export function TreeView({
   onPastePathFromClipboard,
   onMergeLayer,
   onSubtractLayer,
+  onMergeUp: _onMergeUp,
+  onMergeDown: _onMergeDown,
   onPasteDocuments,
   pastedDocumentIds,
   clipboardPaths,
   sourceLayerPath: externalSourceLayerPath,
   targetLayerPaths: externalTargetLayerPaths,
-  onLayerSelectionChange: externalOnLayerSelectionChange,
+  onLayerSelectionChange: externalOnLayerSelectionChange
 }: TreeViewProps) {
   const [dragOverPath, setDragOverPath] = useState<string | null>(null)
   const [draggedPath, setDraggedPath] = useState<string | null>(null)
@@ -555,187 +557,208 @@ export function TreeView({
   const dragCounterRef = useRef(0)
   const rootRef = useRef<HTMLDivElement>(null)
 
+  // Internal path clipboard (used when no external clipboard is provided)
   const [internalClipboard, setInternalClipboard] = useState<TreeClipboard | null>(null)
 
+  // Internal layer selection state (if not provided externally)
   const [internalSourceLayerPath, setInternalSourceLayerPath] = useState<string | null>(null)
   const [internalTargetLayerPaths, setInternalTargetLayerPaths] = useState<Set<string>>(new Set())
 
+  // Use external state if provided, otherwise use internal state
   const sourceLayerPath = externalSourceLayerPath !== undefined ? externalSourceLayerPath : internalSourceLayerPath
   const targetLayerPaths = externalTargetLayerPaths !== undefined ? externalTargetLayerPaths : internalTargetLayerPaths
 
-  const handleLayerSelectionChange = useCallback(
-    (sourcePath: string | null, targetPaths: Set<string>) => {
-      if (externalOnLayerSelectionChange) externalOnLayerSelectionChange(sourcePath, targetPaths)
-      else {
-        setInternalSourceLayerPath(sourcePath)
-        setInternalTargetLayerPaths(targetPaths)
-      }
-    },
-    [externalOnLayerSelectionChange]
-  )
+  const handleLayerSelectionChange = useCallback((sourcePath: string | null, targetPaths: Set<string>) => {
+    if (externalOnLayerSelectionChange) {
+      externalOnLayerSelectionChange(sourcePath, targetPaths)
+    } else {
+      setInternalSourceLayerPath(sourcePath)
+      setInternalTargetLayerPaths(targetPaths)
+    }
+  }, [externalOnLayerSelectionChange])
 
   const effectiveClipboardPaths = clipboardPaths ?? internalClipboard?.paths ?? []
 
-  const handleCopyPathToClipboardInternal = useCallback(
-    (path: string) => {
-      if (readOnly) return
-      if (!path || path === '/') return
-      setInternalClipboard({ mode: 'copy', paths: [path] })
-    },
-    [readOnly]
-  )
+  const handleCopyPathToClipboardInternal = useCallback((path: string) => {
+    if (readOnly) return
+    if (!path || path === '/') return
+    setInternalClipboard({ mode: 'copy', paths: [path] })
+  }, [readOnly])
 
-  const handleCutPathToClipboardInternal = useCallback(
-    (path: string) => {
-      if (readOnly) return
-      if (!path || path === '/') return
-      setInternalClipboard({ mode: 'cut', paths: [path] })
-    },
-    [readOnly]
-  )
+  const handleCutPathToClipboardInternal = useCallback((path: string) => {
+    if (readOnly) return
+    if (!path || path === '/') return
+    setInternalClipboard({ mode: 'cut', paths: [path] })
+  }, [readOnly])
 
-  const handlePastePathFromClipboardInternal = useCallback(
-    async (targetPath: string): Promise<boolean> => {
-      if (readOnly) return false
-      if (!internalClipboard || internalClipboard.paths.length === 0) return false
-      if (!onMovePath && !onCopyPath) return false
+  const handlePastePathFromClipboardInternal = useCallback(async (targetPath: string): Promise<boolean> => {
+    if (readOnly) return false
+    if (!internalClipboard || internalClipboard.paths.length === 0) return false
+    if (!onMovePath && !onCopyPath) return false
 
-      const { mode, paths } = internalClipboard
-      let didSomething = false
+    const { mode, paths } = internalClipboard
+    let didSomething = false
 
-      for (const fromPath of paths) {
-        if (!fromPath || fromPath === targetPath) continue
+    for (const fromPath of paths) {
+      if (!fromPath || fromPath === targetPath) continue
 
-        if (mode === 'cut') {
-          if (!onMovePath) return false
-          await onMovePath(fromPath, targetPath, false)
-          didSomething = true
-        } else {
-          if (!onCopyPath) return false
-          await onCopyPath(fromPath, targetPath, false)
-          didSomething = true
-        }
+      if (mode === 'cut') {
+        if (!onMovePath) return false
+        await onMovePath(fromPath, targetPath, false)
+        didSomething = true
+      } else {
+        if (!onCopyPath) return false
+        await onCopyPath(fromPath, targetPath, false)
+        didSomething = true
       }
+    }
 
-      if (!didSomething) return false
-      if (mode === 'cut') setInternalClipboard(null)
-      return true
-    },
-    [readOnly, internalClipboard, onMovePath, onCopyPath]
-  )
+    // Don't clear clipboard if paste was effectively a no-op (e.g. cut /a then paste onto /a)
+    if (!didSomething) return false
+
+    if (mode === 'cut') {
+      setInternalClipboard(null)
+    }
+    return true
+  }, [readOnly, internalClipboard, onMovePath, onCopyPath])
 
   const effectiveCopyToClipboard = onCopyPathToClipboard ?? handleCopyPathToClipboardInternal
   const effectiveCutToClipboard = onCutPathToClipboard ?? handleCutPathToClipboardInternal
   const effectivePasteFromClipboard = onPastePathFromClipboard ?? handlePastePathFromClipboardInternal
 
-  const handleDragStart = useCallback(
-    (path: string, event: React.DragEvent) => {
-      if (readOnly) return
-      setDraggedPath(path)
-      event.dataTransfer.setData('text/plain', path)
-      event.dataTransfer.effectAllowed = 'copyMove'
-    },
-    [readOnly]
-  )
+  const handleDragStart = useCallback((path: string, event: React.DragEvent) => {
+    if (readOnly) return
 
-  const handleDragOver = useCallback(
-    (path: string, event: React.DragEvent) => {
-      if (readOnly) return
+    setDraggedPath(path)
+    event.dataTransfer.setData('text/plain', path)
+    // Allow Ctrl-drag to copy (copyMove), not only move.
+    event.dataTransfer.effectAllowed = 'copyMove'
+  }, [readOnly])
 
-      const hasDocumentData = event.dataTransfer.types.includes('application/json')
-      const hasPathData = event.dataTransfer.types.includes('text/plain')
+  const handleDragOver = useCallback((path: string, event: React.DragEvent) => {
+    if (readOnly) return
 
-      if (hasPathData && draggedPath) {
-        const normalizedSource = draggedPath.endsWith('/') ? draggedPath.slice(0, -1) : draggedPath
-        const normalizedTarget = path.endsWith('/') ? path.slice(0, -1) : path
+    // Check if this is a document drag by looking at the data types
+    const hasDocumentData = event.dataTransfer.types.includes('application/json')
+    const hasPathData = event.dataTransfer.types.includes('text/plain')
 
-        const isCopy = event.ctrlKey || event.metaKey
-        const sourceParent = normalizedSource.substring(0, normalizedSource.lastIndexOf('/')) || '/'
+    // For path drag operations, validate the operation before allowing drop.
+    // Note: "drop on parent is a no-op" only applies to MOVE, not COPY.
+    if (hasPathData && draggedPath) {
+      const normalizedSource = draggedPath.endsWith('/') ? draggedPath.slice(0, -1) : draggedPath
+      const normalizedTarget = path.endsWith('/') ? path.slice(0, -1) : path
 
-        const isInvalidOperation =
-          normalizedTarget.startsWith(normalizedSource + '/') ||
-          normalizedSource === normalizedTarget ||
-          (!isCopy && normalizedTarget === sourceParent)
+      const isCopy = event.ctrlKey || event.metaKey
+      const sourceParent = normalizedSource.substring(0, normalizedSource.lastIndexOf('/')) || '/'
 
-        if (isInvalidOperation) {
-          event.dataTransfer.dropEffect = 'none'
+      const isInvalidOperation =
+        normalizedTarget.startsWith(normalizedSource + '/') || // Target is descendant of source (copy or move)
+        normalizedSource === normalizedTarget || // Target is same as source (copy or move)
+        (!isCopy && normalizedTarget === sourceParent) // Target is direct parent of source (move-only no-op)
+
+      if (isInvalidOperation) {
+        event.dataTransfer.dropEffect = 'none'
+        return // Don't set drag over path for invalid operations
+      }
+    }
+
+    // Always prevent default to allow drop for valid operations
+    event.preventDefault()
+
+    if (hasDocumentData) {
+      // For document drops, default to copy
+      event.dataTransfer.dropEffect = 'copy'
+    } else if (hasPathData) {
+      // For path drops, default to move, allow copy with ctrl
+      event.dataTransfer.dropEffect = event.ctrlKey ? 'copy' : 'move'
+    } else {
+      event.dataTransfer.dropEffect = 'copy'
+    }
+
+    setDragOverPath(path)
+    dragCounterRef.current++
+  }, [readOnly, draggedPath])
+
+  const handleDrop = useCallback(async (targetPath: string, event: React.DragEvent) => {
+    if (readOnly) return
+
+    event.preventDefault()
+    setDragOverPath(null)
+    dragCounterRef.current = 0
+
+    try {
+            // Check if it's a document being dragged
+      const dragData = event.dataTransfer.getData('application/json')
+
+      if (dragData) {
+        const parsedData = JSON.parse(dragData)
+
+        if (parsedData.type === 'document') {
+          // Handle document drop
+          const documentIds = parsedData.documentIds || [parsedData.documentId]
+          if (onPasteDocuments) {
+            // For now, always copy documents (could extend to move with shift key)
+            await onPasteDocuments(targetPath, documentIds)
+          }
           return
         }
       }
 
-      event.preventDefault()
+      // Handle path drag & drop
+      if (!draggedPath) return
+      const sourcePath = draggedPath
+      setDraggedPath(null)
 
-      if (hasDocumentData) event.dataTransfer.dropEffect = 'copy'
-      else if (hasPathData) event.dataTransfer.dropEffect = event.ctrlKey ? 'copy' : 'move'
-      else event.dataTransfer.dropEffect = 'copy'
+      if (sourcePath === targetPath) return
 
-      setDragOverPath(path)
-      dragCounterRef.current++
-    },
-    [readOnly, draggedPath]
-  )
+      // Validate move operation to prevent invalid path operations
+      const isCtrlPressed = event.ctrlKey
 
-  const handleDrop = useCallback(
-    async (targetPath: string, event: React.DragEvent) => {
-      if (readOnly) return
+      if (!isCtrlPressed) {
+        // For move operations, check if target is an ancestor or descendant of source
+        const normalizedSource = sourcePath.endsWith('/') ? sourcePath.slice(0, -1) : sourcePath
+        const normalizedTarget = targetPath.endsWith('/') ? targetPath.slice(0, -1) : targetPath
 
-      event.preventDefault()
-      setDragOverPath(null)
-      dragCounterRef.current = 0
-
-      try {
-        const dragData = event.dataTransfer.getData('application/json')
-        if (dragData) {
-          const parsedData = JSON.parse(dragData)
-          if (parsedData.type === 'document') {
-            const documentIds = parsedData.documentIds || [parsedData.documentId]
-            if (onPasteDocuments) await onPasteDocuments(targetPath, documentIds)
-            return
-          }
+        // Prevent moving a path into its own descendant
+        if (normalizedTarget.startsWith(normalizedSource + '/')) {
+          alert(`Cannot move "${sourcePath}" into its own subdirectory "${targetPath}"`)
+          return
         }
 
-        if (!draggedPath) return
-        const sourcePath = draggedPath
-        setDraggedPath(null)
-        if (sourcePath === targetPath) return
-
-        const isCtrlPressed = event.ctrlKey || event.metaKey
-        if (!isCtrlPressed) {
-          const normalizedSource = sourcePath.endsWith('/') ? sourcePath.slice(0, -1) : sourcePath
-          const normalizedTarget = targetPath.endsWith('/') ? targetPath.slice(0, -1) : targetPath
-
-          if (normalizedTarget.startsWith(normalizedSource + '/')) {
-            alert(`Cannot move "${sourcePath}" into its own subdirectory "${targetPath}"`)
-            return
-          }
-
-          const sourceParent = normalizedSource.substring(0, normalizedSource.lastIndexOf('/')) || '/'
-          if (normalizedTarget === sourceParent) {
-            alert(`Cannot move "${sourcePath}" to its current parent directory "${targetPath}"`)
-            return
-          }
-
-          if (normalizedSource === normalizedTarget) return
+        // Prevent moving a path onto its direct parent (which would be a no-op)
+        const sourceParent = normalizedSource.substring(0, normalizedSource.lastIndexOf('/')) || '/'
+        if (normalizedTarget === sourceParent) {
+          alert(`Cannot move "${sourcePath}" to its current parent directory "${targetPath}"`)
+          return
         }
 
-        const isShiftPressed = event.shiftKey
-
-        if (isCtrlPressed && onCopyPath) {
-          await onCopyPath(sourcePath, targetPath, false)
-        } else if (onMovePath) {
-          await onMovePath(sourcePath, targetPath, isShiftPressed)
+        // Prevent moving a path onto itself
+        if (normalizedSource === normalizedTarget) {
+          return
         }
-      } catch (error) {
-        console.error('Error during drop operation:', error)
-        alert(`Drop operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
-    },
-    [readOnly, draggedPath, onCopyPath, onMovePath, onPasteDocuments]
-  )
+
+      // Determine operation based on modifier keys
+      const isShiftPressed = event.shiftKey
+
+      if (isCtrlPressed && onCopyPath) {
+        // Copy operation
+        await onCopyPath(sourcePath, targetPath, false)
+      } else if (onMovePath) {
+        // Move operation (default)
+        await onMovePath(sourcePath, targetPath, isShiftPressed)
+      }
+    } catch (error) {
+      console.error('Error during drop operation:', error)
+      alert(`Drop operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }, [readOnly, draggedPath, onCopyPath, onMovePath, onPasteDocuments])
 
   const handleDragLeave = useCallback(() => {
     dragCounterRef.current--
-    if (dragCounterRef.current === 0) setDragOverPath(null)
+    if (dragCounterRef.current === 0) {
+      setDragOverPath(null)
+    }
   }, [])
 
   const handleRootContextMenu = (e: React.MouseEvent) => {
@@ -747,8 +770,10 @@ export function TreeView({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (readOnly) return
+
     const isMod = e.ctrlKey || e.metaKey
     if (!isMod) return
+
     const key = e.key.toLowerCase()
     if (key === 'c') {
       e.preventDefault()
@@ -771,20 +796,15 @@ export function TreeView({
       onMouseDown={() => rootRef.current?.focus()}
       onDragLeave={handleDragLeave}
     >
-      {(title || subtitle) && (
-        <div className="border-b pb-2 mb-2">
-          {title && <h3 className="font-semibold text-sm text-muted-foreground">{title}</h3>}
-          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
-        </div>
-      )}
 
       <div className="space-y-0.5">
+        {/* Root node */}
         <div
           className={cn(
-            'flex items-center py-1 px-2 rounded-sm text-sm group cursor-pointer hover:bg-accent hover:text-accent-foreground',
-            readOnly && 'opacity-75',
-            selectedPath === '/' && 'bg-accent text-accent-foreground',
-            dragOverPath === '/' && !readOnly && 'bg-blue-100 border-2 border-blue-300'
+            "flex items-center py-1 px-2 rounded-sm text-sm group cursor-pointer hover:bg-accent hover:text-accent-foreground",
+            readOnly && "opacity-75",
+            selectedPath === '/' && "bg-accent text-accent-foreground",
+            dragOverPath === '/' && !readOnly && "bg-blue-100 border-2 border-blue-300"
           )}
           onClick={() => onPathSelect('/')}
           onContextMenu={handleRootContextMenu}
@@ -805,11 +825,12 @@ export function TreeView({
                 title={`Color: ${tree.color}`}
               />
             )}
-            <span className="truncate font-medium" title={tree.description || 'Root directory'}>
+            <span className="truncate font-medium" title={tree.description || "Root directory"}>
               /
             </span>
           </div>
 
+          {/* Context menu trigger */}
           {!readOnly && (
             <button
               className="opacity-0 group-hover:opacity-100 hover:bg-muted rounded-sm p-1 ml-auto"
@@ -823,6 +844,7 @@ export function TreeView({
           )}
         </div>
 
+        {/* Custom context menu for root */}
         <ContextMenu
           isOpen={!!rootContextMenu}
           onClose={() => setRootContextMenu(null)}
@@ -845,6 +867,7 @@ export function TreeView({
           targetLayerPaths={targetLayerPaths}
         />
 
+        {/* Child nodes */}
         {tree.children?.map((child) => (
           <TreeNodeComponent
             key={child.id}
@@ -883,4 +906,3 @@ export function TreeView({
     </div>
   )
 }
-

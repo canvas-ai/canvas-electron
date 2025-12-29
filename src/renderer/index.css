@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Material Design v2 Color Palette - Clean White Theme */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    /* Primary: Black (Buttons) */
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Teal (Support Actions) */
+    --secondary: 174 100% 43%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 5% 40%;
+
+    /* Accent: Light Gray */
+    --accent: 240 5% 96%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 100% 42%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Semantic Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 54 100% 40%;
+    --warning-foreground: 0 0% 0%;
+
+    --info: 217 100% 50%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 240 5% 90%;
+    --input: 240 5% 96%;
+    --ring: 0 0% 0%;
+
+    --radius: 8px;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 0 0% 0%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 240 5% 90%;
+    --sidebar-ring: 0 0% 0%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Material Design Typography Scale */
+  h1 {
+    @apply text-5xl font-light tracking-tight;
+  }
+
+  h2 {
+    @apply text-4xl font-normal tracking-tight;
+  }
+
+  h3 {
+    @apply text-3xl font-normal;
+  }
+
+  h4 {
+    @apply text-2xl font-normal;
+  }
+
+  h5 {
+    @apply text-xl font-medium;
+  }
+
+  h6 {
+    @apply text-lg font-medium;
+  }
+}
+
+@layer utilities {
+
+  /* Material Design Elevation Utilities */
+  .elevation-0 {
+    box-shadow: none;
+  }
+
+  .elevation-1 {
+    @apply shadow-elevation-1;
+  }
+
+  .elevation-2 {
+    @apply shadow-elevation-2;
+  }
+
+  .elevation-3 {
+    @apply shadow-elevation-3;
+  }
+
+  .elevation-4 {
+    @apply shadow-elevation-4;
+  }
+
+  .elevation-6 {
+    @apply shadow-elevation-6;
+  }
+
+  .elevation-8 {
+    @apply shadow-elevation-8;
+  }
+
+  /* Material Design Transitions */
+  .transition-material {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+
+  .transition-material-fast {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  .transition-material-slow {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 375ms;
+  }
+
+  /* Ripple Effect */
+  .ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .ripple:active::after {
+    width: 300px;
+    height: 300px;
+  }
+
+  /* Canvas-specific utilities */
+  .canvas-card {
+    @apply bg-card rounded-lg shadow-elevation-2 transition-all duration-material-standard;
+    @apply hover:shadow-elevation-4 hover:-translate-y-1;
+  }
+
+  .canvas-card-active {
+    @apply shadow-elevation-6 ring-2 ring-primary;
+  }
+
+  /* Electron titlebar helpers (frameless window) */
+  .titlebar {
+    -webkit-app-region: drag;
+  }
+
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+}
