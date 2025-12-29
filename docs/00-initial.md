@@ -42,3 +42,54 @@ CANVAS_HOME structure
   logs/
   tmp/
 ```
+
+Every app integrated with canvas has 2 modu operandi:
+- a "bind" mode where applications binds to a specific context and follows it. If I switch a context named "work" from universe://work/task1 to universe://work/task2, all bound applications will load the relevant tabs, notes, email threads etc automatically) 
+- explorer mode, where you normally browse through your workspaces > workspace tied context paths and clicking on workspaces > universe > work/task1 creates a default canvas showing a list of all data available for that given context path
+
+The tricky part is how to design the menu
+Globaly we have
+- Contexts - think "sessions", they only exist so that all connected devices(phones, TVs, laptops) can "follow" what I am doing if I want to
+  - Contexts can have their own ACL
+- Workspaces
+  - Each workspace has its own "Context Tree" 
+  - Each workspace can have its own ACLs
+  - Workspaces need to define their own data sources 
+- Agents (defined globaly, can be linked to both Workspaces and Contexts)
+- Roles (defined globaly, can be used by any workspace if configured as such)
+--
+- Remotes 
+- Global API Keys 
+- Settings ? 
+
+One could probably get away with a 3 stage menu
+Main selection above > List of <selection> > Tree (in case of a workspace) or selection details for the rest > Selection details  in case of a tree
+
+--
+
+OK 
+Agents/Roles global: fine, but in UI show “linked to” per workspace/context.
+Remotes: admin-ish; tuck under Settings unless you’re actively switching.
+API keys: Settings → Credentials.
+
+deal
+as for the toolbox, toolbox is for tools - we will for example have a vertical timeline filter to zoom in-out and select time ranges, toggles for showing specific data abstractions etc  + our global applets live here, menu we should implement as a toggable sidebar on the left, either by extending from the canvas window and visually separating it or as a standalone window entirely
+In this case, one could argue that having a tree menu "connected" to the canvas element kinda makes sense if you want to switch from /work/task1 to /work/task2 keeping your current filters/UI in place
+
+That would imply that we can "bind" a specific canvas instead of the whole app which may be *more* practical as it appears to be (I'd have one canvas on monitor 1 following my global "context" and one on monitor 2 for some ad-hoc replies/browsing etc
+
+--
+
+Hold on hold on, I remember how painful it was to reimplement all the drag&drop and context menu functionality that we kinda already have in our webui
+
+a) maybe we could reuse an existing FOSS file manager and just fine-tune it to our needs, when you navigate through a context tree you are filtering just based on context and getting ALL data (notes, browser tabs/urls, files) - We could show a folder for each data abstraction (strip data/abstraction from data/abstraction/<type>, capitalize type and set OR we can always show a list and let toolbox do the magic as was intended (the above strategy with a folder-per-abstraction was meant for our webdav backend)
+
+Found a couple of examples
+@flmngr/flmngr-react (5M weekly downloads)
+@svar-ui/react-filemanager (555 wd)
+@cubone/react-file-manager (1499 wd)
+
+b) or lets directly port some of the components from our webui
+
+
+

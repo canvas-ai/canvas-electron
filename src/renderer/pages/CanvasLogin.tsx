@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { AuthSession } from '../../shared/types'
+import { CanvasShell } from './CanvasShell'
 
 type AuthConfig = {
   strategies?: {
@@ -36,10 +37,11 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 export function CanvasLogin() {
   const [serverUrl, setServerUrl] = React.useState('http://localhost:8001')
   const [apiUrl, setApiUrl] = React.useState('')
-  const [step, setStep] = React.useState<'pick' | 'login' | 'register' | 'done'>('pick')
+  const [step, setStep] = React.useState<'pick' | 'login' | 'register'>('pick')
   const [authConfig, setAuthConfig] = React.useState<AuthConfig | null>(null)
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [session, setSession] = React.useState<AuthSession | null>(null)
 
   const [strategy, setStrategy] = React.useState<'auto' | 'local' | 'imap'>('auto')
   const [email, setEmail] = React.useState('')
@@ -48,11 +50,11 @@ export function CanvasLogin() {
 
   React.useEffect(() => {
     ;(async () => {
-      const session = await window.electronAPI.getAuthSession()
-      if (!session?.token) return
-      setServerUrl(session.serverUrl)
-      setApiUrl(session.apiUrl)
-      setStep('done')
+      const existing = await window.electronAPI.getAuthSession()
+      if (!existing?.token) return
+      setServerUrl(existing.serverUrl)
+      setApiUrl(existing.apiUrl)
+      setSession(existing)
     })()
   }, [])
 
@@ -89,7 +91,7 @@ export function CanvasLogin() {
       const norm = normalizeApiUrl(serverUrl)
       const session: AuthSession = { serverUrl: norm.serverUrl, apiUrl: norm.apiUrl, token }
       await window.electronAPI.setAuthSession(session)
-      setStep('done')
+      setSession(session)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Login failed')
     } finally {
@@ -115,6 +117,19 @@ export function CanvasLogin() {
 
   const showStrategyPicker =
     !!authConfig?.strategies?.imap?.enabled && (authConfig?.strategies?.imap?.domains?.length ?? 0) > 0
+
+  if (session?.token) {
+    return (
+      <CanvasShell
+        session={session}
+        onLogout={async () => {
+          await window.electronAPI.clearAuthSession()
+          setSession(null)
+          setStep('pick')
+        }}
+      />
+    )
+  }
 
   return (
     <div className="h-screen w-screen bg-background text-foreground flex items-center justify-center">
@@ -211,30 +226,6 @@ export function CanvasLogin() {
                     {isLoading ? 'Registering…' : 'Register'}
                   </Button>
                 )}
-              </div>
-            </div>
-          )}
-
-          {step === 'done' && (
-            <div className="space-y-3">
-              <div className="rounded-md border p-3">
-                <div className="text-sm font-medium">Authenticated</div>
-                <div className="text-xs text-muted-foreground">Server: {serverUrl}</div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={async () => {
-                    await window.electronAPI.clearAuthSession()
-                    setStep('pick')
-                  }}
-                >
-                  Logout
-                </Button>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Toolbox is now enabled (tray / Super+Space). Next step: load workspaces.
               </div>
             </div>
           )}
