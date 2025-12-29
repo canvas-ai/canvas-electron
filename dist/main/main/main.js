@@ -7,9 +7,12 @@ const conversation_manager_1 = require("./conversation-manager");
 const chat_service_1 = require("./chat-service");
 const mcp_service_1 = require("./mcp-service");
 const constants_1 = require("../shared/constants");
+const WindowManager_1 = require("./window-manager/WindowManager");
 class CanvasApp {
     tray = null;
     toolbox = null;
+    windowManager = new WindowManager_1.WindowManager();
+    launcherCanvasId = null;
     conversationManager;
     chatService;
     mcpService;
@@ -30,11 +33,14 @@ class CanvasApp {
             return;
         }
         electron_1.app.on('second-instance', () => {
-            // Someone tried to run a second instance, focus our toolbox instead
+            // Someone tried to run a second instance, focus our launcher instead
             if (this.toolbox) {
                 this.toolbox.show();
                 this.toolbox.focus();
+                return;
             }
+            if (this.launcherCanvasId)
+                this.windowManager.focusCanvas(this.launcherCanvasId);
         });
         electron_1.app.whenReady().then(() => {
             this.initialize();
@@ -49,7 +55,8 @@ class CanvasApp {
         electron_1.app.on('activate', () => {
             // On macOS, re-create windows when dock icon is clicked
             if (electron_1.BrowserWindow.getAllWindows().length === 0) {
-                this.toolbox?.show();
+                if (this.launcherCanvasId)
+                    this.windowManager.focusCanvas(this.launcherCanvasId);
             }
         });
         electron_1.app.on('will-quit', () => {
@@ -62,8 +69,8 @@ class CanvasApp {
             onToolboxToggle: () => this.toggleToolbox(),
             onQuit: () => this.quit(),
         });
-        // Create toolbox window
-        this.toolbox = new toolbox_1.ToolboxWindow();
+        // Create launcher canvas window (centered)
+        this.launcherCanvasId = this.windowManager.createLauncherCanvas({ show: true });
         // Register global shortcuts
         this.registerGlobalShortcuts();
         console.log('Canvas app initialized');
@@ -102,15 +109,14 @@ class CanvasApp {
         });
     }
     toggleToolbox() {
-        if (!this.toolbox)
+        const anchor = this.launcherCanvasId ? this.windowManager.getCanvasBounds(this.launcherCanvasId) : null;
+        if (!anchor)
             return;
-        if (this.toolbox.isVisible()) {
-            this.toolbox.hide();
-        }
-        else {
-            this.toolbox.show();
-            this.toolbox.focus();
-        }
+        if (!this.toolbox)
+            this.toolbox = new toolbox_1.ToolboxWindow({ mode: 'minimized' });
+        if (this.toolbox.isVisible())
+            return this.toolbox.hide();
+        this.toolbox.showMinimizedNextTo(anchor, 32);
     }
     quit() {
         electron_1.app.isQuitting = true;

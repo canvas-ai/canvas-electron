@@ -6,23 +6,24 @@ const path_1 = require("path");
 const constants_1 = require("../shared/constants");
 class ToolboxWindow {
     window = null;
-    constructor() {
-        this.createWindow();
+    mode;
+    constructor({ mode = 'normal' } = {}) {
+        this.mode = mode;
+        this.createWindow({ show: false });
     }
-    createWindow() {
-        const { x, y } = this.calculatePosition();
-        const height = (0, constants_1.getToolboxHeight)();
+    createWindow({ show, bounds, }) {
+        const resolved = bounds ?? this.calculatePosition();
         this.window = new electron_1.BrowserWindow({
-            width: constants_1.TOOLBOX_WIDTH,
-            height,
-            x,
-            y,
+            width: resolved.width,
+            height: resolved.height,
+            x: resolved.x,
+            y: resolved.y,
             frame: false,
             transparent: false,
             alwaysOnTop: true,
             resizable: true,
             skipTaskbar: true,
-            show: false,
+            show,
             minWidth: 400,
             minHeight: 300,
             webPreferences: {
@@ -64,19 +65,42 @@ class ToolboxWindow {
         // Position 460px from the right edge, centered vertically
         const x = screenWidth - constants_1.TOOLBOX_WIDTH - constants_1.TOOLBOX_MARGIN_RIGHT;
         const y = Math.floor((screenHeight - toolboxHeight) / 2);
-        return { x, y };
+        return { x, y, width: constants_1.TOOLBOX_WIDTH, height: toolboxHeight };
     }
     show() {
         if (!this.window) {
-            this.createWindow();
+            this.createWindow({ show: false });
         }
         if (this.window) {
             // Ensure correct position before showing
-            const { x, y } = this.calculatePosition();
-            this.window.setPosition(x, y);
+            if (this.mode === 'normal') {
+                const { x, y } = this.calculatePosition();
+                this.window.setPosition(x, y);
+            }
             this.window.show();
             this.window.focus();
         }
+    }
+    showMinimizedNextTo(anchor, gap = 32) {
+        const width = 56;
+        const bounds = {
+            x: anchor.x + anchor.width + gap,
+            y: anchor.y,
+            width,
+            height: anchor.height,
+        };
+        this.mode = 'minimized';
+        if (!this.window)
+            this.createWindow({ show: true, bounds });
+        const win = this.window;
+        if (!win)
+            return;
+        win.setBounds(bounds);
+        win.setResizable(false);
+        win.setMinimumSize(width, 120);
+        win.setMaximumSize(width, 10000);
+        win.show();
+        win.focus();
     }
     hide() {
         if (this.window) {

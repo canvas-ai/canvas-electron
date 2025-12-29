@@ -6,9 +6,6 @@
 /runtimes/**
 
 # Data directories
-/server/**
-!/server/config/example-*.json
-!/server/config/default-*.json
 /data/**
 !/data/.keep
 /user/**
@@ -103,7 +100,11 @@ packer_cache/
 *.seed
 *.sock
 *.socket
-**/package-lock.json
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+/.idea
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -127,6 +128,8 @@ build/Release
 dist/
 build/
 release/
+.vite/
+coverage/
 
 # Include all .keep files
 !**/.keep

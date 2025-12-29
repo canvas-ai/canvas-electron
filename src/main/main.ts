@@ -1,15 +1,17 @@
 import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
-import { join } from 'path';
 import { TrayManager } from './tray';
 import { ToolboxWindow } from './toolbox';
 import { ConversationManager } from './conversation-manager';
 import { ChatService } from './chat-service';
 import { MCPService } from './mcp-service';
 import { IPC_CHANNELS } from '../shared/constants';
+import { WindowManager } from './window-manager/WindowManager';
 
 class CanvasApp {
   private tray: TrayManager | null = null;
   private toolbox: ToolboxWindow | null = null;
+  private windowManager = new WindowManager();
+  private launcherCanvasId: string | null = null;
   private conversationManager: ConversationManager;
   private chatService: ChatService;
   private mcpService: MCPService;
@@ -35,11 +37,13 @@ class CanvasApp {
     }
 
     app.on('second-instance', () => {
-      // Someone tried to run a second instance, focus our toolbox instead
+      // Someone tried to run a second instance, focus our launcher instead
       if (this.toolbox) {
         this.toolbox.show();
         this.toolbox.focus();
+        return;
       }
+      if (this.launcherCanvasId) this.windowManager.focusCanvas(this.launcherCanvasId);
     });
 
     app.whenReady().then(() => {
@@ -57,7 +61,7 @@ class CanvasApp {
     app.on('activate', () => {
       // On macOS, re-create windows when dock icon is clicked
       if (BrowserWindow.getAllWindows().length === 0) {
-        this.toolbox?.show();
+        if (this.launcherCanvasId) this.windowManager.focusCanvas(this.launcherCanvasId);
       }
     });
 
@@ -73,8 +77,8 @@ class CanvasApp {
       onQuit: () => this.quit(),
     });
 
-    // Create toolbox window
-    this.toolbox = new ToolboxWindow();
+    // Create launcher canvas window (centered)
+    this.launcherCanvasId = this.windowManager.createLauncherCanvas({ show: true });
 
     // Register global shortcuts
     this.registerGlobalShortcuts();
@@ -125,14 +129,14 @@ class CanvasApp {
   }
 
   private toggleToolbox() {
-    if (!this.toolbox) return;
+    const anchor =
+      this.launcherCanvasId ? this.windowManager.getCanvasBounds(this.launcherCanvasId) : null;
+    if (!anchor) return;
 
-    if (this.toolbox.isVisible()) {
-      this.toolbox.hide();
-    } else {
-      this.toolbox.show();
-      this.toolbox.focus();
-    }
+    if (!this.toolbox) this.toolbox = new ToolboxWindow({ mode: 'minimized' });
+
+    if (this.toolbox.isVisible()) return this.toolbox.hide();
+    this.toolbox.showMinimizedNextTo(anchor, 32);
   }
 
 

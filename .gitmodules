@@ -1,0 +1,4 @@
+[submodule "server"]
+	path = server
+	url = git@github.com:canvas-ai/canvas-server.git
+	branch = dev

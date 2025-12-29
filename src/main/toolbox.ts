@@ -2,28 +2,38 @@ import { BrowserWindow, screen } from 'electron';
 import { join } from 'path';
 import { TOOLBOX_WIDTH, getToolboxHeight, TOOLBOX_MARGIN_RIGHT } from '../shared/constants';
 
+export type WindowBounds = { x: number; y: number; width: number; height: number };
+export type ToolboxMode = 'normal' | 'minimized';
+
 export class ToolboxWindow {
   private window: BrowserWindow | null = null;
+  private mode: ToolboxMode;
 
-  constructor() {
-    this.createWindow();
+  constructor({ mode = 'normal' }: { mode?: ToolboxMode } = {}) {
+    this.mode = mode;
+    this.createWindow({ show: false });
   }
 
-  private createWindow() {
-    const { x, y } = this.calculatePosition();
-    const height = getToolboxHeight();
+  private createWindow({
+    show,
+    bounds,
+  }: {
+    show: boolean;
+    bounds?: WindowBounds;
+  }) {
+    const resolved = bounds ?? this.calculatePosition();
 
     this.window = new BrowserWindow({
-      width: TOOLBOX_WIDTH,
-      height,
-      x,
-      y,
+      width: resolved.width,
+      height: resolved.height,
+      x: resolved.x,
+      y: resolved.y,
       frame: false,
       transparent: false,
       alwaysOnTop: true,
       resizable: true,
       skipTaskbar: true,
-      show: false,
+      show,
       minWidth: 400,
       minHeight: 300,
       webPreferences: {
@@ -62,7 +72,7 @@ export class ToolboxWindow {
     // });
   }
 
-  private calculatePosition(): { x: number; y: number } {
+  private calculatePosition(): WindowBounds {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
     const toolboxHeight = getToolboxHeight();
@@ -71,22 +81,47 @@ export class ToolboxWindow {
     const x = screenWidth - TOOLBOX_WIDTH - TOOLBOX_MARGIN_RIGHT;
     const y = Math.floor((screenHeight - toolboxHeight) / 2);
 
-    return { x, y };
+    return { x, y, width: TOOLBOX_WIDTH, height: toolboxHeight };
   }
 
   public show() {
     if (!this.window) {
-      this.createWindow();
+      this.createWindow({ show: false });
     }
 
     if (this.window) {
       // Ensure correct position before showing
-      const { x, y } = this.calculatePosition();
-      this.window.setPosition(x, y);
+      if (this.mode === 'normal') {
+        const { x, y } = this.calculatePosition();
+        this.window.setPosition(x, y);
+      }
 
       this.window.show();
       this.window.focus();
     }
+  }
+
+  public showMinimizedNextTo(anchor: WindowBounds, gap = 32) {
+    const width = 56;
+    const bounds: WindowBounds = {
+      x: anchor.x + anchor.width + gap,
+      y: anchor.y,
+      width,
+      height: anchor.height,
+    };
+
+    this.mode = 'minimized';
+    if (!this.window) this.createWindow({ show: true, bounds });
+
+    const win = this.window;
+    if (!win) return;
+
+    win.setBounds(bounds);
+    win.setResizable(false);
+    win.setMinimumSize(width, 120);
+    win.setMaximumSize(width, 10000);
+    win.show();
+    win.focus();
   }
 
   public hide() {
