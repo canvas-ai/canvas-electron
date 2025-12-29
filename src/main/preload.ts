@@ -9,6 +9,9 @@ const IPC_CHANNELS = {
   SEND_MESSAGE: 'send-message',
   OPEN_TOOLBOX: 'open-toolbox',
   CLOSE_TOOLBOX: 'close-toolbox',
+  GET_AUTH_SESSION: 'get-auth-session',
+  SET_AUTH_SESSION: 'set-auth-session',
+  CLEAR_AUTH_SESSION: 'clear-auth-session',
 } as const;
 
 // Expose protected methods that allow the renderer process to use
@@ -27,6 +30,11 @@ const api: IPC = {
   // Window management
   openToolbox: () => ipcRenderer.invoke(IPC_CHANNELS.OPEN_TOOLBOX),
   closeToolbox: () => ipcRenderer.invoke(IPC_CHANNELS.CLOSE_TOOLBOX),
+
+  // Auth
+  getAuthSession: () => ipcRenderer.invoke(IPC_CHANNELS.GET_AUTH_SESSION),
+  setAuthSession: (session) => ipcRenderer.invoke(IPC_CHANNELS.SET_AUTH_SESSION, session),
+  clearAuthSession: () => ipcRenderer.invoke(IPC_CHANNELS.CLEAR_AUTH_SESSION),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', api);

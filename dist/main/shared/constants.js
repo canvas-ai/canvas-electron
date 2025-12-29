@@ -34,5 +34,8 @@ exports.IPC_CHANNELS = {
     SEND_MESSAGE: 'send-message',
     OPEN_TOOLBOX: 'open-toolbox',
     CLOSE_TOOLBOX: 'close-toolbox',
+    GET_AUTH_SESSION: 'get-auth-session',
+    SET_AUTH_SESSION: 'set-auth-session',
+    CLEAR_AUTH_SESSION: 'clear-auth-session',
 };
 //# sourceMappingURL=constants.js.map

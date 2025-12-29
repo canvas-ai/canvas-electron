@@ -101,22 +101,17 @@ export class ToolboxWindow {
     }
   }
 
-  public showMinimizedNextTo(anchor: WindowBounds, gap = 32) {
+  public showMinimizedDocked(bounds: WindowBounds) {
     const width = 56;
-    const bounds: WindowBounds = {
-      x: anchor.x + anchor.width + gap,
-      y: anchor.y,
-      width,
-      height: anchor.height,
-    };
+    const docked: WindowBounds = { ...bounds, width };
 
     this.mode = 'minimized';
-    if (!this.window) this.createWindow({ show: true, bounds });
+    if (!this.window) this.createWindow({ show: true, bounds: docked });
 
     const win = this.window;
     if (!win) return;
 
-    win.setBounds(bounds);
+    win.setBounds(docked);
     win.setResizable(false);
     win.setMinimumSize(width, 120);
     win.setMaximumSize(width, 10000);

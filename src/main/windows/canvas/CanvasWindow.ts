@@ -8,7 +8,9 @@ export type WindowBounds = { x: number; y: number; width: number; height: number
 type CanvasWindowOptions = {
   id: CanvasWindowId;
   show?: boolean;
-  bounds?: { width: number; height: number };
+  bounds?: { x?: number; y?: number; width: number; height: number };
+  onFocus?: (id: CanvasWindowId) => void;
+  onNewCanvasRight?: (id: CanvasWindowId) => void;
 };
 
 export class CanvasWindow {
@@ -28,8 +30,16 @@ export class CanvasWindow {
     return { x, y, width, height };
   }
 
+  public setBounds(bounds: WindowBounds) {
+    this.window?.setBounds(bounds);
+  }
+
   public isVisible(): boolean {
     return this.window ? this.window.isVisible() : false;
+  }
+
+  public hide() {
+    this.window?.hide();
   }
 
   public show() {
@@ -46,10 +56,11 @@ export class CanvasWindow {
   }
 
   private createWindow() {
-    const { width, height, x, y } = this.getLauncherBounds(
-      this.options.bounds?.width ?? 960,
-      this.options.bounds?.height ?? 680
-    );
+    const width = this.options.bounds?.width ?? 960;
+    const height = this.options.bounds?.height ?? 680;
+    const fallback = this.getLauncherBounds(width, height);
+    const x = this.options.bounds?.x ?? fallback.x;
+    const y = this.options.bounds?.y ?? fallback.y;
 
     this.window = new BrowserWindow({
       width,
@@ -79,6 +90,18 @@ export class CanvasWindow {
 
     this.window.on('closed', () => {
       this.window = null;
+    });
+
+    this.window.on('focus', () => {
+      this.options.onFocus?.(this.options.id);
+    });
+
+    this.window.webContents.on('before-input-event', (event, input) => {
+      if (input.type !== 'keyDown') return;
+      const isNew = (input.control || input.meta) && input.key.toLowerCase() === 'n';
+      if (!isNew) return;
+      event.preventDefault();
+      this.options.onNewCanvasRight?.(this.options.id);
     });
 
     if (this.options.show ?? true) {

@@ -22,3 +22,23 @@ Note, at this stage we are preparing ther folder structure only hence secondly, 
 With that initial canvas, it should be centered both horizontaly and vertically like an application launcher window.
 No toolbox would be shown for now or if then right next right to the canvas with a 32px gap between both windows and in minimized mode - meaning - just a slim ruler-like panel the height of the canvas.
 When the application starts, a user may want to have a specific home screen view but we would first show a login screen but thats content, lets focus on the layout first 
+
+--
+CANVAS_HOME structure
+
+```text
+~/.canvas/                      (or ~/Canvas on Windows)
+  config/                       # small, global, mostly-human-editable JSON
+    remotes.json
+    settings.json               # global prefs
+  accounts/                     # everything tied to a remote/account lives together
+    <user>@<remote.id>/
+      workspaces/<workspace>/...  # local cache + workspace-specific state
+      agents/<agent>/...          # local agent defs/cache for that remote
+      roles/<role>/...            # role defs/cache for that remote
+      cache/...
+  ui/                           # electron-only state: window layouts, last active canvas, etc
+    state.json
+  logs/
+  tmp/
+```

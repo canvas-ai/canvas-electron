@@ -1,45 +1,67 @@
-import { app, Menu, Tray, nativeImage } from 'electron';
+import { app, Menu, Tray, nativeImage, nativeTheme, type NativeImage, type MenuItemConstructorOptions } from 'electron';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
 interface TrayOptions {
   onToolboxToggle: () => void;
+  getCanvases?: () => Array<{ id: string; label: string; isActive: boolean }>;
+  onCanvasFocus?: (id: string) => void;
+  isToolboxEnabled?: () => boolean;
   onQuit: () => void;
 }
 
 export class TrayManager {
   private tray: Tray;
   private options: TrayOptions;
+  private icon: NativeImage;
 
   constructor(options: TrayOptions) {
     this.options = options;
 
     // Create tray icon
-    const iconPath = this.getIconPath();
-    this.tray = new Tray(iconPath);
+    this.icon = this.getIcon();
+    this.tray = new Tray(this.icon);
 
     this.setupTray();
   }
 
-  private getIconPath(): string {
-    // Try to find the icon in different locations
-    const possiblePaths = [
-      join(__dirname, '../../public/icons/logo_1024x1024_v2.png'),
-      join(process.resourcesPath, 'public/icons/logo_1024x1024_v2.png'),
-      join(__dirname, '../../../public/icons/logo_1024x1024_v2.png'),
+  private getIcon(): NativeImage {
+    const isMac = process.platform === 'darwin';
+    const isWin = process.platform === 'win32';
+    const prefersDark = nativeTheme.shouldUseDarkColors;
+
+    const iconSize = isMac ? 18 : isWin ? 32 : 24;
+    const fileName = isMac
+      ? 'logo-bl_64x64.png' // template-style: color ignored, alpha used
+      : prefersDark
+        ? 'logo-wr_64x64.png'
+        : 'logo-bl_64x64.png';
+
+    const candidates = [
+      // dev (electron runs out of dist/, cwd is repo root)
+      join(process.cwd(), 'public/icons', fileName),
+      join(process.cwd(), 'public/icons/logo_64x64.png'),
+      // packaged (we copy icons into resources)
+      join(process.resourcesPath, 'public/icons', fileName),
+      join(process.resourcesPath, 'public/icons/logo_64x64.png'),
+      // packaged fallback if we ever stuff it into asar
+      join(app.getAppPath(), 'public/icons', fileName),
+      join(app.getAppPath(), 'public/icons/logo_64x64.png'),
     ];
 
-    // Check each path for file existence
-    for (const path of possiblePaths) {
-      if (existsSync(path)) {
-        return path;
-      }
+    for (const filePath of candidates) {
+      if (!existsSync(filePath)) continue;
+      const img = nativeImage.createFromPath(filePath);
+      if (img.isEmpty()) continue;
+      const sized = img.resize({ width: iconSize, height: iconSize });
+      if (isMac) sized.setTemplateImage(true);
+      return sized;
     }
 
-    // Fallback to a simple native image
+    // Fallback: small-but-visible dot, not a 1x1 "invisible tray" prank.
     return nativeImage.createFromDataURL(
-      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-    ).toDataURL();
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAeFBMVEUAAAD///////////////////////////////////////////////////////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADw4gH1AAAAJXRSTlMAAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eH8jH6aUAAAABYktHRB6k3R0qAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAR0lEQVQY02NgQAXGJkYGJgZ2BjYGBgYWFiY2NjY2FhYWFhZWVlY2NjZ2dnYGBkYGJgYGLgEAAAD//wMAqzQGXh6VfJkAAAAASUVORK5CYII='
+    );
   }
 
   private setupTray() {
@@ -50,11 +72,23 @@ export class TrayManager {
 
     // Handle double click
     this.tray.on('double-click', () => {
+      if (this.options.isToolboxEnabled?.() === false) return;
       this.options.onToolboxToggle();
     });
   }
 
   private updateContextMenu() {
+    const canvases = this.options.getCanvases?.() ?? [];
+    const canvasesSubmenu: MenuItemConstructorOptions[] =
+      canvases.length === 0
+        ? [{ label: 'No canvases', enabled: false }]
+        : canvases.map((c) => ({
+            label: c.label,
+            type: 'radio',
+            checked: c.isActive,
+            click: () => this.options.onCanvasFocus?.(c.id),
+          }));
+
     const contextMenu = Menu.buildFromTemplate([
       {
         label: 'Canvas UI',
@@ -62,8 +96,13 @@ export class TrayManager {
       },
       { type: 'separator' },
       {
+        label: 'Canvases',
+        submenu: canvasesSubmenu,
+      },
+      {
         label: 'Toolbox',
         accelerator: 'Super+Space',
+        enabled: this.options.isToolboxEnabled?.() !== false,
         click: () => this.options.onToolboxToggle(),
       },
       {
@@ -101,6 +140,10 @@ export class TrayManager {
     ]);
 
     this.tray.setContextMenu(contextMenu);
+  }
+
+  public refresh() {
+    this.updateContextMenu();
   }
 
   public destroy() {

@@ -81,21 +81,16 @@ class ToolboxWindow {
             this.window.focus();
         }
     }
-    showMinimizedNextTo(anchor, gap = 32) {
+    showMinimizedDocked(bounds) {
         const width = 56;
-        const bounds = {
-            x: anchor.x + anchor.width + gap,
-            y: anchor.y,
-            width,
-            height: anchor.height,
-        };
+        const docked = { ...bounds, width };
         this.mode = 'minimized';
         if (!this.window)
-            this.createWindow({ show: true, bounds });
+            this.createWindow({ show: true, bounds: docked });
         const win = this.window;
         if (!win)
             return;
-        win.setBounds(bounds);
+        win.setBounds(docked);
         win.setResizable(false);
         win.setMinimumSize(width, 120);
         win.setMaximumSize(width, 10000);

@@ -73,6 +73,12 @@
       "node_modules/**/*",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "public/icons",
+        "to": "public/icons"
+      }
+    ],
     "directories": {
       "output": "release"
     },

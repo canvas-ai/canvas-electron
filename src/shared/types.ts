@@ -41,6 +41,12 @@ export interface Conversation {
   updatedAt: Date;
 }
 
+export type AuthSession = {
+  serverUrl: string;
+  apiUrl: string;
+  token: string;
+};
+
 export interface IPC {
   // Conversations
   getConversations: (agentName: string) => Promise<Conversation[]>;
@@ -53,4 +59,9 @@ export interface IPC {
   // Window management
   openToolbox: () => Promise<void>;
   closeToolbox: () => Promise<void>;
+
+  // Auth
+  getAuthSession: () => Promise<AuthSession | null>;
+  setAuthSession: (session: AuthSession) => Promise<void>;
+  clearAuthSession: () => Promise<void>;
 }

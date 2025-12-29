@@ -9,6 +9,9 @@ const IPC_CHANNELS = {
     SEND_MESSAGE: 'send-message',
     OPEN_TOOLBOX: 'open-toolbox',
     CLOSE_TOOLBOX: 'close-toolbox',
+    GET_AUTH_SESSION: 'get-auth-session',
+    SET_AUTH_SESSION: 'set-auth-session',
+    CLEAR_AUTH_SESSION: 'clear-auth-session',
 };
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -22,6 +25,10 @@ const api = {
     // Window management
     openToolbox: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.OPEN_TOOLBOX),
     closeToolbox: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.CLOSE_TOOLBOX),
+    // Auth
+    getAuthSession: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.GET_AUTH_SESSION),
+    setAuthSession: (session) => electron_1.ipcRenderer.invoke(IPC_CHANNELS.SET_AUTH_SESSION, session),
+    clearAuthSession: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.CLEAR_AUTH_SESSION),
 };
 electron_1.contextBridge.exposeInMainWorld('electronAPI', api);
 //# sourceMappingURL=preload.js.map

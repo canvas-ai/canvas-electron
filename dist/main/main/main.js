@@ -8,15 +8,18 @@ const chat_service_1 = require("./chat-service");
 const mcp_service_1 = require("./mcp-service");
 const constants_1 = require("../shared/constants");
 const WindowManager_1 = require("./window-manager/WindowManager");
+const ui_settings_1 = require("./persistence/ui-settings");
 class CanvasApp {
     tray = null;
     toolbox = null;
-    windowManager = new WindowManager_1.WindowManager();
+    windowManager;
     launcherCanvasId = null;
+    authSession = null;
     conversationManager;
     chatService;
     mcpService;
     constructor() {
+        this.windowManager = new WindowManager_1.WindowManager(() => this.tray?.refresh());
         this.conversationManager = new conversation_manager_1.ConversationManager();
         this.chatService = new chat_service_1.ChatService();
         this.mcpService = new mcp_service_1.MCPService();
@@ -64,9 +67,13 @@ class CanvasApp {
         });
     }
     async initialize() {
+        this.authSession = await (0, ui_settings_1.getUiAuthSession)();
         // Create tray
         this.tray = new tray_1.TrayManager({
             onToolboxToggle: () => this.toggleToolbox(),
+            getCanvases: () => this.windowManager.listCanvases(),
+            onCanvasFocus: (id) => this.windowManager.focusCanvas(id),
+            isToolboxEnabled: () => this.isAuthenticated(),
             onQuit: () => this.quit(),
         });
         // Create launcher canvas window (centered)
@@ -79,6 +86,10 @@ class CanvasApp {
         // Super+Space to toggle toolbox
         electron_1.globalShortcut.register('Super+Space', () => {
             this.toggleToolbox();
+        });
+        // Super+C to toggle visibility of active canvas
+        electron_1.globalShortcut.register('Super+C', () => {
+            this.windowManager.toggleActiveCanvasVisibility();
         });
         // Alternative shortcut for systems where Super might not work
         electron_1.globalShortcut.register('CommandOrControl+Alt+Space', () => {
@@ -102,21 +113,41 @@ class CanvasApp {
         });
         // Window management
         electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.OPEN_TOOLBOX, () => {
+            if (!this.isAuthenticated())
+                return;
             this.toolbox?.show();
         });
         electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.CLOSE_TOOLBOX, () => {
             this.toolbox?.hide();
         });
+        // Auth session
+        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.GET_AUTH_SESSION, async () => {
+            this.authSession = await (0, ui_settings_1.getUiAuthSession)();
+            return this.authSession;
+        });
+        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.SET_AUTH_SESSION, async (_, session) => {
+            await (0, ui_settings_1.setUiAuthSession)(session);
+            this.authSession = session;
+            this.tray?.refresh();
+        });
+        electron_1.ipcMain.handle(constants_1.IPC_CHANNELS.CLEAR_AUTH_SESSION, async () => {
+            await (0, ui_settings_1.setUiAuthSession)(null);
+            this.authSession = null;
+            this.toolbox?.hide();
+            this.tray?.refresh();
+        });
     }
     toggleToolbox() {
-        const anchor = this.launcherCanvasId ? this.windowManager.getCanvasBounds(this.launcherCanvasId) : null;
-        if (!anchor)
+        if (!this.isAuthenticated())
             return;
         if (!this.toolbox)
             this.toolbox = new toolbox_1.ToolboxWindow({ mode: 'minimized' });
         if (this.toolbox.isVisible())
             return this.toolbox.hide();
-        this.toolbox.showMinimizedNextTo(anchor, 32);
+        this.toolbox.showMinimizedDocked(this.windowManager.getToolboxDockRect());
+    }
+    isAuthenticated() {
+        return !!this.authSession?.token;
     }
     quit() {
         electron_1.app.isQuitting = true;

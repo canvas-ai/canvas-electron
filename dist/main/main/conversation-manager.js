@@ -3,17 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationManager = void 0;
 const fs_1 = require("fs");
 const path_1 = require("path");
-const os_1 = require("os");
 const uuid_1 = require("uuid");
+const paths_1 = require("../shared/paths");
 // Path helpers
-const getDataPath = () => {
-    if (process.platform === 'win32') {
-        return (0, path_1.join)(process.env.APPDATA || (0, os_1.homedir)(), 'Canvas', 'electron');
-    }
-    return (0, path_1.join)((0, os_1.homedir)(), '.canvas', 'electron');
-};
-const getAgentsPath = () => (0, path_1.join)(getDataPath(), 'agents');
-const getAgentPath = (agentName) => (0, path_1.join)(getAgentsPath(), agentName);
+const getAgentPath = (agentName) => (0, paths_1.getCanvasAgentConversationsDir)((0, paths_1.getLocalAccountRef)(), agentName);
 class ConversationManager {
     async getConversations(agentName) {
         const agentPath = getAgentPath(agentName);

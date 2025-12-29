@@ -7,28 +7,48 @@ const fs_1 = require("fs");
 class TrayManager {
     tray;
     options;
+    icon;
     constructor(options) {
         this.options = options;
         // Create tray icon
-        const iconPath = this.getIconPath();
-        this.tray = new electron_1.Tray(iconPath);
+        this.icon = this.getIcon();
+        this.tray = new electron_1.Tray(this.icon);
         this.setupTray();
     }
-    getIconPath() {
-        // Try to find the icon in different locations
-        const possiblePaths = [
-            (0, path_1.join)(__dirname, '../../public/icons/logo_1024x1024_v2.png'),
-            (0, path_1.join)(process.resourcesPath, 'public/icons/logo_1024x1024_v2.png'),
-            (0, path_1.join)(__dirname, '../../../public/icons/logo_1024x1024_v2.png'),
+    getIcon() {
+        const isMac = process.platform === 'darwin';
+        const isWin = process.platform === 'win32';
+        const prefersDark = electron_1.nativeTheme.shouldUseDarkColors;
+        const iconSize = isMac ? 18 : isWin ? 32 : 24;
+        const fileName = isMac
+            ? 'logo-bl_64x64.png' // template-style: color ignored, alpha used
+            : prefersDark
+                ? 'logo-wr_64x64.png'
+                : 'logo-bl_64x64.png';
+        const candidates = [
+            // dev (electron runs out of dist/, cwd is repo root)
+            (0, path_1.join)(process.cwd(), 'public/icons', fileName),
+            (0, path_1.join)(process.cwd(), 'public/icons/logo_64x64.png'),
+            // packaged (we copy icons into resources)
+            (0, path_1.join)(process.resourcesPath, 'public/icons', fileName),
+            (0, path_1.join)(process.resourcesPath, 'public/icons/logo_64x64.png'),
+            // packaged fallback if we ever stuff it into asar
+            (0, path_1.join)(electron_1.app.getAppPath(), 'public/icons', fileName),
+            (0, path_1.join)(electron_1.app.getAppPath(), 'public/icons/logo_64x64.png'),
         ];
-        // Check each path for file existence
-        for (const path of possiblePaths) {
-            if ((0, fs_1.existsSync)(path)) {
-                return path;
-            }
+        for (const filePath of candidates) {
+            if (!(0, fs_1.existsSync)(filePath))
+                continue;
+            const img = electron_1.nativeImage.createFromPath(filePath);
+            if (img.isEmpty())
+                continue;
+            const sized = img.resize({ width: iconSize, height: iconSize });
+            if (isMac)
+                sized.setTemplateImage(true);
+            return sized;
         }
-        // Fallback to a simple native image
-        return electron_1.nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==').toDataURL();
+        // Fallback: small-but-visible dot, not a 1x1 "invisible tray" prank.
+        return electron_1.nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAeFBMVEUAAAD///////////////////////////////////////////////////////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADw4gH1AAAAJXRSTlMAAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eH8jH6aUAAAABYktHRB6k3R0qAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAR0lEQVQY02NgQAXGJkYGJgZ2BjYGBgYWFiY2NjY2FhYWFhZWVlY2NjZ2dnYGBkYGJgYGLgEAAAD//wMAqzQGXh6VfJkAAAAASUVORK5CYII=');
     }
     setupTray() {
         this.tray.setToolTip('Canvas UI - AI Assistant');
@@ -36,10 +56,21 @@ class TrayManager {
         this.updateContextMenu();
         // Handle double click
         this.tray.on('double-click', () => {
+            if (this.options.isToolboxEnabled?.() === false)
+                return;
             this.options.onToolboxToggle();
         });
     }
     updateContextMenu() {
+        const canvases = this.options.getCanvases?.() ?? [];
+        const canvasesSubmenu = canvases.length === 0
+            ? [{ label: 'No canvases', enabled: false }]
+            : canvases.map((c) => ({
+                label: c.label,
+                type: 'radio',
+                checked: c.isActive,
+                click: () => this.options.onCanvasFocus?.(c.id),
+            }));
         const contextMenu = electron_1.Menu.buildFromTemplate([
             {
                 label: 'Canvas UI',
@@ -47,8 +78,13 @@ class TrayManager {
             },
             { type: 'separator' },
             {
+                label: 'Canvases',
+                submenu: canvasesSubmenu,
+            },
+            {
                 label: 'Toolbox',
                 accelerator: 'Super+Space',
+                enabled: this.options.isToolboxEnabled?.() !== false,
                 click: () => this.options.onToolboxToggle(),
             },
             {
@@ -85,6 +121,9 @@ class TrayManager {
             },
         ]);
         this.tray.setContextMenu(contextMenu);
+    }
+    refresh() {
+        this.updateContextMenu();
     }
     destroy() {
         this.tray.destroy();
