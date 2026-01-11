@@ -78,7 +78,7 @@ export class CanvasWindow {
       show: false,
       frame: false,
       autoHideMenuBar: true,
-      backgroundColor: '#0b0b0c',
+      backgroundColor: '#ffffff',
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,

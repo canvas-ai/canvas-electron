@@ -3,7 +3,8 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast-container';
-import { Save, Share, X, Plus, Settings, Info, Sidebar } from 'lucide-react';
+import { Save, X, Plus, Settings } from 'lucide-react';
+import { ContextTopbar, type TopBarTab } from '@/components/common/context-topbar'
 import { ContextTokenManager } from '@/components/context/token-manager';
 import { getContext, getSharedContext, updateContextUrl, grantContextAccess, revokeContextAccess, getContextTree, getContextDocuments, getSharedContextDocuments, removeDocumentsFromContext, deleteDocumentsFromContext, pasteDocumentsToContext, importDocumentsToContext } from '@/services/context';
 import { renameWorkspaceLayer } from '@/services/workspace';
@@ -177,6 +178,22 @@ export default function ContextDetailPage() {
       navigate(newUrl, { replace: true });
     }
   };
+
+  const uiTab: TopBarTab = (() => {
+    try {
+      const p = new URLSearchParams(location.search)
+      const v = p.get('uiTab')
+      return v === 'tree' || v === 'home' || v === 'dotfiles' ? v : 'home'
+    } catch {
+      return 'home'
+    }
+  })()
+
+  const setUiTab = (tab: TopBarTab) => {
+    const params = new URLSearchParams(location.search)
+    params.set('uiTab', tab)
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true })
+  }
 
   // Close all right sidebars
   const closeAllRightSidebars = () => {
@@ -1052,6 +1069,15 @@ export default function ContextDetailPage() {
 
   const anyRightSidebarOpen = isDetailsOpen || isShareOpen || isToolboxOpen;
 
+  useEffect(() => {
+    setIsTreeViewOpen(uiTab === 'tree')
+    if (uiTab === 'home') closeAllRightSidebars()
+    if (uiTab === 'dotfiles' && context) {
+      setSelectedPath('/.dotfiles')
+      setEditableUrl(`${context.workspaceName}://.dotfiles`)
+    }
+  }, [uiTab, context?.workspaceName])
+
   return (
     <div className="flex h-full">
       {/* Left Sidebar - Tree View */}
@@ -1105,80 +1131,58 @@ export default function ContextDetailPage() {
 
       {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${anyRightSidebarOpen ? 'mr-96' : ''}`}>
-        {/* Browser-like Toolbar */}
-        <div className="flex items-center gap-2 p-2 border rounded-md shadow-sm bg-background">
-          {/* Tree View Toggle */}
-          <Button
-            onClick={() => toggleSidebar('tree')}
-            variant={isTreeViewOpen ? "default" : "outline"}
-            size="sm"
-            className="p-2"
-            title="Toggle tree view"
-          >
-            <Sidebar className="h-4 w-4" />
-          </Button>
-
-          {/* Context URL Input */}
-          <div className="flex items-center flex-grow">
-            <span className="text-sm font-medium text-muted-foreground mr-2">
-              ({context.id})
-            </span>
+        <ContextTopbar
+          className="p-2"
+          showTabs={false}
+          tab={uiTab}
+          onTabChange={setUiTab}
+          url={editableUrl}
+          urlNode={
             <Input
               id="contextUrlInput"
               type="text"
               value={editableUrl}
               onChange={handleUrlChange}
-              className="font-mono h-10 flex-grow border-0 focus-visible:ring-0 focus-visible:ring-offset-0 !shadow-none"
+              className="font-mono h-10 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 !shadow-none bg-transparent"
               placeholder="workspaceID:/path/to/context"
               disabled={isSaving || context.locked || isSharedContext}
             />
-          </div>
-
-          {/* Set Context Button */}
-          <Button
-            onClick={handleSetContextUrl}
-            disabled={isSaving || !context || editableUrl === context.url || context.locked || isSharedContext}
-            size="sm"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {isSaving ? 'Setting...' : 'Set Context'}
-          </Button>
-
-          {/* Context Details Button */}
-          <Button
-            onClick={() => toggleSidebar('details')}
-            variant={isDetailsOpen ? "default" : "outline"}
-            size="sm"
-            className="p-2"
-            title="Show context details"
-          >
-            <Info className="h-4 w-4" />
-          </Button>
-
-          {/* Share Button */}
-          {isOwner && (
-            <Button
-              onClick={() => toggleSidebar('share')}
-              variant={isShareOpen ? "default" : "outline"}
-              size="sm"
-              className="p-2"
-              title="Share context"
-            >
-              <Share className="h-4 w-4" />
-            </Button>
-          )}
-
-          {/* Toolbox Button */}
-          <Button
-            onClick={() => toggleSidebar('toolbox')}
-            variant={isToolboxOpen ? "default" : "outline"}
-            size="sm"
-            className="p-2"
-            title="Open toolbox"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-        </div>
+          }
+          urlPrefix={<span className="text-sm font-medium text-muted-foreground">({context.id})</span>}
+          rightActionsPlacement="edge"
+          rightActions={
+            <>
+              <button
+                type="button"
+                onClick={handleSetContextUrl}
+                disabled={isSaving || !context || editableUrl === context.url || context.locked || isSharedContext}
+                className="rounded-md border bg-background shadow-sm px-2 py-2 hover:bg-muted disabled:opacity-50"
+                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                title="Set URL"
+              >
+                <span className="inline-flex items-center gap-2 text-sm">
+                  <Save className="h-4 w-4" />
+                  {isSaving ? 'Setting…' : 'Set URL'}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (anyRightSidebarOpen) closeAllRightSidebars()
+                  else toggleSidebar('details')
+                }}
+                className="rounded-md border bg-background shadow-sm px-2 py-2 hover:bg-muted"
+                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                title="Context settings"
+              >
+                <span className="inline-flex items-center gap-2 text-sm">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </span>
+              </button>
+            </>
+          }
+        />
 
         {/* Page Content */}
         <div className="flex flex-col gap-6 p-6 h-full">

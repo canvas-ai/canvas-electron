@@ -12,7 +12,7 @@
     "build:main": "tsc -p src/main/tsconfig.json",
     "build:renderer": "vite build src/renderer",
     "package": "npm run build && electron-builder",
-    "start": "electron dist/main/main/main.js",
+    "start": "electron dist/main/main/main.js --no-sandbox",
     "lint": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit"
   },

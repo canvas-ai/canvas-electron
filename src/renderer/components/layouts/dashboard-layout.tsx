@@ -1,6 +1,6 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useState, useEffect, useCallback } from "react"
-import { LogOut, LayoutGrid, Layers3, Settings, FolderOpen, Brain, Shield, Server, Users, PanelLeftClose, PanelLeftOpen, Minus, Square, X, Power } from "lucide-react"
+import { LogOut, LayoutGrid, Layers3, Settings, FolderOpen, Brain, Shield, Server, Users, Minus, Square, X, Power, Key } from "lucide-react"
 import { api } from "@/lib/api"
 import { useToast } from "@/components/ui/toast-container"
 import { getCurrentUserFromToken } from "@/services/auth"
@@ -48,14 +48,17 @@ function NavList({ title, items, type, isLoading, navigateTo, currentPath, class
         <span>{title}</span>
         {onClose && (
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
-              <PanelLeftClose className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </Button>
         )}
       </div>
       <div className="flex-1 overflow-y-auto py-2">
         <div className="px-2 mb-2">
            <button
-             onClick={() => navigateTo(`/${type}`)}
+             onClick={() => {
+               navigateTo(`/${type}`)
+               onClose?.()
+             }}
              className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${currentPath === `/${type}` ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'text-muted-foreground'}`}
            >
              All {title}
@@ -72,7 +75,11 @@ function NavList({ title, items, type, isLoading, navigateTo, currentPath, class
                return (
                 <button
                   key={item.id}
-                  onClick={() => !isInactive && navigateTo(path)}
+                  onClick={() => {
+                    if (isInactive) return
+                    navigateTo(path)
+                    onClose?.()
+                  }}
                   disabled={isInactive}
                   className={`w-full flex items-center text-left px-3 py-2 text-sm rounded-md transition-colors ${
                     isInactive
@@ -98,7 +105,7 @@ function DashboardSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { showToast } = useToast()
-  const { isMobile, setOpen: setSidebarOpen } = useSidebar()
+  const { state: sidebarState, isMobile } = useSidebar()
   const [user, setUser] = useState<{ id: string; email: string; userType: string } | null>(null)
 
   const [contexts, setContexts] = useState<any[]>([])
@@ -107,7 +114,8 @@ function DashboardSidebar() {
   const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false)
   const [hasFetchedContexts, setHasFetchedContexts] = useState(false)
   const [hasFetchedWorkspaces, setHasFetchedWorkspaces] = useState(false)
-  const [secondarySidebarOpen, setSecondarySidebarOpen] = useState(true)
+  const [drawerSection, setDrawerSection] = useState<'contexts' | 'workspaces' | null>(null)
+  const drawerOpen = drawerSection !== null
 
   // Get user information from token
   useEffect(() => {
@@ -122,23 +130,16 @@ function DashboardSidebar() {
   const isContextsActive = isActive('/contexts')
   const isWorkspacesActive = isActive('/workspaces')
 
-  const pathSegments = location.pathname.split('/').filter(Boolean)
-  const isDetailView = pathSegments.length > 1 && (pathSegments[0] === 'contexts' || pathSegments[0] === 'workspaces')
+  const openDrawer = useCallback((section: 'contexts' | 'workspaces') => {
+    setDrawerSection(section)
+  }, [])
 
-  // Auto-collapse main sidebar when secondary menu is open to save space
-  useEffect(() => {
-    if ((isContextsActive || isWorkspacesActive) && secondarySidebarOpen && !isMobile) {
-        setSidebarOpen(false)
-    }
-  }, [isContextsActive, isWorkspacesActive, secondarySidebarOpen, isMobile, setSidebarOpen])
+  const isDetailPage =
+    location.pathname.startsWith('/workspaces/') ||
+    location.pathname.startsWith('/contexts/') ||
+    (location.pathname.startsWith('/users/') && location.pathname.includes('/contexts/'))
 
-  // Re-open secondary sidebar when navigating to a section, but only if it's not explicitly closed?
-  // Actually, let's just open it when switching main sections if the user navigates to the root
-  useEffect(() => {
-      if (location.pathname === '/contexts' || location.pathname === '/workspaces') {
-          setSecondarySidebarOpen(true)
-      }
-  }, [location.pathname])
+  const contentPaddingClass = isDetailPage ? 'p-0' : 'p-4'
 
   // Fetch contexts when active
   useEffect(() => {
@@ -268,8 +269,8 @@ function DashboardSidebar() {
                   >
                     <button
                       onClick={() => {
-                          navigateTo('/contexts')
-                          setSecondarySidebarOpen(true)
+                          if (!isContextsActive) navigateTo('/contexts')
+                          openDrawer('contexts')
                       }}
                       className="flex items-center"
                       type="button"
@@ -288,8 +289,8 @@ function DashboardSidebar() {
                   >
                     <button
                       onClick={() => {
-                          navigateTo('/workspaces')
-                          setSecondarySidebarOpen(true)
+                          if (!isWorkspacesActive) navigateTo('/workspaces')
+                          openDrawer('workspaces')
                       }}
                       className="flex items-center"
                       type="button"
@@ -455,7 +456,7 @@ function DashboardSidebar() {
             </>
           )}
 
-          {/* Settings section */}
+          {/* Account-ish section (not "global settings" — keeps UX honest) */}
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -470,8 +471,8 @@ function DashboardSidebar() {
                       className="flex items-center"
                       type="button"
                     >
-                      <Settings className="size-4" />
-                      <span>Settings</span>
+                      <Key className="size-4" />
+                      <span>API Tokens</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -559,32 +560,6 @@ function DashboardSidebar() {
         <header className="titlebar flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b px-4">
           <div className="no-drag flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
-            <div className="h-4 w-px bg-sidebar-border" />
-            {(isContextsActive || isWorkspacesActive) && !secondarySidebarOpen && (
-                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSecondarySidebarOpen(true)}>
-                    <PanelLeftOpen className="h-4 w-4" />
-                 </Button>
-            )}
-            <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">
-                {location.pathname === '/home' && 'Home'}
-                {location.pathname === '/workspaces' && 'Workspaces'}
-                {location.pathname.startsWith('/workspaces/') && location.pathname !== '/workspaces' && 'Workspace Details'}
-                {location.pathname === '/contexts' && 'Contexts'}
-                {location.pathname.startsWith('/contexts/') && location.pathname !== '/contexts' && 'Context Details'}
-                {location.pathname.startsWith('/users/') && location.pathname.includes('/contexts/') && 'Shared Context Details'}
-                {location.pathname === '/api-tokens' && 'Settings'}
-                {location.pathname === '/agents' && 'Agents'}
-                {location.pathname.startsWith('/agents/') && location.pathname !== '/agents' && 'Agent Details'}
-                {location.pathname === '/roles' && 'Roles'}
-                {location.pathname === '/remotes' && 'Remotes'}
-                {location.pathname === '/admin/users' && 'User Management'}
-                {location.pathname === '/admin/contexts' && 'All Contexts'}
-                {location.pathname === '/admin/workspaces' && 'All Workspaces'}
-                {location.pathname === '/admin/agents' && 'All Agents'}
-                {location.pathname === '/admin/roles' && 'All Roles'}
-              </span>
-            </nav>
           </div>
           <div className="flex-1" />
           {canControlWindow && (
@@ -621,35 +596,73 @@ function DashboardSidebar() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Secondary Sidebar */}
-          {isContextsActive && secondarySidebarOpen && (!isMobile || !isDetailView) && (
-            <NavList
-              title="Contexts"
-              items={contexts}
-              type="contexts"
-              isLoading={isLoadingContexts}
-              navigateTo={navigateTo}
-              currentPath={location.pathname}
-              className={isMobile ? "w-full border-r-0" : "w-64 border-r"}
-              onClose={() => setSecondarySidebarOpen(false)}
-            />
-          )}
-          {isWorkspacesActive && secondarySidebarOpen && (!isMobile || !isDetailView) && (
-            <NavList
-              title="Workspaces"
-              items={workspaces}
-              type="workspaces"
-              isLoading={isLoadingWorkspaces}
-              navigateTo={navigateTo}
-              currentPath={location.pathname}
-              className={isMobile ? "w-full border-r-0" : "w-64 border-r"}
-              onClose={() => setSecondarySidebarOpen(false)}
-            />
-          )}
+          {/* Drawer as a real column (desktop), overlay (mobile) */}
+          {drawerOpen && !isMobile ? (
+            <aside className="w-[360px] shrink-0 border-r bg-background overflow-hidden">
+              {drawerSection === 'contexts' ? (
+                <NavList
+                  title="Contexts"
+                  items={contexts}
+                  type="contexts"
+                  isLoading={isLoadingContexts}
+                  navigateTo={navigateTo}
+                  currentPath={location.pathname}
+                  className="w-full border-r-0"
+                  onClose={() => setDrawerSection(null)}
+                />
+              ) : drawerSection === 'workspaces' ? (
+                <NavList
+                  title="Workspaces"
+                  items={workspaces}
+                  type="workspaces"
+                  isLoading={isLoadingWorkspaces}
+                  navigateTo={navigateTo}
+                  currentPath={location.pathname}
+                  className="w-full border-r-0"
+                  onClose={() => setDrawerSection(null)}
+                />
+              ) : null}
+            </aside>
+          ) : null}
 
-          {/* Main Content Area */}
-          <div className={`flex flex-col flex-1 min-w-0 overflow-hidden ${isMobile && !isDetailView && (isContextsActive || isWorkspacesActive) && secondarySidebarOpen ? 'hidden' : ''}`}>
-            <main className="flex-1 overflow-auto p-4">
+          {drawerOpen && isMobile ? (
+            <>
+              <button
+                type="button"
+                aria-label="Close drawer"
+                className="absolute inset-0 z-40 bg-black/50"
+                onClick={() => setDrawerSection(null)}
+              />
+              <aside className="absolute inset-y-0 left-0 z-50 w-[360px] max-w-[90vw] border-r bg-background shadow-lg overflow-hidden">
+                {drawerSection === 'contexts' ? (
+                  <NavList
+                    title="Contexts"
+                    items={contexts}
+                    type="contexts"
+                    isLoading={isLoadingContexts}
+                    navigateTo={navigateTo}
+                    currentPath={location.pathname}
+                    className="w-full border-r-0"
+                    onClose={() => setDrawerSection(null)}
+                  />
+                ) : drawerSection === 'workspaces' ? (
+                  <NavList
+                    title="Workspaces"
+                    items={workspaces}
+                    type="workspaces"
+                    isLoading={isLoadingWorkspaces}
+                    navigateTo={navigateTo}
+                    currentPath={location.pathname}
+                    className="w-full border-r-0"
+                    onClose={() => setDrawerSection(null)}
+                  />
+                ) : null}
+              </aside>
+            </>
+          ) : null}
+
+          <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <main className={["flex-1 overflow-auto", contentPaddingClass].join(' ')}>
               <Outlet />
             </main>
 

@@ -4,6 +4,9 @@ import { api } from '@/lib/api';
 import { API_ROUTES } from '@/config/api';
 import { useToast } from '@/components/ui/toast-container';
 import { FileManagerView } from '@/components/workspace/file-manager-view';
+import { ContextTopbar } from '@/components/common/context-topbar'
+import { Home, Settings, TreePine, FileCode2 } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import {
   getWorkspaceTree,
@@ -47,6 +50,8 @@ export default function WorkspaceDetailPage() {
   const [schemas, setSchemas] = useState<string[]>([]);
   const [selectedSchemas, setSelectedSchemas] = useState<string[]>([]);
   const [isLoadingSchemas, setIsLoadingSchemas] = useState(false);
+  const [rightTab, setRightTab] = useState<'filters' | 'tags' | 'tokens' | 'services'>('filters')
+  const [showTree, setShowTree] = useState(true)
 
   // URL-based features and filters
   const [urlFilters, setUrlFilters] = useState<UrlFilters>({ features: [], filters: [] });
@@ -117,6 +122,16 @@ export default function WorkspaceDetailPage() {
       navigate(newUrl, { replace: true });
     }
   };
+
+  const schemeUrl = `${workspaceName}://${(selectedPath || '/').replace(/^\//, '')}`
+
+  const jumpToPath = (path: string) => {
+    const sanitizedPath = sanitizeUrlPath(path)
+    setSelectedPath(sanitizedPath)
+    updateUrl(sanitizedPath)
+  }
+
+  const workspaceTab = selectedPath.startsWith('/.dotfiles') ? 'dotfiles' : 'home'
 
   // Reusable fetch functions
   const fetchTree = async () => {
@@ -772,120 +787,168 @@ export default function WorkspaceDetailPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 gap-6">
+    <div className="flex h-full min-h-0">
 
       {/* Main content */}
-      <div className="flex-1 min-w-0 space-y-6 min-h-0">
-        {/* Page Header */}
-        <div className="border-b pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold tracking-tight">{workspace.label}</h1>
-              <p className="text-muted-foreground mt-2">{workspace.description || 'No description available'}</p>
-              <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span>Status:</span>
-                  {workspace.status === 'active' && <span className="inline-block w-2 h-2 rounded-full bg-green-500" title="Running" />}
-                  {(workspace.status === 'inactive' || workspace.status === 'available') && <span className="inline-block w-2 h-2 rounded-full bg-gray-400" title="Stopped" />}
-                  {workspace.status === 'error' && <span className="inline-block w-2 h-2 rounded-full bg-red-500" title="Error" />}
-                  <span className="font-mono">{workspace.status}</span>
-                </div>
-                <span>Owner: {workspace.owner}</span>
-                {workspace.color && (
-                  <div className="flex items-center gap-2">
-                    <span>Color:</span>
-                    <div
-                      className="w-4 h-4 rounded border"
-                      style={{ backgroundColor: workspace.color }}
-                    />
-                    <span className="font-mono text-xs">{workspace.color}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {workspace.status === 'active' ? (
-                <button
-                  onClick={handleStopWorkspace}
-                  disabled={isStoppingWorkspace}
-                  className="px-4 py-2 text-sm border rounded-md hover:bg-accent disabled:opacity-50"
+      <div className="flex-1 min-w-0 space-y-4 min-h-0">
+        {/* Chrome-like sticky top strip (tabs + url) */}
+        <div className="sticky top-0 z-30 bg-background border-b border-border px-4 pt-3 pb-3">
+          <div className="flex items-end gap-2">
+            {/* Tree is a toggle "tab" */}
+            <button
+              type="button"
+              onClick={() => setShowTree((v) => !v)}
+              title="Toggle tree view"
+              disabled={workspaceTab === 'dotfiles'}
+              className={[
+                'relative h-10 w-11',
+                'rounded-t-md border border-border border-b-0',
+                'bg-muted/30 hover:bg-muted',
+                'flex items-center justify-center',
+                'after:absolute after:left-0 after:right-0 after:bottom-[-1px] after:h-[1px]',
+                workspaceTab === 'dotfiles' ? 'opacity-50 cursor-not-allowed' : '',
+                showTree ? 'after:bg-background' : 'after:bg-border',
+              ].join(' ')}
+            >
+              <TreePine className="h-5 w-5" />
+            </button>
+
+            <Tabs
+              value={workspaceTab}
+              onValueChange={(v) => {
+                if (v === 'home') jumpToPath('/')
+                if (v === 'dotfiles') jumpToPath('/.dotfiles')
+              }}
+            >
+              <TabsList className="h-10 items-end gap-1 border-b border-border bg-transparent px-0">
+                <TabsTrigger
+                  value="home"
+                  className={[
+                    'h-10 px-4',
+                    'rounded-t-md border border-border border-b-0',
+                    'bg-muted/30 hover:bg-muted',
+                    'data-[state=active]:bg-background data-[state=active]:text-foreground',
+                    'data-[state=active]:after:absolute data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:bottom-[-1px] data-[state=active]:after:h-[1px] data-[state=active]:after:bg-background',
+                  ].join(' ')}
                 >
-                  {isStoppingWorkspace ? 'Stopping...' : 'Stop'}
-                </button>
-              ) : (
-                <button
-                  onClick={handleStartWorkspace}
-                  disabled={isStartingWorkspace}
-                  className="px-4 py-2 text-sm border rounded-md hover:bg-accent disabled:opacity-50"
+                  <span className="inline-flex items-center gap-2">
+                    <Home className="h-4 w-4" />
+                    Home
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="dotfiles"
+                  className={[
+                    'h-10 px-4',
+                    'rounded-t-md border border-border border-b-0',
+                    'bg-muted/30 hover:bg-muted',
+                    'data-[state=active]:bg-background data-[state=active]:text-foreground',
+                    'data-[state=active]:after:absolute data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:bottom-[-1px] data-[state=active]:after:h-[1px] data-[state=active]:after:bg-background',
+                  ].join(' ')}
                 >
-                  {isStartingWorkspace ? 'Starting...' : 'Start'}
+                  <span className="inline-flex items-center gap-2">
+                    <FileCode2 className="h-4 w-4" />
+                    Dotfiles
+                  </span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="mt-3">
+            <ContextTopbar
+              showTabs={false}
+              url={schemeUrl}
+              rightActionsPlacement="edge"
+              rightActions={
+                <button
+                  type="button"
+                  onClick={() => setRightTab('services')}
+                  title="Workspace settings"
+                  className="rounded-md border bg-background shadow-sm px-2 py-2 hover:bg-muted"
+                  style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                >
+                  <span className="inline-flex items-center gap-2 text-sm">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </span>
                 </button>
-              )}
-            </div>
+              }
+            />
           </div>
         </div>
 
-        {/* Enhanced File Manager */}
-        <FileManagerView
-          tree={tree}
-          selectedPath={selectedPath}
-          onPathSelect={(path: string) => {
-            const sanitizedPath = sanitizeUrlPath(path);
-            setSelectedPath(sanitizedPath);
-            updateUrl(sanitizedPath);
-          }}
-          isLoadingTree={isLoadingTree}
-          documents={documents}
-          isLoadingDocuments={isLoadingDocuments}
-          totalCount={documentsTotalCount}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-          layers={layers}
-          selectedLayerId={selectedLayerId}
-          isLoadingLayers={isLoadingLayers}
-          onSelectLayer={handleSelectLayer}
-          onRenameLayer={handleRenameLayer}
-          onLockLayer={handleLockLayer}
-          onUnlockLayer={handleUnlockLayer}
-          onDestroyLayer={handleDestroyLayer}
-          onInsertPath={handleInsertPath}
-          onRemovePath={handleRemovePath}
-          onRenamePath={handleRenamePath}
-          onMovePath={handleMovePath}
-          onCopyPath={handleCopyPath}
-          onMergeLayer={handleMergeLayer}
-          onSubtractLayer={handleSubtractLayer}
-          onRemoveDocument={selectedPath !== '/' ? handleRemoveDocument : undefined}
-          onDeleteDocument={handleDeleteDocument}
-          onRemoveDocuments={selectedPath !== '/' ? handleRemoveDocuments : undefined}
-          onDeleteDocuments={handleDeleteDocuments}
-          onCopyDocuments={handleCopyDocuments}
-          onCutDocuments={handleCutDocuments}
-          onPasteDocuments={handlePasteDocuments}
-          onImportDocuments={handleImportDocuments}
-          schemas={schemas}
-          selectedSchemas={[...selectedSchemas, ...urlFilters.features]}
-          onSchemaChange={(newSchemas) => {
-            // Split into URL features and manual selections
-            const urlFeatures = newSchemas.filter(schema => schema.startsWith('data/abstraction/'));
-            const manualSchemas = newSchemas.filter(schema => !schema.startsWith('data/abstraction/'));
+        {workspaceTab === 'dotfiles' ? (
+          <div className="px-4 pb-4">
+            <DotfilesView />
+          </div>
+        ) : (
+          <div className="px-4 pb-4">
+            <FileManagerView
+              tree={tree}
+              selectedPath={selectedPath}
+              onPathSelect={(path: string) => {
+                const sanitizedPath = sanitizeUrlPath(path);
+                setSelectedPath(sanitizedPath);
+                updateUrl(sanitizedPath);
+              }}
+              isLoadingTree={isLoadingTree}
+              documents={documents}
+              isLoadingDocuments={isLoadingDocuments}
+              totalCount={documentsTotalCount}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              layers={layers}
+              selectedLayerId={selectedLayerId}
+              isLoadingLayers={isLoadingLayers}
+              onSelectLayer={handleSelectLayer}
+              onRenameLayer={handleRenameLayer}
+              onLockLayer={handleLockLayer}
+              onUnlockLayer={handleUnlockLayer}
+              onDestroyLayer={handleDestroyLayer}
+              onInsertPath={handleInsertPath}
+              onRemovePath={handleRemovePath}
+              onRenamePath={handleRenamePath}
+              onMovePath={handleMovePath}
+              onCopyPath={handleCopyPath}
+              onMergeLayer={handleMergeLayer}
+              onSubtractLayer={handleSubtractLayer}
+              onRemoveDocument={selectedPath !== '/' ? handleRemoveDocument : undefined}
+              onDeleteDocument={handleDeleteDocument}
+              onRemoveDocuments={selectedPath !== '/' ? handleRemoveDocuments : undefined}
+              onDeleteDocuments={handleDeleteDocuments}
+              onCopyDocuments={handleCopyDocuments}
+              onCutDocuments={handleCutDocuments}
+              onPasteDocuments={handlePasteDocuments}
+              onImportDocuments={handleImportDocuments}
+              schemas={schemas}
+              selectedSchemas={[...selectedSchemas, ...urlFilters.features]}
+              onSchemaChange={(newSchemas) => {
+                // Split into URL features and manual selections
+                const urlFeatures = newSchemas.filter(schema => schema.startsWith('data/abstraction/'));
+                const manualSchemas = newSchemas.filter(schema => !schema.startsWith('data/abstraction/'));
 
-            // Update manual selections
-            setSelectedSchemas(manualSchemas);
+                // Update manual selections
+                setSelectedSchemas(manualSchemas);
 
-            // Update URL features if they changed
-            if (JSON.stringify(urlFeatures.sort()) !== JSON.stringify(urlFilters.features.sort())) {
-              const newFilters = { features: urlFeatures, filters: urlFilters.filters };
-              setUrlFilters(newFilters);
-              updateUrl(selectedPath, newFilters);
-            }
-          }}
-          isLoadingSchemas={isLoadingSchemas}
-          copiedDocuments={clipboard?.documentIds || []}
-          workspaceId={workspace.name}
-        />
+                // Update URL features if they changed
+                if (JSON.stringify(urlFeatures.sort()) !== JSON.stringify(urlFilters.features.sort())) {
+                  const newFilters = { features: urlFeatures, filters: urlFilters.filters };
+                  setUrlFilters(newFilters);
+                  updateUrl(selectedPath, newFilters);
+                }
+              }}
+              isLoadingSchemas={isLoadingSchemas}
+              copiedDocuments={clipboard?.documentIds || []}
+              workspaceId={workspace.name}
+              rightTab={rightTab}
+              onRightTabChange={setRightTab}
+              showLeftPanel={showTree}
+            />
+          </div>
+        )}
 
 
       </div>
@@ -893,4 +956,43 @@ export default function WorkspaceDetailPage() {
 
     </div>
   );
+}
+
+function DotfilesView() {
+  const [enabled, setEnabled] = useState<Record<string, boolean>>({
+    '.env': false,
+    '.gitconfig': false,
+    '.zshrc': false,
+    '.ssh/config': false,
+    '.npmrc': false,
+    '.editorconfig': true,
+  })
+
+  const entries = Object.entries(enabled)
+  return (
+    <div className="border rounded-lg bg-card">
+      <div className="border-b px-4 py-3">
+        <div className="font-semibold">Dotfiles</div>
+        <div className="text-xs text-muted-foreground">
+          Layout stub for now — we’ll wire this to workspace settings later.
+        </div>
+      </div>
+      <div className="divide-y">
+        {entries.map(([path, on]) => (
+          <label key={path} className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0">
+              <div className="font-mono text-sm truncate">{path}</div>
+              <div className="text-xs text-muted-foreground truncate">Expose this file in the workspace.</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={on}
+              onChange={(e) => setEnabled((prev) => ({ ...prev, [path]: e.target.checked }))}
+              className="h-4 w-4 accent-primary"
+            />
+          </label>
+        ))}
+      </div>
+    </div>
+  )
 }
