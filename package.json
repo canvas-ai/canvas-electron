@@ -14,7 +14,8 @@
     "package": "npm run build && electron-builder",
     "start": "electron dist/main/main/main.js --no-sandbox",
     "lint": "eslint src --ext .ts,.tsx --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "update-submodules": "git submodule update --init --remote && git submodule foreach \"git add .\""
   },
   "author": "me@idnc.sk",
   "license": "AGPL-3.0-or-later",
