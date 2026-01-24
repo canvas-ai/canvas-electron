@@ -38,6 +38,10 @@ export class ContextLauncherWindow {
     const height = 800;
     const { x, y } = this.getCenteredBounds(width, height);
 
+    const iconPath = process.env.NODE_ENV === 'development'
+      ? join(__dirname, '../../../../../public/icons/logo_256x256.png')
+      : join(process.resourcesPath, 'public/icons/logo_256x256.png');
+
     this.window = new BrowserWindow({
       width,
       height,
@@ -50,6 +54,7 @@ export class ContextLauncherWindow {
       transparent: false,
       backgroundColor: '#1a1a1a',
       skipTaskbar: true,
+      icon: iconPath,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
