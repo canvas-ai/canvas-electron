@@ -33,9 +33,12 @@ jobs:
         run: |
           set -euxo pipefail
           # Work around npm optional-deps bug that can skip Rollup's platform binary
-          # (e.g. @rollup/rollup-win32-x64-msvc / @rollup/rollup-darwin-arm64).
+          # Clear npm cache to prevent pollution
+          npm cache clean --force
           rm -rf node_modules package-lock.json
           npm install --no-audit --no-fund
+          # Verify the platform binary was installed
+          ls -la node_modules/@rollup/ || true
 
       - name: Build + package
         run: npm run package -- --publish never
