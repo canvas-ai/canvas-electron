@@ -48,7 +48,10 @@ jobs:
         with:
           name: release-${{ matrix.os }}
           path: |
-            release/**
+            release/*.AppImage
+            release/*.dmg
+            release/*.zip
+            release/*.exe
           if-no-files-found: error
 
   release:
@@ -66,5 +69,8 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            dist-assets/**/*
+            dist-assets/**/*.AppImage
+            dist-assets/**/*.dmg
+            dist-assets/**/*.zip
+            dist-assets/**/*.exe
 
