@@ -77,6 +77,13 @@ class CanvasApp {
     globalShortcut.register(launcherShortcut, () => {
       this.toggleContextLauncher();
     });
+
+    globalShortcut.register('CommandOrControl+Shift+F12', () => {
+      const focusedWindow = BrowserWindow.getFocusedWindow();
+      if (focusedWindow) {
+        focusedWindow.webContents.toggleDevTools();
+      }
+    });
   }
 
   private setupIPC() {
