@@ -6,7 +6,7 @@
   "main": "dist/main/electron-main/src/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
-    "dev:main": "tsc -p packages/electron-main/tsconfig.json && electron dist/main/electron-main/src/main.js --no-sandbox --enable-transparent-visuals",
+    "dev:main": "tsc -p packages/electron-main/tsconfig.json && electron dist/main/electron-main/src/main.js --no-sandbox",
     "dev:renderer": "vite dev packages/electron-renderer",
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "tsc -p packages/electron-main/tsconfig.json",
@@ -61,7 +61,7 @@
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.0",
-    "electron": "^35.7.5",
+    "electron": "^33.4.11",
     "electron-builder": "^26.5.0",
     "electron-builder-sandbox-fix": "^1.1.1",
     "eslint": "^9.15.0",
