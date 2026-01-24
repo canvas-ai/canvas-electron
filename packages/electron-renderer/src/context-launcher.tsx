@@ -36,6 +36,10 @@ type DocumentItem = {
   label?: string;
   summary?: string;
   description?: string;
+  schema?: string;
+  data?: any;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 type TreeRow = {
@@ -108,6 +112,37 @@ function getDocumentLabel(doc: DocumentItem): string {
   return doc.title || doc.name || doc.label || doc.id || 'Document';
 }
 
+function getDisplayTitle(doc: DocumentItem): string {
+  if (doc.data?.title) return doc.data.title;
+  if (doc.data?.name) return doc.data.name;
+  if (doc.data?.filename) return doc.data.filename;
+  const isTabDocument = doc.schema === 'data/abstraction/tab';
+  if (isTabDocument && doc.data?.url) {
+    try {
+      const url = new URL(doc.data.url);
+      return url.hostname + url.pathname;
+    } catch {
+      return doc.data.url;
+    }
+  }
+  // Fallback to old logic
+  return doc.title || doc.name || doc.label || doc.id || 'Document';
+}
+
+function getDisplayContent(doc: DocumentItem): string {
+  if (doc.data?.content) {
+    const content = String(doc.data.content);
+    return content.length > 100 ? content.substring(0, 100) + '...' : content;
+  }
+  if (doc.data?.description) return doc.data.description;
+  if (doc.data?.summary) return doc.data.summary;
+  if (doc.summary) return doc.summary;
+  if (doc.description) return doc.description;
+  const isTabDocument = doc.schema === 'data/abstraction/tab';
+  if (isTabDocument && doc.data?.url) return `Tab: ${doc.data.url}`;
+  return '';
+}
+
 function buildTreeRows(
   node: ContextTreeNode,
   baseUrl: string | undefined,
@@ -124,8 +159,10 @@ function buildTreeRows(
   const id = node.id || path || label;
   const hasChildren = Array.isArray(node.children) && node.children.length > 0;
   const isExpanded = expandedMap[id] ?? true;
-  const needle = query.toLowerCase();
-  const nodeMatches = !needle || label.toLowerCase().includes(needle) || path.toLowerCase().includes(needle);
+  const needle = query.toLowerCase().trim();
+
+  // Match only the node name (not full path) for cleaner results
+  const nodeMatches = !needle || label.toLowerCase().includes(needle);
 
   const childRows: TreeRow[] = [];
   let childMatches = false;
@@ -144,9 +181,32 @@ function buildTreeRows(
     }
   }
 
-  const includeNode = nodeMatches || childMatches;
   const rows: TreeRow[] = [];
-  if (includeNode) {
+
+  // If we're filtering (have a query)
+  if (needle) {
+    // Include this node only if it matches
+    if (nodeMatches) {
+      rows.push({
+        id,
+        label,
+        path,
+        depth,
+        url: buildContextUrlFromPath(baseUrl, parts),
+        hasChildren,
+        isExpanded: true, // Always expand when filtering
+        color: node.color,
+      });
+      // Show children of matching nodes for context
+      if (hasChildren) {
+        rows.push(...childRows);
+      }
+    } else {
+      // Node doesn't match, but pass through any matching children
+      rows.push(...childRows);
+    }
+  } else {
+    // No filter - show normal tree with expand/collapse
     rows.push({
       id,
       label,
@@ -157,12 +217,12 @@ function buildTreeRows(
       isExpanded,
       color: node.color,
     });
-    if (hasChildren && (query ? true : isExpanded)) {
+    if (hasChildren && isExpanded) {
       rows.push(...childRows);
     }
   }
 
-  return { rows, hasMatch: includeNode };
+  return { rows, hasMatch: nodeMatches || childMatches };
 }
 
 function ContextLauncherApp() {
@@ -403,11 +463,11 @@ function ContextLauncherApp() {
       setSelectedContextUrl(pendingUrl);
       setSearchActive(false);
       setSearchValue('');
-      
+
       // Success blink
       setInputBlink('success');
       setTimeout(() => setInputBlink(null), 500);
-      
+
       // Refresh contexts list
       const contextsResponse = await fetch(`${apiUrl}/contexts`, {
         headers: { Authorization: `Bearer ${auth.token}` },
@@ -573,11 +633,9 @@ function ContextLauncherApp() {
           title="Contexts"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M13 4h3a2 2 0 0 1 2 2v14" />
-            <path d="M2 20h3" />
-            <path d="M13 20h9" />
-            <path d="M10 12v.01" />
-            <path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z" />
+            <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+            <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+            <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
           </svg>
         </button>
         <div className="flex flex-col items-center gap-3">
@@ -597,24 +655,62 @@ function ContextLauncherApp() {
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="relative flex h-full flex-1 flex-col bg-white">
+      {/* Drawer - shrinks main content */}
+      {drawerOpen && (
+        <div
+          className={`w-80 p-6 ${panelTextClass}`}
+          style={{ backgroundColor: selectedContext?.color || '#111111' }}
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <div className={`text-sm uppercase tracking-[0.2em] ${panelMutedClass}`}>Contexts</div>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className={`text-xs ${panelMutedClass} hover:opacity-100`}
+            >
+              Close
+            </button>
+          </div>
+          <div className="space-y-2">
+            {drawerContexts.map((context) => (
+              <button
+                key={getContextKey(context)}
+                onClick={() => handleContextPick(context)}
+                className={`w-full rounded-md px-3 py-2 text-left text-sm shadow-sm ${panelIsLight ? 'bg-black/5 hover:bg-black/10' : 'bg-white/10 hover:bg-white/20'}`}
+              >
+                <div className="font-medium">{context.id || 'context'}</div>
+                <div className={`text-xs ${panelMutedClass}`}>{context.url}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main content card */}
+      <div className="relative flex h-full flex-1 flex-col bg-background p-4">
+        <div className="flex h-full flex-col rounded bg-white shadow-lg">
         {/* Header: context name + input + submit button */}
         <div className="border-b border-border bg-white p-4 shadow-sm">
-          <div className="mb-3 text-xl font-semibold">
-            Context ID: {selectedContext?.id || 'default'}
+          <div className="mb-3">
+            <div className="text-xl font-semibold">
+              Context: {selectedContext?.id || 'default'}
+            </div>
+            {selectedContextUrl && (
+              <div className="text-sm text-muted-foreground mt-1 font-mono">
+                @ {selectedContextUrl}
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
             >
@@ -622,6 +718,7 @@ function ContextLauncherApp() {
               <path d="m21 21-4.3-4.3"/>
             </svg>
             <Input
+              autoFocus
               value={searchActive ? searchValue : (selectedContextUrl || selectedContext?.url || '')}
               onFocus={() => {
                 if (!searchActive) {
@@ -634,6 +731,9 @@ function ContextLauncherApp() {
               }}
               onChange={(event) => {
                 const value = event.target.value;
+                if (!searchActive) {
+                  setSearchActive(true);
+                }
                 setSearchValue(value);
                 if (value.includes('://')) {
                   setPendingUrl(value);
@@ -674,7 +774,7 @@ function ContextLauncherApp() {
               }}
               placeholder="Search docs, paste URL, or /c for tree"
               className={`h-12 pl-10 text-base transition-colors ${
-                inputBlink === 'success' ? 'bg-green-100' : 
+                inputBlink === 'success' ? 'bg-green-100' :
                 inputBlink === 'error' ? 'bg-red-100' : ''
               }`}
             />
@@ -761,58 +861,104 @@ function ContextLauncherApp() {
                   No documents match that query.
                 </div>
               )}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {searchResults.map((doc) => {
-                  const title = getDocumentLabel(doc);
-                  const content = doc.summary || doc.description || '';
-                  const isTabDocument = doc.id?.toString().includes('tab');
-                  
+                  const title = getDisplayTitle(doc);
+                  const content = getDisplayContent(doc);
+                  const schema = doc.schema || '';
+                  const isTabDocument = schema === 'data/abstraction/tab';
+                  const tabUrl = isTabDocument && doc.data?.url ? doc.data.url : null;
+
+                  const getSchemaDisplayName = (schema: string) => {
+                    const parts = schema.split('/');
+                    return parts[parts.length - 1] || schema;
+                  };
+
+                  const formatDate = (dateString?: string) => {
+                    if (!dateString) return null;
+                    return new Date(dateString).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    });
+                  };
+
+                  const getPrimaryChecksum = () => {
+                    if (doc.data?.checksumArray && doc.data.checksumArray.length > 0) {
+                      const primary = doc.data.checksumArray[0];
+                      if (primary) {
+                        const parts = primary.split('/');
+                        const hash = parts[parts.length - 1] || primary;
+                        return hash.substring(0, 8) + '...';
+                      }
+                    }
+                    return null;
+                  };
+
+                  const checksum = getPrimaryChecksum();
+
                   return (
                     <div
                       key={doc.id || title}
-                      className="rounded-lg border bg-white p-4 shadow-sm transition-all hover:shadow-md cursor-pointer"
+                      className="rounded-lg border bg-white p-3 transition-all hover:bg-accent/50 cursor-pointer"
+                      onClick={() => {
+                        if (isTabDocument && tabUrl) {
+                          window.open(tabUrl, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
                     >
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">
-                          <div className="mb-2 flex items-center gap-2">
-                            <svg 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              width="16" 
-                              height="16" 
-                              viewBox="0 0 24 24" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round"
-                              className="text-blue-500 flex-shrink-0"
-                            >
-                              {isTabDocument ? (
-                                <>
-                                  <circle cx="12" cy="12" r="10"/>
-                                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                                  <path d="M2 12h20"/>
-                                </>
-                              ) : (
-                                <>
-                                  <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
-                                  <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
-                                </>
-                              )}
-                            </svg>
-                            <h4 className="font-medium truncate flex-1 max-w-full" title={title}>
+                          <div className="mb-2 flex items-center gap-2 overflow-hidden">
+                            {isTabDocument ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="text-blue-500 flex-shrink-0"
+                              >
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                                <path d="M2 12h20"/>
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="text-blue-500 flex-shrink-0"
+                              >
+                                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+                                <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                              </svg>
+                            )}
+                            <h4 className="font-medium truncate min-w-0 flex-1 max-w-[640px]" title={title}>
                               {title}
                             </h4>
                             {isTabDocument && (
-                              <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                width="12" 
-                                height="12" 
-                                viewBox="0 0 24 24" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                strokeWidth="2" 
-                                strokeLinecap="round" 
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
                                 strokeLinejoin="round"
                                 className="text-muted-foreground flex-shrink-0"
                               >
@@ -821,35 +967,94 @@ function ContextLauncherApp() {
                                 <line x1="10" x2="21" y1="14" y2="3"/>
                               </svg>
                             )}
+                            {schema && (
+                              <span className="px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded border flex-shrink-0">
+                                {getSchemaDisplayName(schema)}
+                              </span>
+                            )}
                           </div>
+
                           {content && (
-                            <p className="line-clamp-2 text-sm text-muted-foreground mb-3 break-all overflow-hidden">{content}</p>
+                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-all overflow-hidden">
+                              {content}
+                            </p>
                           )}
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground overflow-hidden">
+
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground overflow-hidden">
                             {doc.id && (
                               <div className="flex items-center gap-1 flex-shrink-0">
                                 <span className="font-medium">ID:</span>
-                                <span className="font-mono truncate max-w-[60px]" title={`ID: ${doc.id}`}>{doc.id}</span>
+                                <span className="font-mono truncate max-w-[80px]" title={`ID: ${doc.id}`}>
+                                  {doc.id}
+                                </span>
+                              </div>
+                            )}
+                            {checksum && (
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <line x1="4" x2="20" y1="9" y2="9"/>
+                                  <line x1="4" x2="20" y1="15" y2="15"/>
+                                  <line x1="10" x2="8" y1="3" y2="21"/>
+                                  <line x1="16" x2="14" y1="3" y2="21"/>
+                                </svg>
+                                <span className="font-mono" title="Checksum">
+                                  {checksum}
+                                </span>
+                              </div>
+                            )}
+                            {doc.createdAt && (
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                                  <line x1="16" x2="16" y1="2" y2="6"/>
+                                  <line x1="8" x2="8" y1="2" y2="6"/>
+                                  <line x1="3" x2="21" y1="10" y2="10"/>
+                                </svg>
+                                <span title={`Created: ${formatDate(doc.createdAt)}`}>
+                                  {formatDate(doc.createdAt)}
+                                </span>
                               </div>
                             )}
                           </div>
                         </div>
+
                         <button
                           className="p-1 hover:bg-muted rounded-sm flex-shrink-0"
                           title="View details"
                           onClick={(e) => {
                             e.stopPropagation();
+                            // Could open a detail modal here
                           }}
                         >
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="16" 
-                            height="16" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
                             strokeLinejoin="round"
                           >
                             <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
@@ -865,49 +1070,14 @@ function ContextLauncherApp() {
           )}
         </div>
 
-        {error && (
-          <div className="border-t border-border p-4">
-            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </div>
-          </div>
-        )}
-
-        {/* Drawer overlay */}
-        {drawerOpen && (
-          <div className="absolute inset-0 z-20 flex">
-            <div
-              className={`w-80 p-6 shadow-2xl ${panelTextClass}`}
-              style={{ 
-                backgroundColor: selectedContext?.color || '#111111',
-                boxShadow: '0 8px 10px -5px rgba(0,0,0,0.2), 0 16px 24px 2px rgba(0,0,0,0.14), 0 6px 30px 5px rgba(0,0,0,0.12)'
-              }}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <div className={`text-sm uppercase tracking-[0.2em] ${panelMutedClass}`}>Contexts</div>
-                <button
-                  onClick={() => setDrawerOpen(false)}
-                  className={`text-xs ${panelMutedClass} hover:opacity-100`}
-                >
-                  Close
-                </button>
-              </div>
-              <div className="space-y-2">
-                {drawerContexts.map((context) => (
-                  <button
-                    key={getContextKey(context)}
-                    onClick={() => handleContextPick(context)}
-                    className={`w-full rounded-md px-3 py-2 text-left text-sm shadow-sm ${panelIsLight ? 'bg-black/5 hover:bg-black/10' : 'bg-white/10 hover:bg-white/20'}`}
-                  >
-                    <div className="font-medium">{context.id || 'context'}</div>
-                    <div className={`text-xs ${panelMutedClass}`}>{context.url}</div>
-                  </button>
-                ))}
+          {error && (
+            <div className="border-t border-border p-4">
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
               </div>
             </div>
-            <div className="flex-1 bg-black/40" onClick={() => setDrawerOpen(false)} />
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
