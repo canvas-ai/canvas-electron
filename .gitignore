@@ -131,5 +131,22 @@ release/
 .vite/
 coverage/
 
+# Electron packager outputs (belt + suspenders)
+*.AppImage
+*.dmg
+*.exe
+*.msi
+*.nsis.7z
+*.nsis.zip
+*.deb
+*.rpm
+
+# electron-builder / updater metadata
+latest*.yml
+*.blockmap
+
+# Electron crash dumps
+**/crashpad/
+
 # Include all .keep files
 !**/.keep
