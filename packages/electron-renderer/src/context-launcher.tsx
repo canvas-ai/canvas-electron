@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useMemo, useState, useRef } from 'react';
+import { StrictMode, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthPanel, type AuthFormData } from '../../ui/src/components/auth/AuthPanel';
 import { ParticlePanel } from '../../ui/src/components/auth/ParticlePanel';
@@ -340,31 +340,32 @@ function ContextLauncherApp() {
     }
   };
 
-  useEffect(() => {
-    const fetchContexts = async () => {
-      if (!isAuthenticated || !auth) return;
-      setBusy(true);
-      setError(null);
-      try {
-        const apiUrl = toApiUrl(auth.serverUrl);
-        const response = await fetch(`${apiUrl}/contexts`, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        });
-        const payload = await response.json();
-        const list =
-          Array.isArray(payload) ? payload :
-          Array.isArray(payload?.payload) ? payload.payload :
-          Array.isArray(payload?.contexts) ? payload.contexts :
-          [];
-        setContexts(list);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load contexts.');
-      } finally {
-        setBusy(false);
-      }
-    };
-    fetchContexts();
+  const fetchContexts = useCallback(async () => {
+    if (!isAuthenticated || !auth) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const apiUrl = toApiUrl(auth.serverUrl);
+      const response = await fetch(`${apiUrl}/contexts`, {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
+      const payload = await response.json();
+      const list =
+        Array.isArray(payload) ? payload :
+        Array.isArray(payload?.payload) ? payload.payload :
+        Array.isArray(payload?.contexts) ? payload.contexts :
+        [];
+      setContexts(list);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load contexts.');
+    } finally {
+      setBusy(false);
+    }
   }, [auth, isAuthenticated]);
+
+  useEffect(() => {
+    fetchContexts();
+  }, [fetchContexts]);
 
   useEffect(() => {
     if (!contexts.length) return;
@@ -722,12 +723,27 @@ function ContextLauncherApp() {
         >
           <div className="mb-4 flex items-center justify-between">
             <div className={`text-sm uppercase tracking-[0.2em] ${panelMutedClass}`}>Contexts</div>
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className={`text-xs ${panelMutedClass} hover:opacity-100`}
-            >
-              Close
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={fetchContexts}
+                disabled={busy}
+                className={`${panelMutedClass} hover:opacity-100 disabled:opacity-30`}
+                title="Refresh contexts"
+              >
+                <svg className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className={`${panelMutedClass} hover:opacity-100`}
+                title="Close"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
           <div className="space-y-2">
             {drawerContexts.map((context) => (
