@@ -66,6 +66,7 @@
     "concurrently": "^9.1.0",
     "electron": "^33.0.0",
     "electron-builder": "^25.1.8",
+    "electron-builder-sandbox-fix": "^1.1.1",
     "eslint": "^9.15.0",
     "postcss": "^8.4.45",
     "tailwindcss": "^3.4.15",
@@ -81,6 +82,7 @@
   "build": {
     "appId": "org.getcanvas.app",
     "artifactName": "canvas-ui-${version}-${os}-${arch}.${ext}",
+    "afterPack": "electron-builder-sandbox-fix",
     "files": [
       "dist/**/*",
       "node_modules/**/*",
