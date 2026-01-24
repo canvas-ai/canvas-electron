@@ -552,12 +552,67 @@ function ContextLauncherApp() {
     if (!isAuthenticated || !auth) return;
     const query = searchValue.trim();
     const looksLikeUrl = query.includes('://');
-    if (!query || showTree || looksLikeUrl || !selectedContextId) {
+
+    // Parse shortcuts: /t for tabs, /n for notes, /d for dotfiles
+    let filterArray: string[] = [];
+    let actualQuery = query;
+
+    if (query.startsWith('/t ')) {
+      filterArray = ['data/abstraction/tab'];
+      actualQuery = query.slice(3).trim();
+    } else if (query.startsWith('/n ')) {
+      filterArray = ['data/abstraction/note'];
+      actualQuery = query.slice(3).trim();
+    } else if (query.startsWith('/d ')) {
+      filterArray = ['data/abstraction/dotfile'];
+      actualQuery = query.slice(3).trim();
+    }
+
+    // If tree view or URL input, skip search
+    if (showTree || looksLikeUrl || !selectedContextId) {
       setSearchResults([]);
       setSearchError(null);
       setSearchBusy(false);
       return;
     }
+
+    // If empty query but we want to load default documents
+    if (!query) {
+      let isActive = true;
+      const controller = new AbortController();
+      const timer = window.setTimeout(async () => {
+        setSearchBusy(true);
+        setSearchError(null);
+        try {
+          const apiUrl = toApiUrl(auth.serverUrl);
+          const response = await fetch(
+            `${apiUrl}/contexts/${selectedContextId}/documents?limit=20`,
+            {
+              headers: { Authorization: `Bearer ${auth.token}` },
+              signal: controller.signal,
+            },
+          );
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload?.message || 'Failed to load documents.');
+          const list = parseListPayload(payload);
+          if (isActive) {
+            setSearchResults(list as DocumentItem[]);
+          }
+        } catch (err) {
+          if (!isActive) return;
+          setSearchError(err instanceof Error ? err.message : 'Failed to load documents.');
+        } finally {
+          if (isActive) setSearchBusy(false);
+        }
+      }, 50);
+      return () => {
+        isActive = false;
+        controller.abort();
+        window.clearTimeout(timer);
+      };
+    }
+
+    // Search with query
     let isActive = true;
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -565,8 +620,11 @@ function ContextLauncherApp() {
       setSearchError(null);
       try {
         const apiUrl = toApiUrl(auth.serverUrl);
+        const filterParam = filterArray.length > 0
+          ? `&${filterArray.map(f => `filterArray=${encodeURIComponent(f)}`).join('&')}`
+          : '';
         const response = await fetch(
-          `${apiUrl}/contexts/${selectedContextId}/documents?search=${encodeURIComponent(query)}&limit=10`,
+          `${apiUrl}/contexts/${selectedContextId}/documents?search=${encodeURIComponent(actualQuery)}&limit=20${filterParam}`,
           {
             headers: { Authorization: `Bearer ${auth.token}` },
             signal: controller.signal,
@@ -628,7 +686,7 @@ function ContextLauncherApp() {
         style={{ backgroundColor: selectedContext?.color || '#111111' }}
       >
         <button
-          onClick={() => setDrawerOpen(true)}
+          onClick={() => setDrawerOpen(!drawerOpen)}
           className={`flex h-10 w-10 items-center justify-center rounded-lg ${panelIsLight ? 'bg-black/10 hover:bg-black/20' : 'bg-white/10 hover:bg-white/20'} transition-material`}
           title="Contexts"
         >
@@ -772,7 +830,7 @@ function ContextLauncherApp() {
                   }
                 }
               }}
-              placeholder="Search docs, paste URL, or /c for tree"
+              placeholder="Search docs, /c for tree, /t tabs, /n notes, /d dotfiles"
               className={`h-12 pl-10 text-base transition-colors ${
                 inputBlink === 'success' ? 'bg-green-100' :
                 inputBlink === 'error' ? 'bg-red-100' : ''
@@ -848,9 +906,10 @@ function ContextLauncherApp() {
                   {searchError}
                 </div>
               )}
-              {!searchValue.trim() && (
+              {!searchValue.trim() && !searchBusy && searchResults.length === 0 && (
                 <div className="p-4 text-center text-sm text-muted-foreground">
-                  Type to search documents or /c for tree
+                  <p>Recent documents from this context</p>
+                  <p className="text-xs mt-1">Type to search, /c for tree, /t tabs, /n notes, /d dotfiles</p>
                 </div>
               )}
               {searchBusy && (
