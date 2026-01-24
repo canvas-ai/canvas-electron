@@ -505,6 +505,7 @@ function ContextLauncherApp() {
   useEffect(() => {
     if (!showTree) return;
     if (!isAuthenticated || !auth) return;
+    if (!selectedContextId) return;
     let isActive = true;
     const controller = new AbortController();
     const loadTree = async () => {
@@ -512,7 +513,7 @@ function ContextLauncherApp() {
       setTreeError(null);
       try {
         const apiUrl = toApiUrl(auth.serverUrl);
-        const response = await fetch(`${apiUrl}/contexts/default/tree`, {
+        const response = await fetch(`${apiUrl}/contexts/${selectedContextId}/tree`, {
           headers: { Authorization: `Bearer ${auth.token}` },
           signal: controller.signal,
         });
@@ -532,7 +533,7 @@ function ContextLauncherApp() {
       isActive = false;
       controller.abort();
     };
-  }, [auth, isAuthenticated, showTree]);
+  }, [auth, isAuthenticated, showTree, selectedContextId]);
 
   useEffect(() => {
     if (!treeRows.length) {

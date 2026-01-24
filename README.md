@@ -51,6 +51,18 @@ npm run package
 npm run build
 ```
 
+### How to cut a release
+
+Tag and push (tag should match our versioning convention):
+
+```bash 
+git tag v2.0.0-alpha.1
+git push origin v2.0.0-alpha.1
+```
+
+GitHub Actions will build + create a Release with the installers.
+
+
 ### Production Package
 ```bash
 npm run package
