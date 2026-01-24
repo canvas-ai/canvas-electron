@@ -56,6 +56,7 @@ export class ContextLauncherWindow {
         nodeIntegration: false,
         contextIsolation: true,
         preload: join(__dirname, '../../preload.js'),
+        v8CacheOptions: 'bypassHeatCheck',
       },
     });
 
@@ -77,9 +78,12 @@ export class ContextLauncherWindow {
       this.window = null;
     });
 
-    if (this.options.show) {
-      this.window.show();
-    }
+    // Preload the window immediately to avoid delay on first show
+    this.window.once('ready-to-show', () => {
+      if (this.options.show) {
+        this.window?.show();
+      }
+    });
   }
 
   private getCenteredBounds(width: number, height: number) {
