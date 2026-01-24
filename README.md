@@ -2,8 +2,8 @@
 
 ## Downloads
 
-- **Latest release (recommended)**: `https://github.com/canvas-ai/canvas-electron/releases/latest`
-- **All releases**: `https://github.com/canvas-ai/canvas-electron/releases`
+- **Latest release (recommended)**: [Latest release](https://github.com/canvas-ai/canvas-electron/releases/latest)
+- **All releases**: [All releases](https://github.com/canvas-ai/canvas-electron/releases)
 
 ### Config/Data Storage
 - **Linux/Mac**: `~/.canvas/electron/agents/<agent-name>/`
