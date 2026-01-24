@@ -3,18 +3,18 @@
   "productName": "Canvas UI",
   "version": "2.0.0-alpha.1",
   "description": "Context layer on top of your unstructured universe",
-  "main": "dist/main/main/main.js",
+  "main": "dist/main/electron-main/src/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
-    "dev:main": "tsc -p src/main/tsconfig.json && electron dist/main/main/main.js --no-sandbox",
-    "dev:renderer": "vite dev src/renderer",
+    "dev:main": "tsc -p packages/electron-main/tsconfig.json && electron dist/main/electron-main/src/main.js --no-sandbox --enable-transparent-visuals",
+    "dev:renderer": "vite dev packages/electron-renderer",
     "build": "npm run build:main && npm run build:renderer",
-    "build:main": "tsc -p src/main/tsconfig.json",
-    "build:renderer": "vite build src/renderer",
+    "build:main": "tsc -p packages/electron-main/tsconfig.json",
+    "build:renderer": "vite build packages/electron-renderer",
     "package": "npm run build && electron-builder",
-    "start": "electron dist/main/main/main.js --no-sandbox",
-    "lint": "eslint src --ext .ts,.tsx --fix",
-    "type-check": "tsc --noEmit",
+    "start": "electron dist/main/electron-main/src/main.js --no-sandbox",
+    "lint": "eslint packages src --ext .ts,.tsx --fix",
+    "type-check": "tsc -p packages/electron-main/tsconfig.json --noEmit && tsc -p packages/electron-renderer/tsconfig.json --noEmit && tsc -p packages/ui/tsconfig.json --noEmit",
     "update-submodules": "git submodule update --init --remote && git submodule foreach \"git add .\""
   },
   "author": "me@idnc.sk",
@@ -38,6 +38,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "conf": "^15.0.2",
     "date-fns": "^4.1.0",
     "electron": "^33.0.0",
     "electron-store": "^10.0.0",
@@ -74,6 +75,9 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "build": {
     "appId": "org.getcanvas.app",
     "files": [

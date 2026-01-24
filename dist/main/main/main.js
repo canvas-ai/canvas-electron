@@ -9,11 +9,14 @@ const mcp_service_1 = require("./mcp-service");
 const constants_1 = require("../shared/constants");
 const WindowManager_1 = require("./window-manager/WindowManager");
 const ui_settings_1 = require("./persistence/ui-settings");
+const app_config_1 = require("./config/app-config");
+const ContextLauncherWindow_1 = require("./windows/context-launcher/ContextLauncherWindow");
 class CanvasApp {
     tray = null;
     toolbox = null;
     windowManager;
     launcherCanvasId = null;
+    contextLauncher = null;
     authSession = null;
     conversationManager;
     chatService;
@@ -27,6 +30,9 @@ class CanvasApp {
         this.setupIPC();
     }
     setupApp() {
+        if (process.platform === 'linux') {
+            electron_1.app.commandLine.appendSwitch('enable-transparent-visuals');
+        }
         // Enable sandbox for security
         electron_1.app.enableSandbox();
         // Single instance lock
@@ -90,22 +96,28 @@ class CanvasApp {
         });
         // Create launcher canvas window (centered)
         this.launcherCanvasId = this.windowManager.createLauncherCanvas({ show: true });
+        this.contextLauncher = new ContextLauncherWindow_1.ContextLauncherWindow({ show: false });
         // Register global shortcuts
-        this.registerGlobalShortcuts();
+        await this.registerGlobalShortcuts();
         console.log('Canvas app initialized');
     }
-    registerGlobalShortcuts() {
+    async registerGlobalShortcuts() {
         // Super+Space to toggle toolbox
         electron_1.globalShortcut.register('Super+Space', () => {
             this.toggleToolbox();
         });
-        // Super+C to toggle visibility of active canvas
-        electron_1.globalShortcut.register('Super+C', () => {
-            this.windowManager.toggleActiveCanvasVisibility();
+        // Super+C to toggle context launcher (configurable)
+        const launcherShortcut = await (0, app_config_1.getContextLauncherShortcut)();
+        electron_1.globalShortcut.register(launcherShortcut, () => {
+            this.toggleContextLauncher();
         });
         // Alternative shortcut for systems where Super might not work
         electron_1.globalShortcut.register('CommandOrControl+Alt+Space', () => {
             this.toggleToolbox();
+        });
+        // Keep a canvas toggle, but avoid clashing with the launcher
+        electron_1.globalShortcut.register('Super+Shift+C', () => {
+            this.windowManager.toggleActiveCanvasVisibility();
         });
     }
     setupIPC() {
@@ -183,6 +195,13 @@ class CanvasApp {
         if (this.toolbox.isVisible())
             return this.toolbox.hide();
         this.toolbox.showMinimizedDocked(this.windowManager.getToolboxDockRect());
+    }
+    toggleContextLauncher() {
+        if (!this.contextLauncher)
+            this.contextLauncher = new ContextLauncherWindow_1.ContextLauncherWindow({ show: false });
+        if (this.contextLauncher.isVisible())
+            return this.contextLauncher.hide();
+        this.contextLauncher.show();
     }
     isAuthenticated() {
         return !!this.authSession?.token;

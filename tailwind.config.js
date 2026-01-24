@@ -2,6 +2,9 @@
 module.exports = {
   darkMode: ["class"],
   content: [
+    './packages/electron-renderer/src/**/*.{ts,tsx,html}',
+    './packages/electron-renderer/*.html',
+    './packages/ui/**/*.{ts,tsx}',
     './src/renderer/**/*.{ts,tsx}',
   ],
   theme: {

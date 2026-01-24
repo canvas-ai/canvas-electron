@@ -1,0 +1,1448 @@
+{
+  "status": "success",
+  "statusCode": 200,
+  "message": "Context tree retrieved successfully",
+  "payload": {
+    "id": "10000000-1000",
+    "type": "universe",
+    "name": "/",
+    "label": "Universe",
+    "description": "And then there was geometry...",
+    "color": "#fff",
+    "children": [
+      {
+        "id": "0a44ed95-77af-410d-a8d2-fdfdee1547ee",
+        "type": "context",
+        "name": "agents",
+        "label": "agents",
+        "description": "Canvas layer",
+        "color": null,
+        "children": []
+      },
+      {
+        "id": "f914980d-8c4e-4535-9cf7-19cf2515583e",
+        "type": "context",
+        "name": "dev",
+        "label": "dev",
+        "description": "Canvas layer",
+        "color": null,
+        "children": [
+          {
+            "id": "4c06fcbb-6086-4489-abc5-b93c550e8d8f",
+            "type": "context",
+            "name": "fonts",
+            "label": "fonts",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "eca8bc56-7db1-41ff-b477-f82b55b3a0a7",
+            "type": "context",
+            "name": "os",
+            "label": "os",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "434a6e28-5249-4b5c-92c8-ffe430f01697",
+                "type": "context",
+                "name": "ui",
+                "label": "ui",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "82f16f1e-14de-4aa2-b05a-df1a43195712",
+                    "type": "context",
+                    "name": "compositor",
+                    "label": "compositor",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "76192782-2699-455d-969c-4472bd723a6f",
+            "type": "context",
+            "name": "pwa",
+            "label": "pwa",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "e98538b1-5d35-4af9-881f-749f9da25b4e",
+            "type": "context",
+            "name": "tools",
+            "label": "tools",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "434a6e28-5249-4b5c-92c8-ffe430f01697",
+            "type": "context",
+            "name": "ui",
+            "label": "ui",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "4c06fcbb-6086-4489-abc5-b93c550e8d8f",
+                "type": "context",
+                "name": "fonts",
+                "label": "fonts",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "b4557d99-97fb-4e55-b659-0a03996cdc2b",
+        "type": "context",
+        "name": "drevo",
+        "label": "drevo",
+        "description": "Canvas layer",
+        "color": null,
+        "children": []
+      },
+      {
+        "id": "c0e648a6-6188-4a48-aad6-6a549d64d30e",
+        "type": "context",
+        "name": "dyi",
+        "label": "dyi",
+        "description": "Canvas layer",
+        "color": null,
+        "children": [
+          {
+            "id": "b65e43f4-f087-4774-bec5-270ddce1a4c6",
+            "type": "context",
+            "name": "hardware",
+            "label": "hardware",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "c56b39e8-33be-484e-9840-ca10ccaf7c65",
+            "type": "context",
+            "name": "sdr",
+            "label": "sdr",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "e2782570-c233-48a8-aa61-88dfb20968b4",
+        "type": "context",
+        "name": "edu",
+        "label": "edu",
+        "description": "Canvas layer",
+        "color": null,
+        "children": [
+          {
+            "id": "109c4aa1-a054-4243-8f47-5dce69606547",
+            "type": "context",
+            "name": "architecture",
+            "label": "architecture",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "4b2dfdc2-f16f-47f5-b60c-516177c2f902",
+            "type": "context",
+            "name": "astro",
+            "label": "astro",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "69ce96f8-36c7-4d0e-a6e7-0b0757f89ea7",
+                "type": "context",
+                "name": "apps",
+                "label": "apps",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "8c16c98e-2783-42c2-a8dd-05131755bdf2",
+            "type": "context",
+            "name": "cs",
+            "label": "cs",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "17003922-5df2-4538-9fcb-8a80e55d6d98",
+                "type": "context",
+                "name": "ml",
+                "label": "ml",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "f698a697-e213-4eda-a55a-a084bd669fec",
+            "type": "context",
+            "name": "history",
+            "label": "history",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "8fc60b43-d488-40e3-a502-6a2ee992e14e",
+                "type": "context",
+                "name": "events",
+                "label": "events",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "ed12f76e-7604-4c0f-9da3-b78e11882c2e",
+                "type": "context",
+                "name": "figures",
+                "label": "figures",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "46a42cdc-8819-4131-9d27-f294567e96be",
+                "type": "context",
+                "name": "periods",
+                "label": "periods",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "aff304b1-b2d2-4615-aee3-8bd80c61902a",
+            "type": "context",
+            "name": "math",
+            "label": "math",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "17003922-5df2-4538-9fcb-8a80e55d6d98",
+            "type": "context",
+            "name": "ml",
+            "label": "ml",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "ddd91fbe-618a-48d6-a01f-6460ac01b9a9",
+            "type": "context",
+            "name": "physics",
+            "label": "physics",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "9d2ca6ca-f87e-499a-85f7-aaf2d98142ae",
+            "type": "context",
+            "name": "transportation",
+            "label": "transportation",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "061321a9-118a-4c93-9436-4d1058da4cd1",
+                "type": "context",
+                "name": "metro",
+                "label": "metro",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "51e2bf7d-3fb2-4e02-9365-f152155f5d11",
+        "type": "context",
+        "name": "home",
+        "label": "home",
+        "description": "Canvas layer",
+        "color": null,
+        "children": [
+          {
+            "id": "a90deb3a-1f55-4f46-bb5f-ce0edd68426f",
+            "type": "context",
+            "name": "domcek",
+            "label": "domcek",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "9bd3b346-77fa-4132-9abd-a38569e4d16b",
+            "type": "context",
+            "name": "games",
+            "label": "games",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "3acfc891-38a0-416f-987f-7cb0c75d44ee",
+            "type": "context",
+            "name": "hudba",
+            "label": "hudba",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "31918f00-9ca0-4444-a5be-91f12102cb25",
+            "type": "context",
+            "name": "mjuzik",
+            "label": "mjuzik",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "8c440115-4671-4d6a-b6e0-8732440329a9",
+                "type": "context",
+                "name": "genre",
+                "label": "genre",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "b1a17cef-2bd5-4274-9aec-a234625636c8",
+                    "type": "context",
+                    "name": "jazz",
+                    "label": "jazz",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  },
+                  {
+                    "id": "eff8e58d-c62e-4525-b5ca-d382db0ad9c9",
+                    "type": "context",
+                    "name": "rock",
+                    "label": "rock",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "0ac2863a-9395-4eaf-9f75-2d97ee75ff2e",
+                "type": "context",
+                "name": "instrument",
+                "label": "instrument",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "bc0011ef-0478-44ec-a749-f76048283566",
+                    "type": "context",
+                    "name": "guitar",
+                    "label": "guitar",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  },
+                  {
+                    "id": "ae1056da-c2b1-451b-8086-af20d94e182e",
+                    "type": "context",
+                    "name": "piano",
+                    "label": "piano",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "ae1056da-c2b1-451b-8086-af20d94e182e",
+                "type": "context",
+                "name": "piano",
+                "label": "piano",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "95052ae5-c8e6-45e8-9925-c9b68202f173",
+                "type": "context",
+                "name": "work",
+                "label": "work",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "5b501ad3-227f-409a-85a3-a24f61f9d1be",
+            "type": "context",
+            "name": "nakup",
+            "label": "nakup",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "e9f0599c-fcd5-4a74-a263-c1a66631e0f1",
+                "type": "context",
+                "name": "audio",
+                "label": "audio",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "a9597236-3d53-46f3-bd35-da1e0340575e",
+                "type": "context",
+                "name": "autiak",
+                "label": "autiak",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "e3023e0a-420c-400b-8351-4d9e98b801cb",
+                    "type": "context",
+                    "name": "emblem",
+                    "label": "emblem",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  },
+                  {
+                    "id": "5cc63ef8-beba-42f2-ba25-508ca8ee1c0d",
+                    "type": "context",
+                    "name": "lestenie",
+                    "label": "lestenie",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "b1da4415-b4c5-4786-a18b-881c20b5348b",
+                "type": "context",
+                "name": "batoh",
+                "label": "batoh",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "3d022f6e-8f19-4125-b374-4e9df673ff95",
+                "type": "context",
+                "name": "byt",
+                "label": "byt",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "527f20e3-5187-474c-95c3-9292a7e941cc",
+                    "type": "context",
+                    "name": "presov",
+                    "label": "presov",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "b4557d99-97fb-4e55-b659-0a03996cdc2b",
+                "type": "context",
+                "name": "drevo",
+                "label": "drevo",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "b76541b8-1a7c-45b5-b8d2-e7dedc4584a7",
+                "type": "context",
+                "name": "klavir",
+                "label": "klavir",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "b481008d-e28c-40c7-9381-432402116fb6",
+                "type": "context",
+                "name": "monitor",
+                "label": "monitor",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "576901a5-3c18-4019-8408-67a18555bd23",
+                "type": "context",
+                "name": "notas",
+                "label": "notas",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "a2541989-a8b9-4233-919f-feeb5b02bbda",
+                "type": "context",
+                "name": "obuv",
+                "label": "obuv",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "53b360e0-d091-4899-a86e-bab4202064a0",
+                "type": "context",
+                "name": "obyvacka",
+                "label": "obyvacka",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "fa099262-eff8-47b2-aee7-0350d1fbfc2b",
+                "type": "context",
+                "name": "osvetlenie",
+                "label": "osvetlenie",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "537ebb1a-1549-4f7c-9293-f99c78852249",
+                "type": "context",
+                "name": "vianoce",
+                "label": "vianoce",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "89450e75-1979-45b7-9b26-826d8e7548de",
+                    "type": "context",
+                    "name": "katka",
+                    "label": "katka",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": [
+                      {
+                        "id": "66631054-0fa7-4036-9c0f-9949cf61d5b6",
+                        "type": "context",
+                        "name": "final",
+                        "label": "final",
+                        "description": "Canvas layer",
+                        "color": null,
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "f48fea07-d767-4bdf-9970-8c7da73082cb",
+                    "type": "context",
+                    "name": "rodicia",
+                    "label": "rodicia",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "90e32712-b0b9-4fc7-ae7d-c9afbae61dbe",
+            "type": "context",
+            "name": "photography",
+            "label": "photography",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "4b2dfdc2-f16f-47f5-b60c-516177c2f902",
+                "type": "context",
+                "name": "astro",
+                "label": "astro",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "48d9004b-3f6a-437e-8992-30e80af7cec8",
+            "type": "context",
+            "name": "podcasts",
+            "label": "podcasts",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "3f8ea780-7282-4e09-8387-f3d2ea32ff71",
+            "type": "context",
+            "name": "ranna-kava",
+            "label": "ranna-kava",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "14f003d6-f8de-4dd4-829f-7f3a80e991a8",
+            "type": "context",
+            "name": "shtf",
+            "label": "shtf",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "061321a9-118a-4c93-9436-4d1058da4cd1",
+                "type": "context",
+                "name": "metro",
+                "label": "metro",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "ac54bce9-b151-46cf-8a3f-cf3d7f016e32",
+            "type": "context",
+            "name": "social",
+            "label": "social",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "a1e9ea19-bc39-4f1e-bb6d-3b1062af206d",
+            "type": "context",
+            "name": "travel",
+            "label": "travel",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "39c7b6ab-5894-4aeb-8e68-0313cde7265d",
+                "type": "context",
+                "name": "2025",
+                "label": "2025",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "73c8c1a5-b32a-4e7d-a631-c722e4d39e2b",
+                    "type": "context",
+                    "name": "kosice",
+                    "label": "kosice",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": [
+                      {
+                        "id": "3447061d-a4ea-4961-bcb5-74790720357c",
+                        "type": "context",
+                        "name": "bobulefest",
+                        "label": "bobulefest",
+                        "description": "Canvas layer",
+                        "color": null,
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "db0ac59f-5420-455f-a3da-79fc7d382e27",
+                    "type": "context",
+                    "name": "krakow",
+                    "label": "krakow",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "b1c20f92-8f0d-4b7f-b2bb-fa3c2098e754",
+                "type": "context",
+                "name": "2026",
+                "label": "2026",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "5be0d637-1702-477e-98cd-d20227a05200",
+                    "type": "context",
+                    "name": "bratislava",
+                    "label": "bratislava",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "bee73b0a-5306-4b0f-a7c6-67bd1e49ffce",
+                "type": "context",
+                "name": "openslava",
+                "label": "openslava",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "827fa6ae-58fd-4625-b19c-ae4fd0164c74",
+            "type": "context",
+            "name": "utils",
+            "label": "utils",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "6d0f1a4f-a6b4-40b0-8e1f-02e7b842608f",
+                "type": "context",
+                "name": "tracking",
+                "label": "tracking",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "32eb7ba4-5469-4cc8-b5c0-a571fcf85d7a",
+            "type": "context",
+            "name": "zdravie",
+            "label": "zdravie",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "4d868bd7-a455-44bc-9d93-75b58ffe65e5",
+        "type": "context",
+        "name": "it",
+        "label": "it",
+        "description": "Canvas layer",
+        "color": null,
+        "children": [
+          {
+            "id": "e7e77a95-df62-439a-b927-147ce0d3e0a9",
+            "type": "context",
+            "name": "db",
+            "label": "db",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "d2b1d8dd-78bd-4f2e-bbc1-795fefd52215",
+            "type": "context",
+            "name": "kubernetes",
+            "label": "kubernetes",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "eca8bc56-7db1-41ff-b477-f82b55b3a0a7",
+                "type": "context",
+                "name": "os",
+                "label": "os",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "f9130ecc-b171-4274-b8bb-b7fd077e679f",
+                "type": "context",
+                "name": "storage",
+                "label": "storage",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "eca8bc56-7db1-41ff-b477-f82b55b3a0a7",
+            "type": "context",
+            "name": "os",
+            "label": "os",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "01f1940e-6003-43a4-8958-33b4e0ee5152",
+                "type": "context",
+                "name": "linux",
+                "label": "linux",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "69815aa2-8ec3-4cc5-9ecc-7c9f4df3b1ef",
+            "type": "context",
+            "name": "p2p",
+            "label": "p2p",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "85bbe2c9-4b6a-4eca-93aa-d6bfaa538a4d",
+            "type": "context",
+            "name": "sec",
+            "label": "sec",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "b64c0d04-7719-48b9-b885-8f20de50b501",
+            "type": "context",
+            "name": "selfhosted",
+            "label": "selfhosted",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "02e1bb6b-219d-4cb9-b386-7dabebf32ac2",
+                "type": "context",
+                "name": "code",
+                "label": "code",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "f9130ecc-b171-4274-b8bb-b7fd077e679f",
+                "type": "context",
+                "name": "storage",
+                "label": "storage",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "f9130ecc-b171-4274-b8bb-b7fd077e679f",
+            "type": "context",
+            "name": "storage",
+            "label": "storage",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "e98538b1-5d35-4af9-881f-749f9da25b4e",
+            "type": "context",
+            "name": "tools",
+            "label": "tools",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "0b8b9173-d78c-4b72-b5dc-d70f79386a71",
+                "type": "context",
+                "name": "dotfiles",
+                "label": "dotfiles",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "7fea7502-1065-421c-86de-d70112ad6d9b",
+                "type": "context",
+                "name": "iac",
+                "label": "iac",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "1b30f08b-e001-4db1-bd1b-9173a2396390",
+        "type": "context",
+        "name": "library",
+        "label": "library",
+        "description": "Canvas layer",
+        "color": null,
+        "children": [
+          {
+            "id": "ae40c9f4-a44e-4c11-880c-1cc32409d71c",
+            "type": "context",
+            "name": "wealth",
+            "label": "wealth",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "17003922-5df2-4538-9fcb-8a80e55d6d98",
+        "type": "context",
+        "name": "ml",
+        "label": "ml",
+        "description": "Canvas layer",
+        "color": null,
+        "children": [
+          {
+            "id": "0a44ed95-77af-410d-a8d2-fdfdee1547ee",
+            "type": "context",
+            "name": "agents",
+            "label": "agents",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "3437a4a3-9e84-42f3-9076-d9b238a5f3c7",
+            "type": "context",
+            "name": "analytics",
+            "label": "analytics",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "e7e77a95-df62-439a-b927-147ce0d3e0a9",
+            "type": "context",
+            "name": "db",
+            "label": "db",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "fddb032c-acb2-4e51-86f3-6ff366c66e82",
+            "type": "context",
+            "name": "models",
+            "label": "models",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "0e60fb95-c42b-45ee-b8c6-1e43c0241bc1",
+                "type": "context",
+                "name": "med",
+                "label": "med",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "61c4241b-c4fa-491a-9e99-11cf6a09636f",
+                "type": "context",
+                "name": "multimodal",
+                "label": "multimodal",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "ddd91fbe-618a-48d6-a01f-6460ac01b9a9",
+                "type": "context",
+                "name": "physics",
+                "label": "physics",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "4cef5d56-9701-49fa-995f-77ce4424d48c",
+                "type": "context",
+                "name": "time-series",
+                "label": "time-series",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "86c2bc73-bbee-4e80-ab31-e9978ef3dd62",
+            "type": "context",
+            "name": "nlp",
+            "label": "nlp",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "9ec00bef-68a5-4924-a5f7-fad798fcecf7",
+            "type": "context",
+            "name": "openai",
+            "label": "openai",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "9220e66a-0702-4d8c-8ea2-40ff36452165",
+            "type": "context",
+            "name": "papers",
+            "label": "papers",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "02d16085-e4c5-4eb4-8491-b40dc054d687",
+            "type": "context",
+            "name": "prompts",
+            "label": "prompts",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "5b367ddd-f292-4e10-86db-303097983cc0",
+            "type": "context",
+            "name": "rag",
+            "label": "rag",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "5591fb0d-7c73-4dea-b3d0-655607982e79",
+            "type": "context",
+            "name": "research",
+            "label": "research",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "c6e42445-d949-4745-9387-2be48811eb73",
+            "type": "context",
+            "name": "runtimes",
+            "label": "runtimes",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "e98538b1-5d35-4af9-881f-749f9da25b4e",
+            "type": "context",
+            "name": "tools",
+            "label": "tools",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "ad212537-74a0-4a4b-b76e-daa5b8153e09",
+                "type": "context",
+                "name": "imagegen",
+                "label": "imagegen",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "98e6ac39-d724-4e3e-8420-ec2018a125f1",
+                "type": "context",
+                "name": "mcp",
+                "label": "mcp",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "76cb5c2f-a2ed-4fc8-b273-1482235f8961",
+            "type": "context",
+            "name": "training",
+            "label": "training",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "81ba97e0-a136-42b5-aa80-dfeb9bf27753",
+            "type": "context",
+            "name": "voice",
+            "label": "voice",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": "b481008d-e28c-40c7-9381-432402116fb6",
+        "type": "context",
+        "name": "monitor",
+        "label": "monitor",
+        "description": "Canvas layer",
+        "color": null,
+        "children": []
+      },
+      {
+        "id": "5b501ad3-227f-409a-85a3-a24f61f9d1be",
+        "type": "context",
+        "name": "nakup",
+        "label": "nakup",
+        "description": "Canvas layer",
+        "color": null,
+        "children": []
+      },
+      {
+        "id": "3063ee51-4a9b-4ba3-ad35-30db065501a4",
+        "type": "context",
+        "name": "to-sort",
+        "label": "to-sort",
+        "description": "Canvas layer",
+        "color": null,
+        "children": []
+      },
+      {
+        "id": "95052ae5-c8e6-45e8-9925-c9b68202f173",
+        "type": "context",
+        "name": "work",
+        "label": "work",
+        "description": "Canvas layer",
+        "color": null,
+        "children": [
+          {
+            "id": "0ae162bc-8575-4423-8d4b-3f96311bb9eb",
+            "type": "context",
+            "name": "atlas-apartments",
+            "label": "atlas-apartments",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "3ac517e0-222a-46a8-9018-1dd439f540c6",
+            "type": "context",
+            "name": "atlas-re",
+            "label": "atlas-re",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "5db805d6-8561-43e0-9a2a-369d8df7e8f3",
+            "type": "context",
+            "name": "augmentd",
+            "label": "augmentd",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "9db19d3e-b07d-40f2-bacf-4f2e86e1c585",
+                "type": "context",
+                "name": "logo",
+                "label": "logo",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "966770c5-7603-417f-8766-151d5566f9a2",
+            "type": "context",
+            "name": "canvas",
+            "label": "canvas",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "cc92fb57-f186-4db4-9e2d-288b3454b723",
+                "type": "context",
+                "name": "agentd",
+                "label": "agentd",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "e7e77a95-df62-439a-b927-147ce0d3e0a9",
+                "type": "context",
+                "name": "db",
+                "label": "db",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "3c5db0b8-cc7d-4b52-8048-73b751e34d72",
+                "type": "context",
+                "name": "extensions",
+                "label": "extensions",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "398fee11-2d59-4c01-92ad-fa50222e0f59",
+                    "type": "context",
+                    "name": "browser",
+                    "label": "browser",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  },
+                  {
+                    "id": "37b49913-0d05-4027-8054-565f75328e80",
+                    "type": "context",
+                    "name": "obsidian",
+                    "label": "obsidian",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "b8c9ff68-9ea6-477b-a506-9ca4aee27ba6",
+                "type": "context",
+                "name": "server",
+                "label": "server",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "f9130ecc-b171-4274-b8bb-b7fd077e679f",
+                "type": "context",
+                "name": "storage",
+                "label": "storage",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "434a6e28-5249-4b5c-92c8-ffe430f01697",
+                "type": "context",
+                "name": "ui",
+                "label": "ui",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "703be725-503e-4ef7-900f-84702392167e",
+            "type": "context",
+            "name": "corporate",
+            "label": "corporate",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "5488a141-7584-4741-9e0c-cd5d867feaa0",
+            "type": "context",
+            "name": "infra",
+            "label": "infra",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "991828e8-11ab-44d0-9f25-b34a95c99497",
+            "type": "context",
+            "name": "jobs",
+            "label": "jobs",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "ce697923-d516-4e0f-81cf-758bbad08293",
+            "type": "context",
+            "name": "marketing",
+            "label": "marketing",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "3e29d790-1715-4ee7-88f9-cae0320959cd",
+            "type": "context",
+            "name": "mbag",
+            "label": "mbag",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "75c247c8-df3c-434c-bd3e-e1ce7876b3bd",
+                "type": "context",
+                "name": "desktop",
+                "label": "desktop",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "aca0efc8-ce35-43d6-b29e-b6f1b8cbbe93",
+                "type": "context",
+                "name": "jira",
+                "label": "jira",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "fbec4398-adbd-4b2f-9d56-1addff2dea2d",
+                    "type": "context",
+                    "name": "ubuntuop-2133",
+                    "label": "ubuntuop-2133",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  },
+                  {
+                    "id": "832d9353-2779-4e07-b5e3-c613d84e244c",
+                    "type": "context",
+                    "name": "ubuntuop-2252",
+                    "label": "ubuntuop-2252",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "940a70d5-b131-41bf-b269-eb513f647d15",
+                "type": "context",
+                "name": "projects",
+                "label": "projects",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "f46f2c28-910f-4594-ba4c-5b3dc0a43602",
+                    "type": "context",
+                    "name": "ubuntu-2604",
+                    "label": "ubuntu-2604",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "87522aa6-6139-425b-af95-154dd142d44c",
+                "type": "context",
+                "name": "scrum",
+                "label": "scrum",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              },
+              {
+                "id": "ffc0eae6-da1f-427b-9a34-a22143d9836f",
+                "type": "context",
+                "name": "snow",
+                "label": "snow",
+                "description": "Canvas layer",
+                "color": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "2082cec2-509e-4a71-afec-0c025eb7bd37",
+            "type": "context",
+            "name": "offices",
+            "label": "offices",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          },
+          {
+            "id": "a1e9ea19-bc39-4f1e-bb6d-3b1062af206d",
+            "type": "context",
+            "name": "travel",
+            "label": "travel",
+            "description": "Canvas layer",
+            "color": null,
+            "children": [
+              {
+                "id": "39c7b6ab-5894-4aeb-8e68-0313cde7265d",
+                "type": "context",
+                "name": "2025",
+                "label": "2025",
+                "description": "Canvas layer",
+                "color": null,
+                "children": [
+                  {
+                    "id": "4d22b399-32ca-4bf5-a472-e47854d65996",
+                    "type": "context",
+                    "name": "svk",
+                    "label": "svk",
+                    "description": "Canvas layer",
+                    "color": null,
+                    "children": [
+                      {
+                        "id": "a0c717a0-1e26-4ad9-b4f7-973c7a5c164e",
+                        "type": "context",
+                        "name": "bb",
+                        "label": "bb",
+                        "description": "Canvas layer",
+                        "color": null,
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "07f54bc9-e77e-4ebf-bb07-148857045497",
+            "type": "context",
+            "name": "wipro",
+            "label": "wipro",
+            "description": "Canvas layer",
+            "color": null,
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "count": null,
+  "totalCount": null
+}

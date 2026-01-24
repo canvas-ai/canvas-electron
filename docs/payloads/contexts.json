@@ -1,0 +1,87 @@
+{
+  "status": "success",
+  "statusCode": 200,
+  "message": "Contexts retrieved successfully",
+  "payload": [
+    {
+      "id": "default",
+      "userId": "t5vzlp9c",
+      "url": "universe://home/nakup/monitor",
+      "baseUrl": "/",
+      "path": "/home/nakup/monitor",
+      "pathArray": [
+        "home",
+        "nakup",
+        "monitor"
+      ],
+      "workspaceId": "2cf3d53e-2e83-46bc-9f3f-7aa0a86c2731",
+      "workspaceName": "universe",
+      "color": "#ffffff",
+      "acl": {
+        "katee.javorska@gmail.com": "documentReadWrite",
+        "users": {
+          "katee.javorska@gmail.com": {
+            "accessLevel": "documentReadWrite",
+            "userId": "6p2iv178",
+            "description": "Shared context access for katee.javorska@gmail.com",
+            "grantedAt": "2026-01-02T18:38:26.645Z",
+            "grantedBy": "t5vzlp9c"
+          }
+        }
+      },
+      "createdAt": "2025-08-02T20:38:15.465Z",
+      "updatedAt": "2026-01-17T17:26:52.102Z",
+      "locked": false,
+      "serverContextArray": [],
+      "clientContextArray": [],
+      "contextBitmapArray": [
+        "home",
+        "nakup",
+        "monitor"
+      ],
+      "featureBitmapArray": [],
+      "filterArray": [],
+      "pendingUrl": null,
+      "rules": [],
+      "ownerEmail": "me@idnc.sk"
+    },
+    {
+      "id": "kosice",
+      "userId": "t5vzlp9c",
+      "url": "universe://home/travel/2025/kosice/bobulefest",
+      "baseUrl": "/home/travel/2025/kosice/bobulefest",
+      "path": "/home/travel/2025/kosice/bobulefest",
+      "pathArray": [
+        "home",
+        "travel",
+        "2025",
+        "kosice",
+        "bobulefest"
+      ],
+      "workspaceId": "2cf3d53e-2e83-46bc-9f3f-7aa0a86c2731",
+      "workspaceName": "universe",
+      "color": "#ffffff",
+      "acl": {
+        "katee.javorska@gmail.com": "documentReadWrite"
+      },
+      "createdAt": "2025-11-06T11:59:49.421Z",
+      "updatedAt": "2025-11-06T20:08:40.806Z",
+      "locked": false,
+      "serverContextArray": [],
+      "clientContextArray": [],
+      "contextBitmapArray": [
+        "home",
+        "travel",
+        "2025",
+        "kosice",
+        "bobulefest"
+      ],
+      "featureBitmapArray": [],
+      "filterArray": [],
+      "pendingUrl": null,
+      "ownerEmail": "me@idnc.sk"
+    }
+  ],
+  "count": 2,
+  "totalCount": null
+}
