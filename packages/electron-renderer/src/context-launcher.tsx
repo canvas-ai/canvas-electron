@@ -44,7 +44,16 @@ type DocumentItem = {
   summary?: string;
   description?: string;
   schema?: string;
+  schemaVersion?: string;
   data?: any;
+  metadata?: any;
+  indexOptions?: any;
+  checksumArray?: string[];
+  embeddingsArray?: any[];
+  parentId?: string | null;
+  versions?: any[];
+  versionNumber?: number;
+  latestVersion?: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -173,8 +182,147 @@ function getDisplayContent(doc: DocumentItem): string {
   if (doc.summary) return doc.summary;
   if (doc.description) return doc.description;
   const isTabDocument = doc.schema === 'data/abstraction/tab';
-  if (isTabDocument && doc.data?.url) return `Tab: ${doc.data.url}`;
+  // For tab documents we render URL separately (single-line truncate)
+  if (isTabDocument && doc.data?.url) return '';
   return '';
+}
+
+function DocumentDetailModal({
+  document,
+  isOpen,
+  onClose,
+}: {
+  document: DocumentItem | null;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const [showRawJson, setShowRawJson] = useState(false);
+  if (!isOpen || !document) return null;
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg border bg-background">
+        <div className="p-6">
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="truncate text-2xl font-bold">Document Details</h2>
+              {document.id && <p className="text-muted-foreground">ID: {document.id}</p>}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setShowRawJson((v) => !v)}
+                variant="outline"
+                size="sm"
+                title="Toggle raw JSON view"
+              >
+                {showRawJson ? 'View Data' : 'View Raw JSON'}
+              </Button>
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                size="sm"
+                className="p-2"
+                title="Close"
+              >
+                <span className="text-base leading-none">×</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <h3 className="mb-3 font-semibold">Basic Information</h3>
+              <div className="grid gap-3 text-sm">
+                {document.schema && (
+                  <div>
+                    <span className="font-medium">Schema:</span>
+                    <span className="ml-2 font-mono">{document.schema}</span>
+                  </div>
+                )}
+                {document.schemaVersion && (
+                  <div>
+                    <span className="font-medium">Schema Version:</span>
+                    <span className="ml-2">{document.schemaVersion}</span>
+                  </div>
+                )}
+                {typeof document.versionNumber === 'number' && typeof document.latestVersion === 'number' && (
+                  <div>
+                    <span className="font-medium">Version:</span>
+                    <span className="ml-2">
+                      {document.versionNumber} / {document.latestVersion}
+                    </span>
+                  </div>
+                )}
+                {(document.createdAt || document.updatedAt) && (
+                  <>
+                    {document.createdAt && (
+                      <div>
+                        <span className="font-medium">Created:</span>
+                        <span className="ml-2">{formatDate(document.createdAt)}</span>
+                      </div>
+                    )}
+                    {document.updatedAt && (
+                      <div>
+                        <span className="font-medium">Updated:</span>
+                        <span className="ml-2">{formatDate(document.updatedAt)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-3 font-semibold">{showRawJson ? 'Raw Document JSON' : 'Document Data'}</h3>
+              <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-sm">
+                {JSON.stringify(showRawJson ? document : document.data, null, 2)}
+              </pre>
+            </div>
+
+            {Array.isArray(document.checksumArray) && document.checksumArray.length > 0 && (
+              <div>
+                <h3 className="mb-3 font-semibold">Checksums</h3>
+                <div className="space-y-2">
+                  {document.checksumArray.map((checksum, index) => {
+                    const [algo, hash] = String(checksum).split('/');
+                    return (
+                      <div key={`${algo}-${hash}-${index}`} className="flex items-center gap-2 text-sm font-mono">
+                        <span className="font-medium">{algo}:</span>
+                        <span className="text-muted-foreground">{hash}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 flex justify-end border-t pt-4">
+            <Button onClick={onClose} className="px-4 py-2">
+              Close
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function buildTreeRows(
@@ -296,6 +444,8 @@ function ContextLauncherApp() {
   const [error, setError] = useState<string | null>(null);
   const [bootstrapped, setBootstrapped] = useState(false);
   const [inputBlink, setInputBlink] = useState<'success' | 'error' | null>(null);
+  const [detailDocument, setDetailDocument] = useState<DocumentItem | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -308,63 +458,6 @@ function ContextLauncherApp() {
       inputRef.current?.select?.();
     }, 0);
   }, []);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const key = (event.key || '').toLowerCase();
-      const ctrlShift = event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;
-
-      if (ctrlShift && (key === 'n' || key === 't')) {
-        event.preventDefault();
-        setDrawerOpen(false);
-        setCreateMenuOpen(false);
-        setRightSelectedIds({});
-        setRightSearchValue('');
-        setRightError(null);
-        setRightNavMode('list');
-        setRightTreeRoot(null);
-        setRightExpandedNodes({});
-
-        if (key === 'n') {
-          setNoteDraft({ title: '', content: '' });
-          setLauncherMode('create-note');
-        } else {
-          setTabDraft({ title: '', url: '' });
-          setLauncherMode('create-tab');
-        }
-        return;
-      }
-
-      if (event.key !== 'Escape') return;
-
-      // Priority order: close context drawer, close create submenu, abort modes
-      if (drawerOpen) {
-        event.preventDefault();
-        setDrawerOpen(false);
-        return;
-      }
-      if (createMenuOpen) {
-        event.preventDefault();
-        setCreateMenuOpen(false);
-        return;
-      }
-      if (launcherMode !== 'browse') {
-        event.preventDefault();
-        setLauncherMode('browse');
-        setRightSelectedIds({});
-        setRightSearchValue('');
-        setRightError(null);
-        setRightNavMode('list');
-        setRightTreeRoot(null);
-        setRightExpandedNodes({});
-        setNoteDraft({ title: '', content: '' });
-        setTabDraft({ title: '', url: '' });
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown, { capture: true });
-    return () => window.removeEventListener('keydown', onKeyDown, { capture: true } as any);
-  }, [createMenuOpen, drawerOpen, launcherMode]);
 
   useEffect(() => {
     focusInput(); // initial mount
@@ -659,6 +752,147 @@ function ContextLauncherApp() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const linkSelectedRightDocuments = useCallback(async () => {
+    const ids = Object.keys(rightSelectedIds).filter((id) => rightSelectedIds[id]);
+    if (ids.length === 0) return;
+    const ok = await insertIntoCurrentContext({ documentIds: ids });
+    if (ok) {
+      setRightSelectedIds({});
+    }
+  }, [insertIntoCurrentContext, rightSelectedIds]);
+
+  const linkDraggedDocuments = useCallback(async (ids: unknown) => {
+    if (!Array.isArray(ids) || ids.length === 0) return;
+    const normalized = ids.map((id) => String(id)).filter(Boolean);
+    if (normalized.length === 0) return;
+    const ok = await insertIntoCurrentContext({ documentIds: normalized });
+    if (ok) {
+      setRightSelectedIds({});
+    }
+  }, [insertIntoCurrentContext]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const key = (event.key || '').toLowerCase();
+      const ctrlShift = event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;
+
+      if (ctrlShift && (key === 'n' || key === 't' || key === 'l')) {
+        event.preventDefault();
+        setDrawerOpen(false);
+        setCreateMenuOpen(false);
+        setRightSelectedIds({});
+        setRightSearchValue('');
+        setRightError(null);
+        setRightNavMode('list');
+        setRightTreeRoot(null);
+        setRightExpandedNodes({});
+
+        if (key === 'l') {
+          setLauncherMode('link');
+          return;
+        }
+        if (key === 'n') {
+          setNoteDraft({ title: '', content: '' });
+          setLauncherMode('create-note');
+        } else {
+          setTabDraft({ title: '', url: '' });
+          setLauncherMode('create-tab');
+        }
+        return;
+      }
+
+      if (event.key === 'F5' && launcherMode === 'link') {
+        event.preventDefault();
+        linkSelectedRightDocuments();
+        return;
+      }
+
+      if (event.key !== 'Escape') return;
+
+      // Priority order: close context drawer, close create submenu, abort modes
+      if (drawerOpen) {
+        event.preventDefault();
+        setDrawerOpen(false);
+        return;
+      }
+      if (createMenuOpen) {
+        event.preventDefault();
+        setCreateMenuOpen(false);
+        return;
+      }
+      if (launcherMode !== 'browse') {
+        event.preventDefault();
+        setLauncherMode('browse');
+        setRightSelectedIds({});
+        setRightSearchValue('');
+        setRightError(null);
+        setRightNavMode('list');
+        setRightTreeRoot(null);
+        setRightExpandedNodes({});
+        setNoteDraft({ title: '', content: '' });
+        setTabDraft({ title: '', url: '' });
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', onKeyDown, { capture: true } as any);
+  }, [createMenuOpen, drawerOpen, launcherMode, linkSelectedRightDocuments]);
+
+  const removeDocumentFromContext = async (documentId: string) => {
+    if (!auth || !selectedContextId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const apiUrl = toApiUrl(auth.serverUrl);
+      const response = await fetch(`${apiUrl}/contexts/${selectedContextId}/documents/remove`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify([documentId]),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.message || 'Failed to remove document from context.');
+      setSearchResults((current) => current.filter((doc) => String(doc.id || '') !== String(documentId)));
+      setDocumentsReloadToken((t) => t + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove document from context.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteDocumentFromDb = async (documentId: string) => {
+    if (!auth || !selectedContextId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const apiUrl = toApiUrl(auth.serverUrl);
+      const response = await fetch(`${apiUrl}/contexts/${selectedContextId}/documents`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify([documentId]),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.message || 'Failed to delete document.');
+      setSearchResults((current) => current.filter((doc) => String(doc.id || '') !== String(documentId)));
+      setDocumentsReloadToken((t) => t + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete document.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openDocumentDetails = (doc: DocumentItem) => {
+    setDetailDocument(doc);
+    setDetailOpen(true);
   };
 
   useEffect(() => {
@@ -1225,6 +1459,7 @@ function ContextLauncherApp() {
                     const schema = doc.schema || '';
                     const isTabDocument = schema === 'data/abstraction/tab';
                     const tabUrl = isTabDocument && doc.data?.url ? doc.data.url : null;
+                    const docId = doc.id ? String(doc.id) : '';
 
                     const getSchemaDisplayName = (schema: string) => {
                       const parts = schema.split('/');
@@ -1259,14 +1494,14 @@ function ContextLauncherApp() {
                     return (
                       <div
                         key={doc.id || title}
-                      className="min-w-0 overflow-hidden rounded-lg border bg-white p-3 transition-all hover:bg-accent/50 cursor-pointer"
+                      className="w-full min-w-0 overflow-hidden rounded-lg border bg-white p-3 transition-all hover:bg-accent/50 cursor-pointer"
                         onClick={() => {
                           if (isTabDocument && tabUrl) {
                             window.open(tabUrl, '_blank', 'noopener,noreferrer');
                           }
                         }}
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="mb-2 flex items-center gap-2 overflow-hidden">
                               {isTabDocument ? (
@@ -1303,7 +1538,7 @@ function ContextLauncherApp() {
                                   <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
                                 </svg>
                               )}
-                            <h4 className="font-medium truncate min-w-0 flex-1" title={title}>
+                            <h4 className="min-w-0 flex-1 break-all font-medium line-clamp-1" title={title}>
                                 {title}
                               </h4>
                               {isTabDocument && (
@@ -1331,23 +1566,32 @@ function ContextLauncherApp() {
                               )}
                             </div>
 
+                            {isTabDocument && tabUrl && (
+                              <p
+                                className="mb-2 line-clamp-2 max-w-full break-all font-mono text-xs text-muted-foreground"
+                                title={tabUrl}
+                              >
+                                {tabUrl}
+                              </p>
+                            )}
+
                             {content && (
-                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-all overflow-hidden">
+                              <p className="mb-2 line-clamp-2 overflow-hidden text-sm text-muted-foreground break-words">
                                 {content}
                               </p>
                             )}
 
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground overflow-hidden">
-                              {doc.id && (
-                                <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground overflow-hidden">
+                              {docId && (
+                                <div className="flex min-w-0 items-center gap-1">
                                   <span className="font-medium">ID:</span>
-                                  <span className="font-mono truncate max-w-[80px]" title={`ID: ${doc.id}`}>
-                                    {doc.id}
+                                  <span className="max-w-[140px] truncate font-mono" title={`ID: ${docId}`}>
+                                    {docId}
                                   </span>
                                 </div>
                               )}
                               {checksum && (
-                                <div className="flex items-center gap-1 flex-shrink-0">
+                                <div className="flex min-w-0 items-center gap-1">
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="12"
@@ -1370,7 +1614,7 @@ function ContextLauncherApp() {
                                 </div>
                               )}
                               {doc.createdAt && (
-                                <div className="flex items-center gap-1 flex-shrink-0">
+                                <div className="flex min-w-0 items-center gap-1">
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="12"
@@ -1395,28 +1639,86 @@ function ContextLauncherApp() {
                             </div>
                           </div>
 
-                          <button
-                            className="p-1 hover:bg-muted rounded-sm flex-shrink-0"
-                            title="View details"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                          <div className="flex flex-shrink-0 items-center gap-1">
+                            <button
+                              className="rounded-sm p-1 hover:bg-muted"
+                              title="View document details"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDocumentDetails(doc);
+                              }}
                             >
-                              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                              <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                          </button>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            </button>
+                            {docId && (
+                              <button
+                                className="rounded-sm p-1 hover:bg-muted"
+                                title="Remove from context (keep in DB)"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!window.confirm('Remove this document from the current context?')) return;
+                                  removeDocumentFromContext(docId);
+                                }}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M18 6 6 18" />
+                                  <path d="M6 6l12 12" />
+                                </svg>
+                              </button>
+                            )}
+                            {docId && (
+                              <button
+                                className="rounded-sm p-1 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                title="Delete from DB (permanent)"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!window.confirm('Delete this document from the database? This is permanent.')) return;
+                                  deleteDocumentFromDb(docId);
+                                }}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M3 6h18" />
+                                  <path d="M8 6V4h8v2" />
+                                  <path d="M19 6l-1 14H6L5 6" />
+                                  <path d="M10 11v6" />
+                                  <path d="M14 11v6" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -1426,12 +1728,34 @@ function ContextLauncherApp() {
             )
           ) : (
             <div className="flex h-full min-w-0 overflow-hidden">
-              <div className="w-[52%] min-w-0 border-r border-border">
+              <div className="flex h-full w-[52%] min-w-0 flex-col border-r border-border">
                 <div className="px-4 py-3 text-xs text-muted-foreground">
                   <div className="font-medium">Current</div>
                   <div className="font-mono truncate">@ {selectedContextUrl || selectedContext?.url || ''}</div>
                 </div>
-                <div className="px-4 pb-4" ref={searchResultsRef}>
+                <div
+                  className="min-h-0 flex-1 overflow-auto px-4 pb-4"
+                  ref={searchResultsRef}
+                  onDragOver={(e) => {
+                    if (launcherMode !== 'link') return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (launcherMode !== 'link') return;
+                    const raw =
+                      e.dataTransfer.getData('application/x-canvas-document-ids') ||
+                      e.dataTransfer.getData('text/plain');
+                    if (!raw) return;
+                    try {
+                      void linkDraggedDocuments(JSON.parse(raw));
+                    } catch {
+                      // ignore
+                    }
+                  }}
+                  title="Drop documents here to link (or press F5)"
+                >
                   {searchBusy ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">Searching...</div>
                   ) : (
@@ -1441,8 +1765,8 @@ function ContextLauncherApp() {
                         const content = getDisplayContent(doc);
                         return (
                           <div key={doc.id || title} className="rounded-lg border bg-white p-3 hover:bg-accent/50">
-                            <div className="text-sm font-medium truncate" title={title}>{title}</div>
-                            {content && <div className="text-xs text-muted-foreground truncate">{content}</div>}
+                            <div className="text-sm font-medium break-all line-clamp-1" title={title}>{title}</div>
+                            {content && <div className="text-xs text-muted-foreground break-words line-clamp-1" title={content}>{content}</div>}
                           </div>
                         );
                       })}
@@ -1610,6 +1934,16 @@ function ContextLauncherApp() {
                                 <label
                                   key={id || title}
                                   className="flex w-full min-w-0 cursor-pointer items-start gap-2 overflow-hidden rounded-md border bg-white px-2 py-2 hover:bg-accent/50"
+                                  draggable={!!id}
+                                  onDragStart={(e) => {
+                                    if (!id) return;
+                                    const selected = Object.keys(rightSelectedIds).filter((docId) => rightSelectedIds[docId]);
+                                    const idsToDrag = selected.includes(id) ? selected : [id];
+                                    const payload = JSON.stringify(idsToDrag);
+                                    e.dataTransfer.setData('application/x-canvas-document-ids', payload);
+                                    e.dataTransfer.setData('text/plain', payload);
+                                    e.dataTransfer.effectAllowed = 'copy';
+                                  }}
                                 >
                                   <input
                                     type="checkbox"
@@ -1625,7 +1959,7 @@ function ContextLauncherApp() {
                                     }}
                                   />
                                   <div className="min-w-0 flex-1 overflow-hidden">
-                                    <div className="truncate text-sm font-medium" title={title}>{title}</div>
+                                    <div className="break-all text-sm font-medium line-clamp-1" title={title}>{title}</div>
                                     {id && <div className="truncate text-xs font-mono text-muted-foreground">{id}</div>}
                                   </div>
                                 </label>
@@ -1809,6 +2143,12 @@ function ContextLauncherApp() {
           )}
         </div>
       </div>
+
+      <DocumentDetailModal
+        document={detailDocument}
+        isOpen={detailOpen}
+        onClose={() => setDetailOpen(false)}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 {
   "name": "canvas",
   "productName": "Canvas UI",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Context layer on top of your unstructured universe",
   "main": "dist/main/electron-main/src/main.js",
   "scripts": {
@@ -14,8 +14,7 @@
     "package": "npm run build && electron-builder",
     "start": "electron dist/main/electron-main/src/main.js --no-sandbox",
     "lint": "eslint packages src --ext .ts,.tsx --fix",
-    "type-check": "tsc -p packages/electron-main/tsconfig.json --noEmit && tsc -p packages/electron-renderer/tsconfig.json --noEmit && tsc -p packages/ui/tsconfig.json --noEmit",
-    "update-submodules": "git submodule update --init --remote && git submodule foreach \"git add .\""
+    "type-check": "tsc -p packages/electron-main/tsconfig.json --noEmit && tsc -p packages/electron-renderer/tsconfig.json --noEmit && tsc -p packages/ui/tsconfig.json --noEmit"
   },
   "author": "me@idnc.sk",
   "license": "AGPL-3.0-or-later",
