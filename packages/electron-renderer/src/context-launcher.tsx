@@ -1647,7 +1647,7 @@ function ContextLauncherApp() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         type="button"
-                      className="h-10 w-10 rounded-full shadow-elevation-4 p-0 transition-transform data-[state=open]:rotate-45"
+                        className="h-10 w-10 rounded-full bg-[#cf2528] text-white shadow-elevation-4 p-0 transition-transform hover:bg-[#cf2528]/90 data-[state=open]:rotate-45"
                         title="Create"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
