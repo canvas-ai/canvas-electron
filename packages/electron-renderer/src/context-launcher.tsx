@@ -1059,15 +1059,23 @@ function ContextLauncherApp() {
               className={`h-12 pl-10 text-base transition-colors ${
                 inputBlink === 'success' ? 'bg-green-100' :
                 inputBlink === 'error' ? 'bg-red-100' : ''
-              }`}
+              } shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:shadow-md`}
             />
           </div>
+          <button
+            onClick={handleSetContext}
+            disabled={!pendingUrl || pendingUrl === selectedContextUrl || busy}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevation-2 transition-material hover:opacity-90 disabled:opacity-40"
+            title="Set context"
+          >
+            <span className="text-lg">→</span>
+          </button>
           </div>
         </div>
 
         {/* Results area */}
-        <div className="flex-1 overflow-hidden flex">
-          <div className="relative flex-1 overflow-auto">
+        <div className="flex min-w-0 flex-1 overflow-hidden">
+          <div className="relative min-w-0 flex-1 overflow-auto overflow-x-hidden">
           {launcherMode === 'browse' ? (
             showTree ? (
               <div className="p-4">
@@ -1111,7 +1119,7 @@ function ContextLauncherApp() {
                               style={{ backgroundColor: item.color || undefined }}
                             />
                           )}
-                          <span className="truncate">{item.label}</span>
+                        <span className="min-w-0 flex-1 truncate">{item.label}</span>
                         </div>
                       );
                     })}
@@ -1139,7 +1147,7 @@ function ContextLauncherApp() {
                     No documents match that query.
                   </div>
                 )}
-                <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                   {searchResults.map((doc) => {
                     const title = getDisplayTitle(doc);
                     const content = getDisplayContent(doc);
@@ -1180,7 +1188,7 @@ function ContextLauncherApp() {
                     return (
                       <div
                         key={doc.id || title}
-                        className="rounded-lg border bg-white p-3 transition-all hover:bg-accent/50 cursor-pointer"
+                      className="min-w-0 overflow-hidden rounded-lg border bg-white p-3 transition-all hover:bg-accent/50 cursor-pointer"
                         onClick={() => {
                           if (isTabDocument && tabUrl) {
                             window.open(tabUrl, '_blank', 'noopener,noreferrer');
@@ -1224,7 +1232,7 @@ function ContextLauncherApp() {
                                   <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
                                 </svg>
                               )}
-                              <h4 className="font-medium truncate min-w-0 flex-1 max-w-[640px]" title={title}>
+                            <h4 className="font-medium truncate min-w-0 flex-1" title={title}>
                                 {title}
                               </h4>
                               {isTabDocument && (
@@ -1346,8 +1354,8 @@ function ContextLauncherApp() {
               </div>
             )
           ) : (
-            <div className="flex h-full">
-              <div className="w-[52%] border-r border-border">
+            <div className="flex h-full min-w-0 overflow-hidden">
+              <div className="w-[52%] min-w-0 border-r border-border">
                 <div className="px-4 py-3 text-xs text-muted-foreground">
                   <div className="font-medium">Current</div>
                   <div className="font-mono truncate">@ {selectedContextUrl || selectedContext?.url || ''}</div>
@@ -1375,7 +1383,7 @@ function ContextLauncherApp() {
                 </div>
               </div>
 
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 {launcherMode === 'create-note' && (
                   <div className="p-4">
                     <div className="mb-3 text-sm font-semibold">New note</div>
@@ -1392,7 +1400,6 @@ function ContextLauncherApp() {
                         placeholder="Write your note…"
                         className="min-h-[360px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       />
-                      <div className="text-xs text-muted-foreground">Save is the big black button. Sorry.</div>
                     </div>
                   </div>
                 )}
@@ -1464,7 +1471,7 @@ function ContextLauncherApp() {
                       </div>
                     </div>
 
-                    <div className="flex-1 overflow-auto p-4">
+                    <div className="min-w-0 flex-1 overflow-auto overflow-x-hidden p-4">
                       {rightError && (
                         <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                           {rightError}
@@ -1509,7 +1516,7 @@ function ContextLauncherApp() {
                                       style={{ backgroundColor: item.color || undefined }}
                                     />
                                   )}
-                                  <span className="truncate">{item.label}</span>
+                                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
                                 </div>
                               );
                             })}
@@ -1523,7 +1530,7 @@ function ContextLauncherApp() {
                           {!rightBusy && rightDocuments.length === 0 && (
                             <div className="p-4 text-center text-sm text-muted-foreground">No documents in source context.</div>
                           )}
-                          <div className="space-y-1">
+                          <div className="w-full min-w-0 space-y-1">
                             {rightDocuments.map((doc) => {
                               const id = doc.id ? String(doc.id) : '';
                               const checked = !!(id && rightSelectedIds[id]);
@@ -1531,11 +1538,11 @@ function ContextLauncherApp() {
                               return (
                                 <label
                                   key={id || title}
-                                  className="flex cursor-pointer items-start gap-2 rounded-md border bg-white px-2 py-2 hover:bg-accent/50"
+                                  className="flex w-full min-w-0 cursor-pointer items-start gap-2 overflow-hidden rounded-md border bg-white px-2 py-2 hover:bg-accent/50"
                                 >
                                   <input
                                     type="checkbox"
-                                    className="mt-1"
+                                    className="mt-1 shrink-0"
                                     checked={checked}
                                     disabled={!id}
                                     onChange={() => {
@@ -1546,9 +1553,9 @@ function ContextLauncherApp() {
                                       }));
                                     }}
                                   />
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-sm font-medium truncate" title={title}>{title}</div>
-                                    {id && <div className="text-xs text-muted-foreground font-mono truncate">{id}</div>}
+                                  <div className="min-w-0 flex-1 overflow-hidden">
+                                    <div className="truncate text-sm font-medium" title={title}>{title}</div>
+                                    {id && <div className="truncate text-xs font-mono text-muted-foreground">{id}</div>}
                                   </div>
                                 </label>
                               );
@@ -1568,19 +1575,6 @@ function ContextLauncherApp() {
           {/* Action rail (no overlap, shrinks content) */}
           <div className="w-[84px] shrink-0 border-l border-border bg-white p-3">
             <div className="flex flex-col items-center gap-3">
-              {/* Primary 56dp */}
-              {launcherMode === 'browse' && (
-                <Button
-                  type="button"
-                  className="h-14 w-14 rounded-full shadow-elevation-6"
-                  title="Set context"
-                  disabled={!pendingUrl || pendingUrl === selectedContextUrl || busy}
-                  onClick={handleSetContext}
-                >
-                  <span className="text-lg">→</span>
-                </Button>
-              )}
-
               {launcherMode === 'create-note' && (
                 <Button
                   type="button"
@@ -1653,7 +1647,7 @@ function ContextLauncherApp() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         type="button"
-                        className="h-10 w-10 rounded-full shadow-elevation-4 p-0"
+                      className="h-10 w-10 rounded-full shadow-elevation-4 p-0 transition-transform data-[state=open]:rotate-45"
                         title="Create"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1662,21 +1656,39 @@ function ContextLauncherApp() {
                         </svg>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                  <DropdownMenuContent
+                    align="end"
+                    side="left"
+                    sideOffset={10}
+                    className="w-44 rounded-xl border bg-white p-2 shadow-elevation-6"
+                  >
                       <DropdownMenuItem
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2"
                         onSelect={() => {
                           setNoteDraft({ title: '', content: '' });
                           setLauncherMode('create-note');
                         }}
                       >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                        <path d="M4 7V4h16v3" />
+                        <path d="M9 20h6" />
+                        <path d="M12 4v16" />
+                      </svg>
                         Note
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2"
                         onSelect={() => {
                           setTabDraft({ title: '', url: '' });
                           setLauncherMode('create-tab');
                         }}
                       >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M2 12h20" />
+                        <path d="M12 2a14.5 14.5 0 0 0 0 20" />
+                        <path d="M12 2a14.5 14.5 0 0 1 0 20" />
+                      </svg>
                         Tab
                       </DropdownMenuItem>
                     </DropdownMenuContent>
