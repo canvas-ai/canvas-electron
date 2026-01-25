@@ -17,8 +17,16 @@ export class ContextLauncherWindow {
   }
 
   public show() {
-    this.window?.show();
-    this.window?.focus();
+    const win = this.window;
+    if (!win) return;
+
+    win.show();
+    win.focus();
+    win.webContents.focus();
+
+    const requestInputFocus = () => win.webContents.send('launcher:focus-input');
+    if (win.webContents.isLoading()) win.webContents.once('did-finish-load', requestInputFocus);
+    else requestInputFocus();
   }
 
   public hide() {

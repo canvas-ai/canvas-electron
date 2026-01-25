@@ -13,6 +13,7 @@ declare global {
       getContextSelection: () => Promise<{ selectedId?: string; selectedUrl?: string } | null>
       setContextSelection: (selection: { selectedId?: string; selectedUrl?: string }) => Promise<void>
       clearContextSelection: () => Promise<void>
+      onLauncherFocusInput: (handler: () => void) => () => void
     }
   }
 }

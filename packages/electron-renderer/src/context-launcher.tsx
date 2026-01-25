@@ -248,7 +248,28 @@ function ContextLauncherApp() {
   const [bootstrapped, setBootstrapped] = useState(false);
   const [inputBlink, setInputBlink] = useState<'success' | 'error' | null>(null);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const isAuthenticated = !!auth?.token && !!auth?.serverUrl;
+
+  const focusInput = useCallback(() => {
+    // Focusing immediately after show is flaky; schedule it.
+    window.setTimeout(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select?.();
+    }, 0);
+  }, []);
+
+  useEffect(() => {
+    focusInput(); // initial mount
+
+    const off = window.canvas?.onLauncherFocusInput?.(focusInput);
+    window.addEventListener('focus', focusInput);
+    return () => {
+      window.removeEventListener('focus', focusInput);
+      off?.();
+    };
+  }, [focusInput]);
 
   useEffect(() => {
     const loadAuth = async () => {
@@ -441,6 +462,7 @@ function ContextLauncherApp() {
     setDrawerOpen(false);
     setSearchValue('');
     setSearchActive(false);
+    focusInput();
   };
 
   const handleSetContext = async () => {
@@ -794,6 +816,7 @@ function ContextLauncherApp() {
             </svg>
             <Input
               autoFocus
+              ref={inputRef}
               value={searchActive ? searchValue : (selectedContextUrl || selectedContext?.url || '')}
               onFocus={() => {
                 if (!searchActive) {
