@@ -1,0 +1,4 @@
+# Cursor also respects .gitignore by default.
+# We ignore ./server in git (symlinked local repo), but we still want Cursor to see it.
+!server/
+!server/**

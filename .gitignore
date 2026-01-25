@@ -5,6 +5,9 @@
 # Portable runtimes
 /runtimes/**
 
+# Local development (external symlink)
+/server/
+
 # Data directories
 /data/**
 !/data/.keep
