@@ -266,6 +266,7 @@ function ContextLauncherApp() {
   const [selectedContextUrl, setSelectedContextUrl] = useState<string>('');
   const [pendingUrl, setPendingUrl] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [searchBusy, setSearchBusy] = useState(false);
@@ -307,6 +308,63 @@ function ContextLauncherApp() {
       inputRef.current?.select?.();
     }, 0);
   }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const key = (event.key || '').toLowerCase();
+      const ctrlShift = event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;
+
+      if (ctrlShift && (key === 'n' || key === 't')) {
+        event.preventDefault();
+        setDrawerOpen(false);
+        setCreateMenuOpen(false);
+        setRightSelectedIds({});
+        setRightSearchValue('');
+        setRightError(null);
+        setRightNavMode('list');
+        setRightTreeRoot(null);
+        setRightExpandedNodes({});
+
+        if (key === 'n') {
+          setNoteDraft({ title: '', content: '' });
+          setLauncherMode('create-note');
+        } else {
+          setTabDraft({ title: '', url: '' });
+          setLauncherMode('create-tab');
+        }
+        return;
+      }
+
+      if (event.key !== 'Escape') return;
+
+      // Priority order: close context drawer, close create submenu, abort modes
+      if (drawerOpen) {
+        event.preventDefault();
+        setDrawerOpen(false);
+        return;
+      }
+      if (createMenuOpen) {
+        event.preventDefault();
+        setCreateMenuOpen(false);
+        return;
+      }
+      if (launcherMode !== 'browse') {
+        event.preventDefault();
+        setLauncherMode('browse');
+        setRightSelectedIds({});
+        setRightSearchValue('');
+        setRightError(null);
+        setRightNavMode('list');
+        setRightTreeRoot(null);
+        setRightExpandedNodes({});
+        setNoteDraft({ title: '', content: '' });
+        setTabDraft({ title: '', url: '' });
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', onKeyDown, { capture: true } as any);
+  }, [createMenuOpen, drawerOpen, launcherMode]);
 
   useEffect(() => {
     focusInput(); // initial mount
@@ -1068,7 +1126,20 @@ function ContextLauncherApp() {
             className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevation-2 transition-material hover:opacity-90 disabled:opacity-40"
             title="Set context"
           >
-            <span className="text-lg">→</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="m13 5 7 7-7 7" />
+            </svg>
           </button>
           </div>
         </div>
@@ -1643,7 +1714,7 @@ function ContextLauncherApp() {
               {/* Mini 40dp actions */}
               {launcherMode === 'browse' && (
                 <>
-                  <DropdownMenu>
+                  <DropdownMenu open={createMenuOpen} onOpenChange={setCreateMenuOpen}>
                     <DropdownMenuTrigger asChild>
                       <Button
                         type="button"
@@ -1667,6 +1738,7 @@ function ContextLauncherApp() {
                         onSelect={() => {
                           setNoteDraft({ title: '', content: '' });
                           setLauncherMode('create-note');
+                        setCreateMenuOpen(false);
                         }}
                       >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
@@ -1681,6 +1753,7 @@ function ContextLauncherApp() {
                         onSelect={() => {
                           setTabDraft({ title: '', url: '' });
                           setLauncherMode('create-tab');
+                        setCreateMenuOpen(false);
                         }}
                       >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
