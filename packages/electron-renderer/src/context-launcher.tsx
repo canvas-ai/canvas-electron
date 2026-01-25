@@ -431,6 +431,7 @@ function ContextLauncherApp() {
   const [rightBusy, setRightBusy] = useState(false);
   const [rightError, setRightError] = useState<string | null>(null);
   const [rightDocuments, setRightDocuments] = useState<DocumentItem[]>([]);
+  const [rightDocumentsReloadToken, setRightDocumentsReloadToken] = useState(0);
   const [rightSelectedIds, setRightSelectedIds] = useState<Record<string, boolean>>({});
   const [rightTreeRoot, setRightTreeRoot] = useState<ContextTreeNode | null>(null);
   const [rightTreeCursor, setRightTreeCursor] = useState(0);
@@ -692,6 +693,35 @@ function ContextLauncherApp() {
       eventPairs.forEach(([event, handler]) => socket.off(event, handler));
     };
   }, [scheduleContextsRefresh, scheduleDocumentsRefresh, selectedContextId, selectedContextUrl, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+    if (launcherMode !== 'link') return;
+
+    const workspaceName = getWorkspaceNameFromContextUrl(selectedContextUrl || selectedContext?.url || '');
+    if (!workspaceName) return;
+
+    const workspaceChannel = `workspace:${workspaceName}`;
+    socket.emit('subscribe', { channel: workspaceChannel });
+
+    const handleWorkspaceDocumentsChanged = () => {
+      // Keep the linking source list fresh.
+      setRightDocumentsReloadToken((t) => t + 1);
+    };
+
+    const events = [
+      'workspace.documents.inserted',
+      'workspace.documents.updated',
+      'workspace.documents.removed',
+      'workspace.documents.deleted',
+    ];
+    events.forEach((event) => socket.on(event, handleWorkspaceDocumentsChanged));
+
+    return () => {
+      socket.emit('unsubscribe', { channel: workspaceChannel });
+      events.forEach((event) => socket.off(event, handleWorkspaceDocumentsChanged));
+    };
+  }, [launcherMode, selectedContext?.url, selectedContextUrl, socket]);
 
   useEffect(() => {
     fetchContexts();
@@ -1133,7 +1163,7 @@ function ContextLauncherApp() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [launcherMode, auth, isAuthenticated, selectedContextUrl, selectedContext?.url, rightContextUrl, rightSearchValue]);
+  }, [launcherMode, auth, isAuthenticated, selectedContextUrl, selectedContext?.url, rightContextUrl, rightSearchValue, rightDocumentsReloadToken]);
 
   useEffect(() => {
     if (!treeRows.length) {
