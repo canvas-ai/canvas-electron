@@ -23,15 +23,20 @@ type ConfigStore = {
 
 let confInstance: Promise<ConfigStore> | null = null;
 
+const DEFAULT_CONTEXT_LAUNCHER_SHORTCUT = 'Ctrl+Space';
+
 async function getConfig(): Promise<ConfigStore> {
   if (!confInstance) {
     confInstance = import('conf').then(({ default: ConfCtor }) => {
       const config = new (ConfCtor as any)({
         cwd: getCanvasConfigDir(),
         configName: 'electron',
+        // Make config diffs readable like a civilized project.
+        serialize: (value: AppConfigSchema) => JSON.stringify(value, null, 2),
+        deserialize: (text: string) => JSON.parse(text) as AppConfigSchema,
         defaults: {
           shortcuts: {
-            contextLauncher: 'Super+C',
+            contextLauncher: DEFAULT_CONTEXT_LAUNCHER_SHORTCUT,
           },
         },
       });
@@ -43,7 +48,15 @@ async function getConfig(): Promise<ConfigStore> {
 
 export async function getContextLauncherShortcut(): Promise<string> {
   const config = await getConfig();
-  return (config.get('shortcuts.contextLauncher') as string | undefined) ?? 'Super+C';
+  const shortcut = config.get('shortcuts.contextLauncher') as string | undefined;
+
+  // Migrate legacy default so Windows/Linux users don't keep a broken binding.
+  if (!shortcut || shortcut === 'Super+C') {
+    config.set('shortcuts.contextLauncher', DEFAULT_CONTEXT_LAUNCHER_SHORTCUT);
+    return DEFAULT_CONTEXT_LAUNCHER_SHORTCUT;
+  }
+
+  return shortcut;
 }
 
 export async function setContextLauncherShortcut(shortcut: string): Promise<void> {
