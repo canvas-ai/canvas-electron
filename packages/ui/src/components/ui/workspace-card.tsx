@@ -14,6 +14,15 @@ import {
 } from "./alert-dialog";
 import { useState } from "react";
 
+type Workspace = {
+  name: string;
+  label?: string;
+  description?: string;
+  status: string;
+  type?: string;
+  color?: string;
+};
+
 interface WorkspaceCardProps {
   workspace: Workspace;
   onStart: (name: string) => void;

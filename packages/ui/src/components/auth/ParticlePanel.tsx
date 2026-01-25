@@ -26,7 +26,9 @@ export function ParticlePanel() {
     script.onload = () => setScriptLoaded(true)
     document.body.appendChild(script)
 
-    return () => script.parentNode?.removeChild(script)
+    return () => {
+      script.remove()
+    }
   }, [])
 
   useEffect(() => {

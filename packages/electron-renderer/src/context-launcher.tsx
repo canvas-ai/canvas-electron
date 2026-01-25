@@ -2,6 +2,13 @@ import { StrictMode, useCallback, useEffect, useMemo, useState, useRef } from 'r
 import { createRoot } from 'react-dom/client';
 import { AuthPanel, type AuthFormData } from '../../ui/src/components/auth/AuthPanel';
 import { ParticlePanel } from '../../ui/src/components/auth/ParticlePanel';
+import { Button } from '../../ui/src/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../../ui/src/components/ui/dropdown-menu';
 import { Input } from '../../ui/src/components/ui/input';
 import './index.css';
 
@@ -73,6 +80,33 @@ function buildContextUrlFromPath(baseUrl: string | undefined, pathParts: string[
   if (!match) return pathParts.join('/');
   const scheme = match[1];
   return `${scheme}://${pathParts.join('/')}`;
+}
+
+function getWorkspaceNameFromContextUrl(contextUrl: string): string {
+  const trimmed = contextUrl.trim();
+  const match = trimmed.match(/^([^:]+):\/\/(.*)$/);
+  return match?.[1] || '';
+}
+
+function toWorkspaceContextSpec(value: string): string {
+  const trimmed = value.trim().replace(/\/+$/g, '');
+  if (!trimmed) return '/';
+
+  const match = trimmed.match(/^([^:]+):\/\/(.*)$/);
+  const rawPath = match ? match[2] : trimmed;
+  const path = rawPath.replace(/^\/+/, '').trim();
+  return path ? `/${path}` : '/';
+}
+
+function toWorkspaceBaseUrl(workspaceName: string): string {
+  return workspaceName ? `${workspaceName}://` : '';
+}
+
+function getParentContextSpecFromUrl(contextUrl: string): string {
+  const spec = toWorkspaceContextSpec(contextUrl);
+  const parts = spec.split('/').filter(Boolean);
+  const parentParts = parts.slice(0, Math.max(0, parts.length - 1));
+  return parentParts.length ? `/${parentParts.join('/')}` : '/';
 }
 
 function getRgb(color?: string) {
@@ -237,6 +271,20 @@ function ContextLauncherApp() {
   const [searchBusy, setSearchBusy] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<DocumentItem[]>([]);
+  const [documentsReloadToken, setDocumentsReloadToken] = useState(0);
+  const [launcherMode, setLauncherMode] = useState<'browse' | 'create-note' | 'create-tab' | 'link'>('browse');
+  const [noteDraft, setNoteDraft] = useState({ title: '', content: '' });
+  const [tabDraft, setTabDraft] = useState({ title: '', url: '' });
+  const [rightContextUrl, setRightContextUrl] = useState(''); // accepts workspace://path or /path
+  const [rightNavMode, setRightNavMode] = useState<'list' | 'tree'>('list');
+  const [rightSearchValue, setRightSearchValue] = useState('');
+  const [rightBusy, setRightBusy] = useState(false);
+  const [rightError, setRightError] = useState<string | null>(null);
+  const [rightDocuments, setRightDocuments] = useState<DocumentItem[]>([]);
+  const [rightSelectedIds, setRightSelectedIds] = useState<Record<string, boolean>>({});
+  const [rightTreeRoot, setRightTreeRoot] = useState<ContextTreeNode | null>(null);
+  const [rightTreeCursor, setRightTreeCursor] = useState(0);
+  const [rightExpandedNodes, setRightExpandedNodes] = useState<Record<string, boolean>>({});
   const [treeBusy, setTreeBusy] = useState(false);
   const [treeError, setTreeError] = useState<string | null>(null);
   const [treeRoot, setTreeRoot] = useState<ContextTreeNode | null>(null);
@@ -438,6 +486,13 @@ function ContextLauncherApp() {
     return buildTreeRows(treeRoot, treeBaseUrl, treeQuery, expandedNodes).rows;
   }, [treeRoot, treeBaseUrl, treeQuery, expandedNodes]);
 
+  const rightTreeRows = useMemo(() => {
+    if (!rightTreeRoot) return [];
+    const workspaceName = getWorkspaceNameFromContextUrl(selectedContextUrl || selectedContext?.url || '');
+    const base = toWorkspaceBaseUrl(workspaceName);
+    return buildTreeRows(rightTreeRoot, base, rightSearchValue, rightExpandedNodes).rows;
+  }, [rightTreeRoot, rightExpandedNodes, rightSearchValue, selectedContextUrl, selectedContext?.url]);
+
   const searchResultsRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
@@ -516,6 +571,38 @@ function ContextLauncherApp() {
     setExpandedNodes((current) => ({ ...current, [id]: !(current[id] ?? true) }));
   };
 
+  const toggleRightNode = (id: string) => {
+    setRightExpandedNodes((current) => ({ ...current, [id]: !(current[id] ?? true) }));
+  };
+
+  const insertIntoCurrentContext = async (body: unknown): Promise<boolean> => {
+    if (!auth || !selectedContextId) return false;
+    setBusy(true);
+    setError(null);
+    try {
+      const apiUrl = toApiUrl(auth.serverUrl);
+      const response = await fetch(`${apiUrl}/contexts/${selectedContextId}/documents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Operation failed.');
+      }
+      setDocumentsReloadToken((t) => t + 1);
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Operation failed.');
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+
   useEffect(() => {
     if (showTree) return;
     setTreeRoot(null);
@@ -559,6 +646,94 @@ function ContextLauncherApp() {
   }, [auth, isAuthenticated, showTree, selectedContextId]);
 
   useEffect(() => {
+    if (launcherMode !== 'link') return;
+    setRightSelectedIds({});
+    setRightNavMode('list');
+    setRightContextUrl((current) => current || getParentContextSpecFromUrl(selectedContextUrl));
+    setRightSearchValue('');
+    setRightError(null);
+    setRightTreeRoot(null);
+    setRightTreeCursor(0);
+    setRightExpandedNodes({});
+  }, [launcherMode, selectedContextUrl]);
+
+  useEffect(() => {
+    if (launcherMode !== 'link') return;
+    if (rightNavMode !== 'tree') return;
+    if (!isAuthenticated || !auth) return;
+    const workspaceName = getWorkspaceNameFromContextUrl(selectedContextUrl || selectedContext?.url || '');
+    if (!workspaceName) return;
+    let isActive = true;
+    const controller = new AbortController();
+    const loadRightTree = async () => {
+      setRightBusy(true);
+      setRightError(null);
+      try {
+        const apiUrl = toApiUrl(auth.serverUrl);
+        const response = await fetch(`${apiUrl}/workspaces/${encodeURIComponent(workspaceName)}/tree`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+          signal: controller.signal,
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload?.message || 'Failed to load tree.');
+        const treePayload = payload?.payload || payload;
+        if (isActive) setRightTreeRoot(treePayload);
+      } catch (err) {
+        if (!isActive) return;
+        setRightError(err instanceof Error ? err.message : 'Failed to load tree.');
+      } finally {
+        if (isActive) setRightBusy(false);
+      }
+    };
+    loadRightTree();
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [launcherMode, rightNavMode, auth, isAuthenticated, selectedContextUrl, selectedContext?.url]);
+
+  useEffect(() => {
+    if (launcherMode !== 'link') return;
+    if (!isAuthenticated || !auth) return;
+    const workspaceName = getWorkspaceNameFromContextUrl(selectedContextUrl || selectedContext?.url || '');
+    if (!workspaceName) return;
+    if (!rightContextUrl) {
+      setRightDocuments([]);
+      return;
+    }
+    let isActive = true;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setRightBusy(true);
+      setRightError(null);
+      try {
+        const apiUrl = toApiUrl(auth.serverUrl);
+        const query = rightSearchValue.trim();
+        const searchParam = query ? `&search=${encodeURIComponent(query)}` : '';
+        const contextSpec = toWorkspaceContextSpec(rightContextUrl);
+        const response = await fetch(
+          `${apiUrl}/workspaces/${encodeURIComponent(workspaceName)}/documents?contextSpec=${encodeURIComponent(contextSpec)}&limit=50${searchParam}`,
+          { headers: { Authorization: `Bearer ${auth.token}` }, signal: controller.signal },
+        );
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload?.message || 'Failed to load documents.');
+        const list = parseListPayload(payload);
+        if (isActive) setRightDocuments(list as DocumentItem[]);
+      } catch (err) {
+        if (!isActive) return;
+        setRightError(err instanceof Error ? err.message : 'Failed to load documents.');
+      } finally {
+        if (isActive) setRightBusy(false);
+      }
+    }, 180);
+    return () => {
+      isActive = false;
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [launcherMode, auth, isAuthenticated, selectedContextUrl, selectedContext?.url, rightContextUrl, rightSearchValue]);
+
+  useEffect(() => {
     if (!treeRows.length) {
       setTreeCursor(0);
       return;
@@ -567,6 +742,16 @@ function ContextLauncherApp() {
       setTreeCursor(0);
     }
   }, [treeRows.length, treeCursor]);
+
+  useEffect(() => {
+    if (!rightTreeRows.length) {
+      setRightTreeCursor(0);
+      return;
+    }
+    if (rightTreeCursor > rightTreeRows.length - 1) {
+      setRightTreeCursor(0);
+    }
+  }, [rightTreeRows.length, rightTreeCursor]);
 
   useEffect(() => {
     setTreeCursor(0);
@@ -672,7 +857,7 @@ function ContextLauncherApp() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [auth, isAuthenticated, searchValue, selectedContextId, showTree]);
+  }, [auth, isAuthenticated, searchValue, selectedContextId, showTree, documentsReloadToken]);
 
   if (!bootstrapped) {
     return <div className="h-screen w-screen bg-black" />;
@@ -877,296 +1062,657 @@ function ContextLauncherApp() {
               }`}
             />
           </div>
-          <button
-            onClick={handleSetContext}
-            disabled={!pendingUrl || pendingUrl === selectedContextUrl || busy}
-            className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-material hover:opacity-90 disabled:opacity-40"
-            title="Set context"
-          >
-            <span className="text-lg">→</span>
-          </button>
           </div>
         </div>
 
         {/* Results area */}
-        <div className="flex-1 overflow-auto">
-          {showTree ? (
-            <div className="p-4">
-              {treeBusy ? (
-                <div className="p-4 text-sm text-muted-foreground">Loading tree...</div>
-              ) : treeError ? (
-                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {treeError}
-                </div>
-              ) : treeRows.length === 0 ? (
-                <div className="p-4 text-sm text-muted-foreground">No tree nodes match.</div>
-              ) : (
-                <div className="space-y-0.5">
-                  {treeRows.map((item, index) => {
-                    const isActive = index === treeCursor;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-sm transition-colors ${
-                          isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-muted'
-                        }`}
-                        style={{ paddingLeft: `${8 + item.depth * 16}px` }}
-                        onClick={() => {
-                          setPendingUrl(item.url);
-                          setSearchValue(item.url);
-                        }}
-                      >
-                        <button
-                          type="button"
-                          className="flex h-4 w-4 items-center justify-center text-xs text-muted-foreground"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            if (item.hasChildren) toggleNode(item.id);
+        <div className="flex-1 overflow-hidden flex">
+          <div className="relative flex-1 overflow-auto">
+          {launcherMode === 'browse' ? (
+            showTree ? (
+              <div className="p-4">
+                {treeBusy ? (
+                  <div className="p-4 text-sm text-muted-foreground">Loading tree...</div>
+                ) : treeError ? (
+                  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {treeError}
+                  </div>
+                ) : treeRows.length === 0 ? (
+                  <div className="p-4 text-sm text-muted-foreground">No tree nodes match.</div>
+                ) : (
+                  <div className="space-y-0.5">
+                    {treeRows.map((item, index) => {
+                      const isActive = index === treeCursor;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-sm transition-colors ${
+                            isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-muted'
+                          }`}
+                          style={{ paddingLeft: `${8 + item.depth * 16}px` }}
+                          onClick={() => {
+                            setPendingUrl(item.url);
+                            setSearchValue(item.url);
                           }}
                         >
-                          {item.hasChildren ? (item.isExpanded ? '▼' : '▶') : ''}
-                        </button>
-                        {item.color && (
-                          <span
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: item.color || undefined }}
-                          />
-                        )}
-                        <span className="truncate">{item.label}</span>
+                          <button
+                            type="button"
+                            className="flex h-4 w-4 items-center justify-center text-xs text-muted-foreground"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (item.hasChildren) toggleNode(item.id);
+                            }}
+                          >
+                            {item.hasChildren ? (item.isExpanded ? '▼' : '▶') : ''}
+                          </button>
+                          {item.color && (
+                            <span
+                              className="h-2 w-2 rounded-full"
+                              style={{ backgroundColor: item.color || undefined }}
+                            />
+                          )}
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-4" ref={searchResultsRef}>
+                {searchError && (
+                  <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {searchError}
+                  </div>
+                )}
+                {!searchValue.trim() && !searchBusy && searchResults.length === 0 && (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    <p>Recent documents from this context</p>
+                    <p className="text-xs mt-1">Type to search, /c for tree, /t tabs, /n notes, /d dotfiles</p>
+                  </div>
+                )}
+                {searchBusy && (
+                  <div className="p-4 text-center text-sm text-muted-foreground">Searching...</div>
+                )}
+                {searchValue.trim() && !searchBusy && searchResults.length === 0 && (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    No documents match that query.
+                  </div>
+                )}
+                <div className="space-y-2">
+                  {searchResults.map((doc) => {
+                    const title = getDisplayTitle(doc);
+                    const content = getDisplayContent(doc);
+                    const schema = doc.schema || '';
+                    const isTabDocument = schema === 'data/abstraction/tab';
+                    const tabUrl = isTabDocument && doc.data?.url ? doc.data.url : null;
+
+                    const getSchemaDisplayName = (schema: string) => {
+                      const parts = schema.split('/');
+                      return parts[parts.length - 1] || schema;
+                    };
+
+                    const formatDate = (dateString?: string) => {
+                      if (!dateString) return null;
+                      return new Date(dateString).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      });
+                    };
+
+                    const getPrimaryChecksum = () => {
+                      if (doc.data?.checksumArray && doc.data.checksumArray.length > 0) {
+                        const primary = doc.data.checksumArray[0];
+                        if (primary) {
+                          const parts = primary.split('/');
+                          const hash = parts[parts.length - 1] || primary;
+                          return hash.substring(0, 8) + '...';
+                        }
+                      }
+                      return null;
+                    };
+
+                    const checksum = getPrimaryChecksum();
+
+                    return (
+                      <div
+                        key={doc.id || title}
+                        className="rounded-lg border bg-white p-3 transition-all hover:bg-accent/50 cursor-pointer"
+                        onClick={() => {
+                          if (isTabDocument && tabUrl) {
+                            window.open(tabUrl, '_blank', 'noopener,noreferrer');
+                          }
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="mb-2 flex items-center gap-2 overflow-hidden">
+                              {isTabDocument ? (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="text-blue-500 flex-shrink-0"
+                                >
+                                  <circle cx="12" cy="12" r="10"/>
+                                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                                  <path d="M2 12h20"/>
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="text-blue-500 flex-shrink-0"
+                                >
+                                  <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+                                  <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                                </svg>
+                              )}
+                              <h4 className="font-medium truncate min-w-0 flex-1 max-w-[640px]" title={title}>
+                                {title}
+                              </h4>
+                              {isTabDocument && (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="text-muted-foreground flex-shrink-0"
+                                >
+                                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                  <polyline points="15 3 21 3 21 9"/>
+                                  <line x1="10" x2="21" y1="14" y2="3"/>
+                                </svg>
+                              )}
+                              {schema && (
+                                <span className="px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded border flex-shrink-0">
+                                  {getSchemaDisplayName(schema)}
+                                </span>
+                              )}
+                            </div>
+
+                            {content && (
+                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-all overflow-hidden">
+                                {content}
+                              </p>
+                            )}
+
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground overflow-hidden">
+                              {doc.id && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <span className="font-medium">ID:</span>
+                                  <span className="font-mono truncate max-w-[80px]" title={`ID: ${doc.id}`}>
+                                    {doc.id}
+                                  </span>
+                                </div>
+                              )}
+                              {checksum && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <line x1="4" x2="20" y1="9" y2="9"/>
+                                    <line x1="4" x2="20" y1="15" y2="15"/>
+                                    <line x1="10" x2="8" y1="3" y2="21"/>
+                                    <line x1="16" x2="14" y1="3" y2="21"/>
+                                  </svg>
+                                  <span className="font-mono" title="Checksum">
+                                    {checksum}
+                                  </span>
+                                </div>
+                              )}
+                              {doc.createdAt && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                                    <line x1="16" x2="16" y1="2" y2="6"/>
+                                    <line x1="8" x2="8" y1="2" y2="6"/>
+                                    <line x1="3" x2="21" y1="10" y2="10"/>
+                                  </svg>
+                                  <span title={`Created: ${formatDate(doc.createdAt)}`}>
+                                    {formatDate(doc.createdAt)}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <button
+                            className="p-1 hover:bg-muted rounded-sm flex-shrink-0"
+                            title="View details"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-              )}
-            </div>
+              </div>
+            )
           ) : (
-            <div className="p-4" ref={searchResultsRef}>
-              {searchError && (
-                <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {searchError}
+            <div className="flex h-full">
+              <div className="w-[52%] border-r border-border">
+                <div className="px-4 py-3 text-xs text-muted-foreground">
+                  <div className="font-medium">Current</div>
+                  <div className="font-mono truncate">@ {selectedContextUrl || selectedContext?.url || ''}</div>
                 </div>
-              )}
-              {!searchValue.trim() && !searchBusy && searchResults.length === 0 && (
-                <div className="p-4 text-center text-sm text-muted-foreground">
-                  <p>Recent documents from this context</p>
-                  <p className="text-xs mt-1">Type to search, /c for tree, /t tabs, /n notes, /d dotfiles</p>
-                </div>
-              )}
-              {searchBusy && (
-                <div className="p-4 text-center text-sm text-muted-foreground">Searching...</div>
-              )}
-              {searchValue.trim() && !searchBusy && searchResults.length === 0 && (
-                <div className="p-4 text-center text-sm text-muted-foreground">
-                  No documents match that query.
-                </div>
-              )}
-              <div className="space-y-2">
-                {searchResults.map((doc) => {
-                  const title = getDisplayTitle(doc);
-                  const content = getDisplayContent(doc);
-                  const schema = doc.schema || '';
-                  const isTabDocument = schema === 'data/abstraction/tab';
-                  const tabUrl = isTabDocument && doc.data?.url ? doc.data.url : null;
-
-                  const getSchemaDisplayName = (schema: string) => {
-                    const parts = schema.split('/');
-                    return parts[parts.length - 1] || schema;
-                  };
-
-                  const formatDate = (dateString?: string) => {
-                    if (!dateString) return null;
-                    return new Date(dateString).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    });
-                  };
-
-                  const getPrimaryChecksum = () => {
-                    if (doc.data?.checksumArray && doc.data.checksumArray.length > 0) {
-                      const primary = doc.data.checksumArray[0];
-                      if (primary) {
-                        const parts = primary.split('/');
-                        const hash = parts[parts.length - 1] || primary;
-                        return hash.substring(0, 8) + '...';
-                      }
-                    }
-                    return null;
-                  };
-
-                  const checksum = getPrimaryChecksum();
-
-                  return (
-                    <div
-                      key={doc.id || title}
-                      className="rounded-lg border bg-white p-3 transition-all hover:bg-accent/50 cursor-pointer"
-                      onClick={() => {
-                        if (isTabDocument && tabUrl) {
-                          window.open(tabUrl, '_blank', 'noopener,noreferrer');
-                        }
-                      }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="mb-2 flex items-center gap-2 overflow-hidden">
-                            {isTabDocument ? (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="text-blue-500 flex-shrink-0"
-                              >
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                                <path d="M2 12h20"/>
-                              </svg>
-                            ) : (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="text-blue-500 flex-shrink-0"
-                              >
-                                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
-                                <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
-                              </svg>
-                            )}
-                            <h4 className="font-medium truncate min-w-0 flex-1 max-w-[640px]" title={title}>
-                              {title}
-                            </h4>
-                            {isTabDocument && (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="text-muted-foreground flex-shrink-0"
-                              >
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                                <polyline points="15 3 21 3 21 9"/>
-                                <line x1="10" x2="21" y1="14" y2="3"/>
-                              </svg>
-                            )}
-                            {schema && (
-                              <span className="px-2 py-0.5 text-xs bg-muted text-muted-foreground rounded border flex-shrink-0">
-                                {getSchemaDisplayName(schema)}
-                              </span>
-                            )}
+                <div className="px-4 pb-4" ref={searchResultsRef}>
+                  {searchBusy ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">Searching...</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {searchResults.map((doc) => {
+                        const title = getDisplayTitle(doc);
+                        const content = getDisplayContent(doc);
+                        return (
+                          <div key={doc.id || title} className="rounded-lg border bg-white p-3 hover:bg-accent/50">
+                            <div className="text-sm font-medium truncate" title={title}>{title}</div>
+                            {content && <div className="text-xs text-muted-foreground truncate">{content}</div>}
                           </div>
+                        );
+                      })}
+                      {!searchBusy && searchResults.length === 0 && (
+                        <div className="p-4 text-center text-sm text-muted-foreground">No documents.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                          {content && (
-                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-all overflow-hidden">
-                              {content}
-                            </p>
-                          )}
+              <div className="flex-1">
+                {launcherMode === 'create-note' && (
+                  <div className="p-4">
+                    <div className="mb-3 text-sm font-semibold">New note</div>
+                    <div className="space-y-3">
+                      <Input
+                        value={noteDraft.title}
+                        onChange={(e) => setNoteDraft((d) => ({ ...d, title: e.target.value }))}
+                        placeholder="Title"
+                        className="h-10"
+                      />
+                      <textarea
+                        value={noteDraft.content}
+                        onChange={(e) => setNoteDraft((d) => ({ ...d, content: e.target.value }))}
+                        placeholder="Write your note…"
+                        className="min-h-[360px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      />
+                      <div className="text-xs text-muted-foreground">Save is the big black button. Sorry.</div>
+                    </div>
+                  </div>
+                )}
 
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground overflow-hidden">
-                            {doc.id && (
-                              <div className="flex items-center gap-1 flex-shrink-0">
-                                <span className="font-medium">ID:</span>
-                                <span className="font-mono truncate max-w-[80px]" title={`ID: ${doc.id}`}>
-                                  {doc.id}
-                                </span>
-                              </div>
-                            )}
-                            {checksum && (
-                              <div className="flex items-center gap-1 flex-shrink-0">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <line x1="4" x2="20" y1="9" y2="9"/>
-                                  <line x1="4" x2="20" y1="15" y2="15"/>
-                                  <line x1="10" x2="8" y1="3" y2="21"/>
-                                  <line x1="16" x2="14" y1="3" y2="21"/>
-                                </svg>
-                                <span className="font-mono" title="Checksum">
-                                  {checksum}
-                                </span>
-                              </div>
-                            )}
-                            {doc.createdAt && (
-                              <div className="flex items-center gap-1 flex-shrink-0">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                                  <line x1="16" x2="16" y1="2" y2="6"/>
-                                  <line x1="8" x2="8" y1="2" y2="6"/>
-                                  <line x1="3" x2="21" y1="10" y2="10"/>
-                                </svg>
-                                <span title={`Created: ${formatDate(doc.createdAt)}`}>
-                                  {formatDate(doc.createdAt)}
-                                </span>
-                              </div>
-                            )}
+                {launcherMode === 'create-tab' && (
+                  <div className="p-4">
+                    <div className="mb-3 text-sm font-semibold">New tab</div>
+                    <div className="space-y-3">
+                      <Input
+                        value={tabDraft.title}
+                        onChange={(e) => setTabDraft((d) => ({ ...d, title: e.target.value }))}
+                        placeholder="Title (optional)"
+                        className="h-10"
+                      />
+                      <Input
+                        value={tabDraft.url}
+                        onChange={(e) => setTabDraft((d) => ({ ...d, url: e.target.value }))}
+                        placeholder="URL (https://...)"
+                        className="h-10 font-mono"
+                      />
+                      <div className="text-xs text-muted-foreground">This does not magically read your browser. Yet.</div>
+                    </div>
+                  </div>
+                )}
+
+                {launcherMode === 'link' && (
+                  <div className="flex h-full flex-col">
+                    <div className="border-b border-border p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold">Link documents</div>
+                          <div className="text-xs text-muted-foreground font-mono truncate">
+                            Target: {selectedContextUrl || selectedContext?.url || ''}
                           </div>
                         </div>
-
-                        <button
-                          className="p-1 hover:bg-muted rounded-sm flex-shrink-0"
-                          title="View details"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Could open a detail modal here
-                          }}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant={rightNavMode === 'list' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setRightNavMode('list')}
                           >
-                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
-                        </button>
+                            List
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={rightNavMode === 'tree' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setRightNavMode('tree')}
+                          >
+                            Tree
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 space-y-2">
+                        <Input
+                          value={rightContextUrl}
+                          onChange={(e) => setRightContextUrl(e.target.value)}
+                          placeholder="Source (workspace://path or /path)"
+                          className="h-10 font-mono"
+                        />
+                        <Input
+                          value={rightSearchValue}
+                          onChange={(e) => setRightSearchValue(e.target.value)}
+                          placeholder={rightNavMode === 'tree' ? 'Filter tree…' : 'Search documents…'}
+                          className="h-10"
+                        />
                       </div>
                     </div>
-                  );
-                })}
+
+                    <div className="flex-1 overflow-auto p-4">
+                      {rightError && (
+                        <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                          {rightError}
+                        </div>
+                      )}
+
+                      {rightNavMode === 'tree' ? (
+                        rightTreeRows.length === 0 ? (
+                          <div className="p-4 text-center text-sm text-muted-foreground">
+                            {rightBusy ? 'Loading tree…' : 'No tree nodes match.'}
+                          </div>
+                        ) : (
+                          <div className="space-y-0.5">
+                            {rightTreeRows.map((item, index) => {
+                              const isActive = index === rightTreeCursor;
+                              return (
+                                <div
+                                  key={item.id}
+                                  className={`flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-sm transition-colors ${
+                                    isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-muted'
+                                  }`}
+                                  style={{ paddingLeft: `${8 + item.depth * 16}px` }}
+                                  onClick={() => {
+                                    setRightContextUrl(item.url);
+                                    setRightNavMode('list');
+                                    setRightSelectedIds({});
+                                  }}
+                                >
+                                  <button
+                                    type="button"
+                                    className="flex h-4 w-4 items-center justify-center text-xs text-muted-foreground"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      if (item.hasChildren) toggleRightNode(item.id);
+                                    }}
+                                  >
+                                    {item.hasChildren ? (item.isExpanded ? '▼' : '▶') : ''}
+                                  </button>
+                                  {item.color && (
+                                    <span
+                                      className="h-2 w-2 rounded-full"
+                                      style={{ backgroundColor: item.color || undefined }}
+                                    />
+                                  )}
+                                  <span className="truncate">{item.label}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )
+                      ) : (
+                        <>
+                          {rightBusy && (
+                            <div className="p-4 text-center text-sm text-muted-foreground">Loading…</div>
+                          )}
+                          {!rightBusy && rightDocuments.length === 0 && (
+                            <div className="p-4 text-center text-sm text-muted-foreground">No documents in source context.</div>
+                          )}
+                          <div className="space-y-1">
+                            {rightDocuments.map((doc) => {
+                              const id = doc.id ? String(doc.id) : '';
+                              const checked = !!(id && rightSelectedIds[id]);
+                              const title = getDisplayTitle(doc);
+                              return (
+                                <label
+                                  key={id || title}
+                                  className="flex cursor-pointer items-start gap-2 rounded-md border bg-white px-2 py-2 hover:bg-accent/50"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="mt-1"
+                                    checked={checked}
+                                    disabled={!id}
+                                    onChange={() => {
+                                      if (!id) return;
+                                      setRightSelectedIds((current) => ({
+                                        ...current,
+                                        [id]: !current[id],
+                                      }));
+                                    }}
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-medium truncate" title={title}>{title}</div>
+                                    {id && <div className="text-xs text-muted-foreground font-mono truncate">{id}</div>}
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
+
+          </div>
+
+          {/* Action rail (no overlap, shrinks content) */}
+          <div className="w-[84px] shrink-0 border-l border-border bg-white p-3">
+            <div className="flex flex-col items-center gap-3">
+              {/* Primary 56dp */}
+              {launcherMode === 'browse' && (
+                <Button
+                  type="button"
+                  className="h-14 w-14 rounded-full shadow-elevation-6"
+                  title="Set context"
+                  disabled={!pendingUrl || pendingUrl === selectedContextUrl || busy}
+                  onClick={handleSetContext}
+                >
+                  <span className="text-lg">→</span>
+                </Button>
+              )}
+
+              {launcherMode === 'create-note' && (
+                <Button
+                  type="button"
+                  className="h-14 w-14 rounded-full shadow-elevation-6"
+                  title="Save note"
+                  disabled={busy || (!noteDraft.title.trim() && !noteDraft.content.trim())}
+                  onClick={async () => {
+                    const title = noteDraft.title.trim() || 'Note';
+                    const content = noteDraft.content || '';
+                    const ok = await insertIntoCurrentContext({
+                      documents: { schema: 'data/abstraction/note', data: { title, content } },
+                    });
+                    if (ok) setLauncherMode('browse');
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                </Button>
+              )}
+
+              {launcherMode === 'create-tab' && (
+                <Button
+                  type="button"
+                  className="h-14 w-14 rounded-full shadow-elevation-6"
+                  title="Save tab"
+                  disabled={busy || !tabDraft.url.trim()}
+                  onClick={async () => {
+                    const url = tabDraft.url.trim();
+                    const title = tabDraft.title.trim() || undefined;
+                    const ok = await insertIntoCurrentContext({
+                      documents: { schema: 'data/abstraction/tab', data: { ...(title ? { title } : {}), url } },
+                    });
+                    if (ok) setLauncherMode('browse');
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                </Button>
+              )}
+
+              {launcherMode === 'link' && (
+                <Button
+                  type="button"
+                  className="h-14 w-14 rounded-full shadow-elevation-6"
+                  variant="secondary"
+                  title="Link selected"
+                  disabled={busy || Object.keys(rightSelectedIds).filter((id) => rightSelectedIds[id]).length === 0}
+                  onClick={async () => {
+                    const ids = Object.keys(rightSelectedIds).filter((id) => rightSelectedIds[id]);
+                    const ok = await insertIntoCurrentContext({ documentIds: ids });
+                    if (ok) {
+                      setRightSelectedIds({});
+                      setLauncherMode('browse');
+                    }
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1" />
+                    <path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1" />
+                  </svg>
+                </Button>
+              )}
+
+              {/* Mini 40dp actions */}
+              {launcherMode === 'browse' && (
+                <>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        className="h-10 w-10 rounded-full shadow-elevation-4 p-0"
+                        title="Create"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 5v14" />
+                          <path d="M5 12h14" />
+                        </svg>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setNoteDraft({ title: '', content: '' });
+                          setLauncherMode('create-note');
+                        }}
+                      >
+                        Note
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setTabDraft({ title: '', url: '' });
+                          setLauncherMode('create-tab');
+                        }}
+                      >
+                        Tab
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <Button
+                    type="button"
+                    className="h-10 w-10 rounded-full shadow-elevation-4 p-0"
+                    variant="secondary"
+                    title="Link"
+                    onClick={() => setLauncherMode('link')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1" />
+                      <path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1" />
+                    </svg>
+                  </Button>
+                </>
+              )}
+
+              {launcherMode !== 'browse' && (
+                <Button
+                  type="button"
+                  className="h-10 w-10 rounded-full shadow-elevation-4 p-0"
+                  variant="outline"
+                  title="Cancel"
+                  onClick={() => setLauncherMode('browse')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6 6 18" />
+                    <path d="M6 6l12 12" />
+                  </svg>
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
 
           {error && (
