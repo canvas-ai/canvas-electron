@@ -1,5 +1,6 @@
 import { StrictMode, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
+import { io, type Socket } from 'socket.io-client';
 import { AuthPanel, type AuthFormData } from '../../ui/src/components/auth/AuthPanel';
 import { ParticlePanel } from '../../ui/src/components/auth/ParticlePanel';
 import { Button } from '../../ui/src/components/ui/button';
@@ -446,8 +447,11 @@ function ContextLauncherApp() {
   const [inputBlink, setInputBlink] = useState<'success' | 'error' | null>(null);
   const [detailDocument, setDetailDocument] = useState<DocumentItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const pendingContextRefresh = useRef<number | null>(null);
+  const pendingDocumentsRefresh = useRef<number | null>(null);
 
   const isAuthenticated = !!auth?.token && !!auth?.serverUrl;
 
@@ -582,6 +586,112 @@ function ContextLauncherApp() {
       setBusy(false);
     }
   }, [auth, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !auth) return;
+
+    const baseUrl = normalizeServerUrl(auth.serverUrl);
+    const token = auth.token;
+    const socketInstance = io(baseUrl, {
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      auth: { token },
+    });
+
+    setSocket(socketInstance);
+
+    return () => {
+      try {
+        socketInstance.close();
+      } finally {
+        setSocket(null);
+      }
+    };
+  }, [auth, isAuthenticated]);
+
+  const scheduleContextsRefresh = useCallback(() => {
+    if (pendingContextRefresh.current) window.clearTimeout(pendingContextRefresh.current);
+    pendingContextRefresh.current = window.setTimeout(() => {
+      pendingContextRefresh.current = null;
+      fetchContexts();
+    }, 150);
+  }, [fetchContexts]);
+
+  const scheduleDocumentsRefresh = useCallback(() => {
+    if (pendingDocumentsRefresh.current) window.clearTimeout(pendingDocumentsRefresh.current);
+    pendingDocumentsRefresh.current = window.setTimeout(() => {
+      pendingDocumentsRefresh.current = null;
+      setDocumentsReloadToken((t) => t + 1);
+    }, 150);
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    if (!selectedContextId) return;
+
+    const contextChannel = `context:${selectedContextId}`;
+    socket.emit('subscribe', { channel: contextChannel });
+
+    const matchesSelected = (id?: unknown) => String(id ?? '') === String(selectedContextId);
+
+    const maybeSyncUrl = (url: unknown) => {
+      if (typeof url !== 'string') return;
+      const trimmed = url.trim();
+      if (!trimmed) return;
+      if (trimmed !== selectedContextUrl) {
+        setSelectedContextUrl(trimmed);
+        setPendingUrl(trimmed);
+      }
+    };
+
+    const handleDocumentEvent = (data: any) => {
+      const ctxId = data?.contextId ?? data?.id ?? data?.context?.id ?? data?.context?.contextId;
+      if (!matchesSelected(ctxId)) return;
+      maybeSyncUrl(data?.url ?? data?.context?.url);
+      scheduleDocumentsRefresh();
+      scheduleContextsRefresh();
+    };
+
+    // Sometimes emitted alongside document ops; not canonical, but useful.
+    const handleContextUpdated = (data: any) => {
+      const ctx = data?.context ?? data;
+      if (!matchesSelected(ctx?.id ?? ctx?.contextId)) return;
+      maybeSyncUrl(ctx?.url);
+      scheduleDocumentsRefresh();
+      scheduleContextsRefresh();
+    };
+
+    const handleDeleted = (data: any) => {
+      if (!matchesSelected(data?.id ?? data?.contextId)) return;
+      scheduleContextsRefresh();
+      setSelectedContextId(null);
+      setSelectedContextUrl('');
+      setPendingUrl('');
+      setSearchResults([]);
+    };
+
+    const eventPairs: Array<[string, (d: any) => void]> = [
+      ['context.updated', handleContextUpdated],
+      ['context.deleted', handleDeleted],
+      ['context.url.set', handleContextUpdated],
+      // Canonical document change events (server reality)
+      ['document.inserted', handleDocumentEvent],
+      ['document.updated', handleDocumentEvent],
+      ['document.removed', handleDocumentEvent],
+      ['document.removed.batch', handleDocumentEvent],
+      ['document.deleted', handleDocumentEvent],
+      ['document.deleted.batch', handleDocumentEvent],
+    ];
+
+    eventPairs.forEach(([event, handler]) => socket.on(event, handler));
+
+    return () => {
+      socket.emit('unsubscribe', { channel: contextChannel });
+      eventPairs.forEach(([event, handler]) => socket.off(event, handler));
+    };
+  }, [scheduleContextsRefresh, scheduleDocumentsRefresh, selectedContextId, selectedContextUrl, socket]);
 
   useEffect(() => {
     fetchContexts();
