@@ -698,7 +698,12 @@ function ContextLauncherApp() {
     if (!socket) return;
     if (launcherMode !== 'link') return;
 
-    const workspaceName = getWorkspaceNameFromContextUrl(selectedContextUrl || selectedContext?.url || '');
+    // IMPORTANT: don't reference `selectedContext` here (declared later) to avoid TDZ crashes.
+    const contextUrl =
+      selectedContextUrl ||
+      contexts.find((context) => getContextKey(context) === selectedContextId)?.url ||
+      '';
+    const workspaceName = getWorkspaceNameFromContextUrl(contextUrl);
     if (!workspaceName) return;
 
     const workspaceChannel = `workspace:${workspaceName}`;
@@ -721,7 +726,7 @@ function ContextLauncherApp() {
       socket.emit('unsubscribe', { channel: workspaceChannel });
       events.forEach((event) => socket.off(event, handleWorkspaceDocumentsChanged));
     };
-  }, [launcherMode, selectedContext?.url, selectedContextUrl, socket]);
+  }, [contexts, launcherMode, selectedContextId, selectedContextUrl, socket]);
 
   useEffect(() => {
     fetchContexts();
