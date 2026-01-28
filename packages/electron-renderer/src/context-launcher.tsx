@@ -939,6 +939,18 @@ function ContextLauncherApp() {
     const onKeyDown = (event: KeyboardEvent) => {
       const key = (event.key || '').toLowerCase();
       const ctrlShift = event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;
+      const ctrlOrMeta = (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey;
+
+      // Ctrl/Cmd+R: refresh contexts when drawer is open, otherwise refresh documents in default view.
+      if (ctrlOrMeta && key === 'r') {
+        event.preventDefault();
+        if (drawerOpen) {
+          scheduleContextsRefresh();
+          return;
+        }
+        scheduleDocumentsRefresh();
+        return;
+      }
 
       if (event.altKey && !event.ctrlKey && !event.metaKey) {
         if (event.key === 'ArrowLeft') {
@@ -1066,7 +1078,17 @@ function ContextLauncherApp() {
 
     window.addEventListener('keydown', onKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', onKeyDown, { capture: true } as any);
-  }, [createMenuOpen, drawerOpen, focusDrawerSelection, focusInput, launcherMode, linkSelectedRightDocuments, selectedContextId]);
+  }, [
+    createMenuOpen,
+    drawerOpen,
+    focusDrawerSelection,
+    focusInput,
+    launcherMode,
+    linkSelectedRightDocuments,
+    scheduleContextsRefresh,
+    scheduleDocumentsRefresh,
+    selectedContextId,
+  ]);
 
   const removeDocumentFromContext = async (documentId: string) => {
     if (!auth || !selectedContextId) return;
