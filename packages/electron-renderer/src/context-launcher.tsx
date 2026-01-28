@@ -415,6 +415,7 @@ function ContextLauncherApp() {
   const [selectedContextUrl, setSelectedContextUrl] = useState<string>('');
   const [pendingUrl, setPendingUrl] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerHoverKey, setDrawerHoverKey] = useState<string | null>(null);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -451,6 +452,7 @@ function ContextLauncherApp() {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const pendingContextRefresh = useRef<number | null>(null);
   const pendingDocumentsRefresh = useRef<number | null>(null);
 
@@ -463,6 +465,21 @@ function ContextLauncherApp() {
       inputRef.current?.select?.();
     }, 0);
   }, []);
+
+  const focusDrawerSelection = useCallback(() => {
+    window.setTimeout(() => {
+      const root = drawerRef.current;
+      if (!root) return;
+      const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('button[data-context-key]'));
+      const targetId = selectedContextId ?? '';
+      (buttons.find((b) => b.dataset.contextKey === targetId) || buttons[0])?.focus();
+    }, 0);
+  }, [selectedContextId]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    focusDrawerSelection();
+  }, [drawerOpen, focusDrawerSelection]);
 
   useEffect(() => {
     focusInput(); // initial mount
@@ -923,6 +940,72 @@ function ContextLauncherApp() {
       const key = (event.key || '').toLowerCase();
       const ctrlShift = event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;
 
+      if (event.altKey && !event.ctrlKey && !event.metaKey) {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          setDrawerOpen(true);
+          focusDrawerSelection();
+          return;
+        }
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          setDrawerOpen(false);
+          focusInput();
+          return;
+        }
+      }
+
+      if (drawerOpen && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        const target = event.target as HTMLElement | null;
+        const tag = (target?.tagName || '').toLowerCase();
+        const isTypingTarget = tag === 'input' || tag === 'textarea' || (target as any)?.isContentEditable;
+
+        if (!isTypingTarget) {
+          const root = drawerRef.current;
+          const buttons = root
+            ? Array.from(root.querySelectorAll<HTMLButtonElement>('button[data-context-key]'))
+            : [];
+
+          if (buttons.length) {
+            const active = document.activeElement as HTMLElement | null;
+            const inDrawer = !!(root && active && root.contains(active));
+            const focusedIndex = inDrawer ? buttons.findIndex((b) => b === active) : -1;
+            const selectedIndex = Math.max(
+              0,
+              buttons.findIndex((b) => (b.dataset.contextKey || '') === (selectedContextId ?? '')),
+            );
+            const index = focusedIndex >= 0 ? focusedIndex : selectedIndex;
+
+            const focusAt = (nextIndex: number) => {
+              const button = buttons[(nextIndex + buttons.length) % buttons.length];
+              button?.focus();
+              button?.scrollIntoView({ block: 'nearest' });
+            };
+
+            if (event.key === 'ArrowDown') {
+              event.preventDefault();
+              focusAt(index + 1);
+              return;
+            }
+            if (event.key === 'ArrowUp') {
+              event.preventDefault();
+              focusAt(index - 1);
+              return;
+            }
+            if (event.key === 'Home') {
+              event.preventDefault();
+              focusAt(0);
+              return;
+            }
+            if (event.key === 'End') {
+              event.preventDefault();
+              focusAt(buttons.length - 1);
+              return;
+            }
+          }
+        }
+      }
+
       if (ctrlShift && (key === 'n' || key === 't' || key === 'l')) {
         event.preventDefault();
         setDrawerOpen(false);
@@ -983,7 +1066,7 @@ function ContextLauncherApp() {
 
     window.addEventListener('keydown', onKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', onKeyDown, { capture: true } as any);
-  }, [createMenuOpen, drawerOpen, launcherMode, linkSelectedRightDocuments]);
+  }, [createMenuOpen, drawerOpen, focusDrawerSelection, focusInput, launcherMode, linkSelectedRightDocuments, selectedContextId]);
 
   const removeDocumentFromContext = async (documentId: string) => {
     if (!auth || !selectedContextId) return;
@@ -1362,8 +1445,10 @@ function ContextLauncherApp() {
       {/* Drawer - shrinks main content */}
       {drawerOpen && (
         <div
+          ref={drawerRef}
           className={`w-80 p-6 ${panelTextClass}`}
           style={{ backgroundColor: selectedContext?.color || '#111111' }}
+          onMouseLeave={() => setDrawerHoverKey(null)}
         >
           <div className="mb-4 flex items-center justify-between">
             <div className={`text-sm uppercase tracking-[0.2em] ${panelMutedClass}`}>Contexts</div>
@@ -1390,16 +1475,39 @@ function ContextLauncherApp() {
             </div>
           </div>
           <div className="space-y-2">
-            {drawerContexts.map((context) => (
-              <button
-                key={getContextKey(context)}
-                onClick={() => handleContextPick(context)}
-                className={`w-full rounded-md px-3 py-2 text-left text-sm shadow-sm ${panelIsLight ? 'bg-black/5 hover:bg-black/10' : 'bg-white/10 hover:bg-white/20'}`}
-              >
-                <div className="font-medium">{context.id || 'context'}</div>
-                <div className={`text-xs ${panelMutedClass}`}>{context.url}</div>
-              </button>
-            ))}
+            {drawerContexts.map((context) => {
+              const itemKey = getContextKey(context);
+              const itemColor = context.color || selectedContext?.color || null;
+              const rgb = getRgb(itemColor || undefined);
+              const isActive = itemKey === selectedContextId;
+              const isHovered = drawerHoverKey === itemKey;
+              const hoverBg = rgb ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.14)` : undefined;
+              const activeBg = rgb ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.22)` : undefined;
+              const bg = isActive ? activeBg : isHovered ? hoverBg : undefined;
+
+              return (
+                <button
+                  key={itemKey}
+                  data-context-key={itemKey}
+                  onClick={() => handleContextPick(context)}
+                  onMouseEnter={() => setDrawerHoverKey(itemKey)}
+                  onFocus={() => setDrawerHoverKey(itemKey)}
+                  onBlur={() => setDrawerHoverKey((current) => (current === itemKey ? null : current))}
+                  className={`w-full px-3 py-2 text-left text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 ${
+                    isActive ? 'rounded-l-md rounded-r-none' : 'rounded-md'
+                  } ${
+                    panelIsLight ? 'bg-black/5 focus-visible:ring-black/40' : 'bg-white/10 focus-visible:ring-white/40'
+                  } ${isActive ? 'context-drawer-item is-active' : 'context-drawer-item'}`}
+                  style={{
+                    borderLeft: `8px solid ${itemColor || 'transparent'}`,
+                    backgroundColor: bg,
+                  }}
+                >
+                  <div className="font-medium">{context.id || 'context'}</div>
+                  <div className={`text-xs ${panelMutedClass}`}>{context.url}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

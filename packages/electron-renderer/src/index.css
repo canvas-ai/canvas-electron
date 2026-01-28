@@ -189,3 +189,20 @@
     -webkit-app-region: no-drag;
   }
 }
+
+/* Context launcher: contrast "active" right bar */
+.context-drawer-item.is-active {
+  position: relative;
+}
+
+.context-drawer-item.is-active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  background: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
