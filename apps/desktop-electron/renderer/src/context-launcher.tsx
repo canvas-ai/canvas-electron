@@ -1,16 +1,16 @@
 import { StrictMode, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { io, type Socket } from 'socket.io-client';
-import { AuthPanel, type AuthFormData } from '../../ui/src/components/auth/AuthPanel';
-import { ParticlePanel } from '../../ui/src/components/auth/ParticlePanel';
-import { Button } from '../../ui/src/components/ui/button';
+import { AuthPanel, type AuthFormData } from '../../../../packages/ui/src/components/auth/AuthPanel';
+import { ParticlePanel } from '../../../../packages/ui/src/components/auth/ParticlePanel';
+import { Button } from '../../../../packages/ui/src/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../../ui/src/components/ui/dropdown-menu';
-import { Input } from '../../ui/src/components/ui/input';
+} from '../../../../packages/ui/src/components/ui/dropdown-menu';
+import { Input } from '../../../../packages/ui/src/components/ui/input';
 import './index.css';
 
 type AuthConfig = {

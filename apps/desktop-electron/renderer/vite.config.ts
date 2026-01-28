@@ -5,9 +5,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   base: './',
-  publicDir: path.resolve(__dirname, '../../public'),
+  publicDir: path.resolve(__dirname, '../../../public'),
   build: {
-    outDir: '../../dist/renderer',
+    outDir: '../../../dist/renderer',
     emptyOutDir: true,
     rollupOptions: {
       input: {

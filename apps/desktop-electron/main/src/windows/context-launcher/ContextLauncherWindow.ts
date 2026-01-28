@@ -46,7 +46,9 @@ export class ContextLauncherWindow {
     const height = 800;
     const { x, y } = this.getCenteredBounds(width, height);
 
-    const iconPath = process.env.NODE_ENV === 'development'
+    const isDev = !app.isPackaged;
+
+    const iconPath = isDev
       ? join(__dirname, '../../../../../public/icons/logo_256x256.png')
       : join(process.resourcesPath, 'public/icons/logo_256x256.png');
 
@@ -75,10 +77,10 @@ export class ContextLauncherWindow {
     this.window.setMenu(null);
     this.window.webContents.setFrameRate(60);
 
-    if (process.env.NODE_ENV === 'development') {
+    if (isDev) {
       this.window.loadURL('http://localhost:3000/context-launcher.html');
     } else {
-      this.window.loadFile(join(__dirname, '../../../../../renderer/context-launcher.html'));
+      this.window.loadFile(join(app.getAppPath(), 'dist/renderer/context-launcher.html'));
     }
 
     this.window.on('close', (event) => {
