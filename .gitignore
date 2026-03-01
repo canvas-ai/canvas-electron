@@ -4,6 +4,7 @@
 
 # Exclude server mountpoint
 /server
+/extensions
 
 # Portable runtimes
 /runtimes/**

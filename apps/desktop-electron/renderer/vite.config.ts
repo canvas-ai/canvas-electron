@@ -11,7 +11,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        contextLauncher: path.resolve(__dirname, 'context-launcher.html'),
+        launcher: path.resolve(__dirname, 'launcher.html'),
+        menu: path.resolve(__dirname, 'menu.html'),
       },
     },
   },

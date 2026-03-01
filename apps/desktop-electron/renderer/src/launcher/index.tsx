@@ -1,17 +1,17 @@
 import { StrictMode, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { io, type Socket } from 'socket.io-client';
-import { AuthPanel, type AuthFormData } from '../../../../packages/ui/src/components/auth/AuthPanel';
-import { ParticlePanel } from '../../../../packages/ui/src/components/auth/ParticlePanel';
-import { Button } from '../../../../packages/ui/src/components/ui/button';
+import { AuthPanel, type AuthFormData } from '../../../../../packages/ui/src/components/auth/AuthPanel';
+import { ParticlePanel } from '../../../../../packages/ui/src/components/auth/ParticlePanel';
+import { Button } from '../../../../../packages/ui/src/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../../../../packages/ui/src/components/ui/dropdown-menu';
-import { Input } from '../../../../packages/ui/src/components/ui/input';
-import './index.css';
+} from '../../../../../packages/ui/src/components/ui/dropdown-menu';
+import { Input } from '../../../../../packages/ui/src/components/ui/input';
+import '../index.css';
 
 type AuthConfig = {
   serverUrl: string;
@@ -1402,13 +1402,13 @@ function ContextLauncherApp() {
   }, [auth, isAuthenticated, searchValue, selectedContextId, showTree, documentsReloadToken]);
 
   if (!bootstrapped) {
-    return <div className="h-screen w-screen bg-black" />;
+    return <div className="h-screen w-screen overflow-hidden rounded-lg bg-black" />;
   }
 
   // Unauthenticated: show particle + auth panel
   if (!isAuthenticated) {
     return (
-      <div className="h-screen w-screen bg-background text-foreground">
+      <div className="h-screen w-screen overflow-hidden rounded-lg bg-background text-foreground shadow-elevation-4">
         <div className="grid h-full w-full grid-cols-1 lg:grid-cols-[0.382fr_0.618fr]">
           <ParticlePanel />
           <div className="flex h-full w-full flex-col bg-white">
@@ -1430,7 +1430,7 @@ function ContextLauncherApp() {
 
   // Authenticated: sidebar + main content
   return (
-    <div className="flex h-screen w-screen bg-background text-foreground">
+    <div className="flex h-screen w-screen overflow-hidden rounded-lg bg-background text-foreground shadow-elevation-4">
       {/* Icon sidebar (context-colored) */}
       <div
         className={`flex h-full w-16 flex-col items-center justify-between py-4 ${panelTextClass}`}
@@ -2428,7 +2428,7 @@ function ContextLauncherApp() {
   );
 }
 
-createRoot(document.getElementById('context-launcher-root')!).render(
+createRoot(document.getElementById('launcher-root')!).render(
   <StrictMode>
     <ContextLauncherApp />
   </StrictMode>,

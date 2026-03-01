@@ -1,5 +1,5 @@
 import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
-import { TrayManager } from './tray';
+import { TrayManager } from './windows/tray';
 import {
   clearAuthConfig,
   clearContextSelection,
@@ -9,16 +9,20 @@ import {
   setAuthConfig,
   setContextSelection,
 } from './config/app-config';
-import { ContextLauncherWindow } from './windows/context-launcher/ContextLauncherWindow';
+import { LauncherWindow } from './windows/LauncherWindow';
+import { MenuWindow } from './windows/MenuWindow';
 
 class CanvasApp {
   private tray: TrayManager | null = null;
-  private contextLauncher: ContextLauncherWindow | null = null;
+  private launcher: LauncherWindow | null = null;
+  private menu: MenuWindow | null = null;
 
   constructor() {
     this.setupApp();
     this.setupIPC();
   }
+
+  // ── App lifecycle ────────────────────────────────────────
 
   private setupApp() {
     if (process.platform === 'linux') {
@@ -34,9 +38,9 @@ class CanvasApp {
     }
 
     app.on('second-instance', () => {
-      if (!this.contextLauncher) this.contextLauncher = new ContextLauncherWindow({ show: true });
-      this.contextLauncher.show();
-      this.contextLauncher.focus();
+      if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
+      this.launcher.show();
+      this.launcher.focus();
     });
 
     app.whenReady().then(() => this.initialize());
@@ -49,8 +53,8 @@ class CanvasApp {
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
-        if (!this.contextLauncher) this.contextLauncher = new ContextLauncherWindow({ show: true });
-        else this.contextLauncher.show();
+        if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
+        else this.launcher.show();
       }
     });
 
@@ -63,19 +67,26 @@ class CanvasApp {
     const launcherShortcut = await getContextLauncherShortcut();
 
     this.tray = new TrayManager({
-      onLauncherToggle: () => this.toggleContextLauncher(),
+      onLauncherToggle: () => this.launcher?.toggle(),
       launcherShortcut,
       onQuit: () => this.quit(),
     });
 
-    this.contextLauncher = new ContextLauncherWindow({ show: false });
+    this.launcher = new LauncherWindow({ show: false });
+    this.menu = new MenuWindow();
     this.registerGlobalShortcuts(launcherShortcut);
     console.log('Canvas app initialized');
   }
 
+  // ── Shortcuts ────────────────────────────────────────────
+
   private registerGlobalShortcuts(launcherShortcut: string) {
     globalShortcut.register(launcherShortcut, () => {
-      this.toggleContextLauncher();
+      this.launcher?.toggle();
+    });
+
+    globalShortcut.register('CommandOrControl+Shift+Space', () => {
+      this.menu?.toggle();
     });
 
     globalShortcut.register('CommandOrControl+Shift+F12', () => {
@@ -85,6 +96,8 @@ class CanvasApp {
       }
     });
   }
+
+  // ── IPC ──────────────────────────────────────────────────
 
   private setupIPC() {
     ipcMain.handle('auth:get-config', async () => {
@@ -113,11 +126,7 @@ class CanvasApp {
     });
   }
 
-  private toggleContextLauncher() {
-    if (!this.contextLauncher) this.contextLauncher = new ContextLauncherWindow({ show: false });
-    if (this.contextLauncher.isVisible()) return this.contextLauncher.hide();
-    this.contextLauncher.show();
-  }
+  // ── Quit ─────────────────────────────────────────────────
 
   private quit() {
     (app as any).isQuitting = true;

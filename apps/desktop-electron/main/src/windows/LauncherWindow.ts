@@ -1,22 +1,31 @@
 import { app, BrowserWindow, screen } from 'electron';
 import { join } from 'path';
 
-type ContextLauncherWindowOptions = {
+type LauncherWindowOptions = {
   show?: boolean;
 };
 
-export class ContextLauncherWindow {
+export class LauncherWindow {
   private window: BrowserWindow | null = null;
 
-  constructor(private readonly options: ContextLauncherWindowOptions = {}) {
+  constructor(private readonly options: LauncherWindowOptions = {}) {
     this.createWindow();
   }
 
-  public isVisible(): boolean {
-    return this.window ? this.window.isVisible() : false;
+  // ── Getters ──────────────────────────────────────────────
+
+  get isVisible(): boolean {
+    return this.window?.isVisible() ?? false;
   }
 
-  public show() {
+  // ── Public API ───────────────────────────────────────────
+
+  toggle() {
+    if (this.isVisible) this.hide();
+    else this.show();
+  }
+
+  show() {
     const win = this.window;
     if (!win) return;
 
@@ -29,27 +38,29 @@ export class ContextLauncherWindow {
     else requestInputFocus();
   }
 
-  public hide() {
+  hide() {
     this.window?.hide();
   }
 
-  public focus() {
+  focus() {
     this.window?.focus();
   }
 
-  public close() {
+  close() {
     this.window?.close();
   }
+
+  // ── Window creation ──────────────────────────────────────
 
   private createWindow() {
     const width = 1280;
     const height = 800;
-    const { x, y } = this.getCenteredBounds(width, height);
+    const { x, y } = this.getPositionedBounds(width, height);
 
     const isDev = !app.isPackaged;
 
     const iconPath = isDev
-      ? join(__dirname, '../../../../../public/icons/logo_256x256.png')
+      ? join(__dirname, '../../../../public/icons/logo_256x256.png')
       : join(process.resourcesPath, 'public/icons/logo_256x256.png');
 
     this.window = new BrowserWindow({
@@ -61,14 +72,13 @@ export class ContextLauncherWindow {
       frame: false,
       autoHideMenuBar: true,
       alwaysOnTop: false,
-      transparent: false,
-      backgroundColor: '#1a1a1a',
+      transparent: true,
       skipTaskbar: true,
       icon: iconPath,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
-        preload: join(__dirname, '../../preload.js'),
+        preload: join(__dirname, '../preload.js'),
         v8CacheOptions: 'bypassHeatCheck',
         backgroundThrottling: false,
       },
@@ -78,9 +88,9 @@ export class ContextLauncherWindow {
     this.window.webContents.setFrameRate(60);
 
     if (isDev) {
-      this.window.loadURL('http://localhost:3000/context-launcher.html');
+      this.window.loadURL('http://localhost:3000/launcher.html');
     } else {
-      this.window.loadFile(join(app.getAppPath(), 'dist/renderer/context-launcher.html'));
+      this.window.loadFile(join(app.getAppPath(), 'dist/renderer/launcher.html'));
     }
 
     this.window.on('close', (event) => {
@@ -100,9 +110,13 @@ export class ContextLauncherWindow {
     });
   }
 
-  private getCenteredBounds(width: number, height: number) {
+  // ── Positioning ──────────────────────────────────────────
+  // Sits 16px to the right of the menu panel (which is 480px wide at workArea.x + 16)
+
+  private getPositionedBounds(width: number, height: number) {
     const { workArea } = screen.getPrimaryDisplay();
-    const x = Math.floor(workArea.x + (workArea.width - width) / 2);
+    const menuRight = workArea.x + 16 + 480;
+    const x = menuRight + 16;
     const y = Math.floor(workArea.y + (workArea.height - height) / 2);
     return { x, y };
   }
