@@ -73,6 +73,35 @@ This creates platform-specific packages in the `release/` directory:
 - **Windows**: NSIS installer
 - **macOS**: DMG file
 
+## Event Hooks
+
+Canvas UI can run scripts in response to server-side WebSocket events (context URL changes, tree mutations, document updates, etc.). Useful for triggering external tools like rclone mounts, notifications, or CI pipelines.
+
+**Setup**: create executable scripts in `~/.canvas/hooks/` (`~/Canvas/hooks/` on Windows) named after the event they handle:
+
+```bash
+# Create hooks directory
+mkdir -p ~/.canvas/hooks
+
+# Create a hook for context URL changes
+cat > ~/.canvas/hooks/context.url.set << 'EOF'
+#!/bin/bash
+URL=$(cat | jq -r '.url')
+# Note, stdin is a pipe, once processed its gone
+# You can capture the raw stdin with stdin=$(cat)
+echo "[$(date)] context url changed to: $URL"
+EOF
+chmod +x ~/.canvas/hooks/context.url.set
+```
+
+- **Naming**: filename = event name (e.g. `context.url.set`, `workspace.tree.path.inserted`)
+- **Activation**: `chmod +x` enables the hook, remove the flag to disable
+- **Input**: event name as `$1`, JSON payload on stdin
+- **Output**: stdout/stderr appended to `~/.canvas/logs/hooks.log`
+- **Config**: set `hooks.enabled: false` in `~/.canvas/config/canvas-ui.json` to disable globally
+
+Available events are listed in the [WebSocket API docs](https://github.com/canvas-ai/canvas-server/blob/main/docs/API.md#websocket-api).
+
 ## License
 
 AGPL-3.0-or-later - see LICENSE file for details.
