@@ -216,6 +216,57 @@ function findNode(root: TreeNode, path: string): TreeNode | null {
   return node;
 }
 
+// ── Editable URL bar ────────────────────────────────────
+
+function UrlBar({ url, onSubmit }: { url: string; onSubmit: (url: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(url);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { setDraft(url); }, [url]);
+  useEffect(() => { if (editing) inputRef.current?.select(); }, [editing]);
+
+  const commit = () => {
+    setEditing(false);
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== url) onSubmit(trimmed);
+    else setDraft(url);
+  };
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        className="mt-2 w-full rounded-md border border-blue-500 bg-background px-2.5 py-1.5 font-mono text-xs text-foreground outline-none ring-1 ring-blue-500/30"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit();
+          if (e.key === 'Escape') { setEditing(false); setDraft(url); }
+        }}
+        onBlur={commit}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="group mt-2 flex cursor-text items-center gap-1.5 rounded-md border border-border bg-muted/60 px-2.5 py-1.5 transition-colors hover:border-muted-foreground/30"
+      onDoubleClick={() => setEditing(true)}
+      title="Double-click to edit"
+    >
+      <svg className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </svg>
+      <span className="min-w-0 flex-1 truncate font-mono text-xs text-foreground/80">{url}</span>
+      <svg className="h-3 w-3 shrink-0 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      </svg>
+    </div>
+  );
+}
+
 // ── Main component ──────────────────────────────────────
 
 type Props = {
@@ -423,9 +474,10 @@ export function MenuTreeView({ workspace, context, mode, tree, loading, error, o
           </button>
         </div>
 
-        <div className="mt-2 truncate rounded-sm bg-muted px-2 py-1 font-mono text-[11px] text-muted-foreground">
-          {mode === 'bound' ? pathToContextUrl(workspace.name, selectedPath) : selectedPath}
-        </div>
+        <UrlBar
+          url={mode === 'bound' ? pathToContextUrl(workspace.name, selectedPath) : selectedPath}
+          onSubmit={(newUrl) => { if (mode === 'bound') onPathSelect(newUrl); }}
+        />
       </div>
 
       {/* Tree */}

@@ -72,6 +72,10 @@ export function getCanvasUiDir(): string {
   return path.join(getCanvasHome(), 'ui');
 }
 
+export function getCanvasHooksDir(): string {
+  return path.join(getCanvasHome(), 'hooks');
+}
+
 export function getCanvasLogsDir(): string {
   return path.join(getCanvasHome(), 'logs');
 }

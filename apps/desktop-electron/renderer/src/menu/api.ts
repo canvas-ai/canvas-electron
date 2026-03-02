@@ -32,6 +32,10 @@ export async function fetchContexts(): Promise<Context[]> {
   return api<Context[]>('/contexts');
 }
 
+export async function fetchContext(contextId: string): Promise<Context> {
+  return api<Context>(`/contexts/${contextId}`);
+}
+
 export async function fetchContextTree(contextId: string): Promise<TreeNode> {
   return api<TreeNode>(`/contexts/${contextId}/tree`);
 }

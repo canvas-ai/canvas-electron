@@ -1,12 +1,14 @@
-import { StrictMode, useState, useEffect, useCallback } from 'react';
+import { StrictMode, useState, useEffect, useCallback, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../index.css';
 
 import type { Workspace, Context, TreeNode, MenuView, ContextMode } from './types';
-import { fetchWorkspaces, fetchContexts, fetchContextTree, fetchWorkspaceTree, setContextUrl } from './api';
+import { fetchWorkspaces, fetchContexts, fetchContext, fetchContextTree, fetchWorkspaceTree, setContextUrl } from './api';
 import { WorkspacesView } from './WorkspacesView';
 import { ContextsView } from './ContextsView';
 import { MenuTreeView } from './MenuTreeView';
+
+// ── Helpers ───────────────────────────────────────────────
 
 function useVisibility(callback: () => void) {
   useEffect(() => {
@@ -30,6 +32,7 @@ const SLIDE: Record<MenuView, string> = {
 
 function Menu() {
   const [view, setView] = useState<MenuView>('workspaces');
+  const [authVersion, setAuthVersion] = useState(0);
 
   // Data
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -49,7 +52,106 @@ function Menu() {
   const [treeLoading, setTreeLoading] = useState(false);
   const [treeError, setTreeError] = useState<string | null>(null);
 
-  // ── Load workspaces on mount + when window becomes visible
+  // Refs for event handlers (avoids stale closures)
+  const restoredRef = useRef(false);
+  const selectedContextRef = useRef(selectedContext);
+  const selectedWorkspaceRef = useRef(selectedWorkspace);
+  const contextModeRef = useRef(contextMode);
+
+  selectedContextRef.current = selectedContext;
+  selectedWorkspaceRef.current = selectedWorkspace;
+  contextModeRef.current = contextMode;
+
+  // ── Auth change listener ──────────────────────────────
+
+  useEffect(() => {
+    return window.canvas?.onAuthChanged?.(() => setAuthVersion((v) => v + 1));
+  }, []);
+
+  // ── Persist state on every navigation change ──────────
+
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    window.canvas?.setMenuState({
+      view,
+      workspaceId: selectedWorkspace?.id,
+      workspaceName: selectedWorkspace?.name,
+      contextId: selectedContext?.id,
+      contextMode,
+    });
+  }, [view, selectedWorkspace, selectedContext, contextMode]);
+
+  // ── Data fetchers ─────────────────────────────────────
+
+  const refreshTree = useCallback(() => {
+    const ctx = selectedContextRef.current;
+    const ws = selectedWorkspaceRef.current;
+    const mode = contextModeRef.current;
+
+    if (mode === 'bound' && ctx) {
+      setTreeLoading(true);
+      fetchContextTree(ctx.id)
+        .then(setTree)
+        .catch((err) => setTreeError(err.message))
+        .finally(() => setTreeLoading(false));
+    } else if (ws) {
+      setTreeLoading(true);
+      fetchWorkspaceTree(ws.name)
+        .then(setTree)
+        .catch((err) => setTreeError(err.message))
+        .finally(() => setTreeLoading(false));
+    }
+  }, []);
+
+  const refreshContextAndTree = useCallback(async () => {
+    const ctx = selectedContextRef.current;
+    if (!ctx) return;
+
+    try {
+      const updated = await fetchContext(ctx.id);
+      setSelectedContext(updated);
+    } catch {
+      // context may have been deleted
+    }
+    refreshTree();
+  }, [refreshTree]);
+
+  // ── WS subscriptions via IPC (main process socket) ────
+
+  useEffect(() => {
+    const channels: string[] = [];
+    if (contextMode === 'bound' && selectedContext) {
+      channels.push(`context:${selectedContext.id}`);
+    }
+    if (selectedWorkspace) {
+      channels.push(`workspace:${selectedWorkspace.name}`);
+    }
+    if (!channels.length) return;
+
+    channels.forEach((ch) => window.canvas?.wsSubscribe(ch));
+
+    return () => {
+      channels.forEach((ch) => window.canvas?.wsUnsubscribe(ch));
+    };
+  }, [contextMode, selectedContext, selectedWorkspace]);
+
+  // ── Listen for WS events from main process ────────────
+
+  useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const cleanup = window.canvas?.onWsEvent(() => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(refreshContextAndTree, 200);
+    });
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      cleanup?.();
+    };
+  }, [refreshContextAndTree]);
+
+  // ── Load workspaces on mount + auth change + visibility
 
   const loadWorkspaces = useCallback(() => {
     setWsLoading(true);
@@ -60,8 +162,62 @@ function Menu() {
       .finally(() => setWsLoading(false));
   }, []);
 
-  useEffect(loadWorkspaces, [loadWorkspaces]);
+  useEffect(loadWorkspaces, [loadWorkspaces, authVersion]);
   useVisibility(loadWorkspaces);
+
+  // ── Restore persisted state once workspaces are loaded ─
+
+  useEffect(() => {
+    if (restoredRef.current || !workspaces.length) return;
+    restoredRef.current = true;
+
+    (async () => {
+      const saved = await window.canvas?.getMenuState();
+      if (!saved?.view || saved.view === 'workspaces') return;
+
+      const ws = workspaces.find((w) => w.id === saved.workspaceId || w.name === saved.workspaceName);
+      if (!ws) return;
+
+      setSelectedWorkspace(ws);
+
+      if (saved.view === 'contexts' || saved.view === 'tree') {
+        setCtxLoading(true);
+        try {
+          const ctxList = await fetchContexts();
+          setContexts(ctxList);
+
+          if (saved.view === 'tree' && saved.contextId) {
+            const ctx = ctxList.find((c) => c.id === saved.contextId);
+            if (ctx) {
+              setSelectedContext(ctx);
+              setContextMode(saved.contextMode === 'explorer' ? 'explorer' : 'bound');
+              setView('tree');
+
+              setTreeLoading(true);
+              try {
+                const t = saved.contextMode === 'explorer'
+                  ? await fetchWorkspaceTree(ws.name)
+                  : await fetchContextTree(ctx.id);
+                setTree(t);
+              } catch (err: any) {
+                setTreeError(err.message);
+              } finally {
+                setTreeLoading(false);
+              }
+            } else {
+              setView('contexts');
+            }
+          } else {
+            setView('contexts');
+          }
+        } catch (err: any) {
+          setCtxError(err.message);
+        } finally {
+          setCtxLoading(false);
+        }
+      }
+    })();
+  }, [workspaces]);
 
   // ── Workspace selected → load contexts ─────────────────
 
@@ -121,24 +277,6 @@ function Menu() {
     return () => { active = false; };
   }, [selectedWorkspace]);
 
-  // ── Refresh tree after mutations ────────────────────────
-
-  const refreshTree = useCallback(() => {
-    if (contextMode === 'bound' && selectedContext) {
-      setTreeLoading(true);
-      fetchContextTree(selectedContext.id)
-        .then(setTree)
-        .catch((err) => setTreeError(err.message))
-        .finally(() => setTreeLoading(false));
-    } else if (selectedWorkspace) {
-      setTreeLoading(true);
-      fetchWorkspaceTree(selectedWorkspace.name)
-        .then(setTree)
-        .catch((err) => setTreeError(err.message))
-        .finally(() => setTreeLoading(false));
-    }
-  }, [contextMode, selectedContext, selectedWorkspace]);
-
   // ── Tree path selected (bound mode → update context url)
 
   const handlePathSelect = useCallback(async (url: string) => {
@@ -162,7 +300,6 @@ function Menu() {
     else if (view === 'contexts') setView('workspaces');
   }, [view]);
 
-  // TODO: create workspace/context forms (expand panel to 960px)
   const handleCreateWorkspace = useCallback(() => {
     console.log('Create workspace - TBD');
   }, []);
@@ -173,7 +310,6 @@ function Menu() {
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden rounded-lg bg-background shadow-elevation-4">
-      {/* Sliding container: 3 panels side by side */}
       <div
         className="flex h-full w-[300%] transition-transform duration-300"
         style={{ transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)', transform: SLIDE[view] }}

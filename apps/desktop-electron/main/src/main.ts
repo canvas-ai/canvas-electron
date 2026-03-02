@@ -4,20 +4,28 @@ import {
   clearAuthConfig,
   clearContextSelection,
   getAuthConfig,
-  getContextLauncherShortcut,
+  getShortcuts,
   getContextSelection,
+  getMenuState,
+  getGridOffset,
   setAuthConfig,
   setContextSelection,
+  setMenuState,
+  setGridOffset,
 } from './config/app-config';
 import { LauncherWindow } from './windows/LauncherWindow';
 import { MenuWindow } from './windows/MenuWindow';
+import { CanvasSocket } from './services/canvas-socket';
+import { fireHook } from './services/hook-runner';
 
 class CanvasApp {
   private tray: TrayManager | null = null;
   private launcher: LauncherWindow | null = null;
   private menu: MenuWindow | null = null;
+  private canvasSocket = new CanvasSocket();
 
   constructor() {
+    this.canvasSocket.onEvent((event, payload) => fireHook(event, payload));
     this.setupApp();
     this.setupIPC();
   }
@@ -60,36 +68,50 @@ class CanvasApp {
 
     app.on('will-quit', () => {
       globalShortcut.unregisterAll();
+      this.canvasSocket.disconnect();
     });
   }
 
   private async initialize() {
-    const launcherShortcut = await getContextLauncherShortcut();
+    const shortcuts = await getShortcuts();
 
     this.tray = new TrayManager({
       onLauncherToggle: () => this.launcher?.toggle(),
-      launcherShortcut,
+      onMenuToggle: () => this.menu?.toggle(),
+      launcherShortcut: shortcuts.contextLauncher,
+      menuShortcut: shortcuts.menuToggle,
       onQuit: () => this.quit(),
     });
 
     this.launcher = new LauncherWindow({ show: false });
     this.menu = new MenuWindow();
-    this.registerGlobalShortcuts(launcherShortcut);
+    this.registerGlobalShortcuts(shortcuts);
+
+    await this.connectSocket();
     console.log('Canvas app initialized');
+  }
+
+  // ── Socket ──────────────────────────────────────────────
+
+  private async connectSocket() {
+    const auth = await getAuthConfig();
+    if (auth?.serverUrl && auth?.token) {
+      await this.canvasSocket.connect(auth.serverUrl, auth.token);
+    }
   }
 
   // ── Shortcuts ────────────────────────────────────────────
 
-  private registerGlobalShortcuts(launcherShortcut: string) {
-    globalShortcut.register(launcherShortcut, () => {
+  private registerGlobalShortcuts(shortcuts: { contextLauncher: string; menuToggle: string; devTools: string }) {
+    globalShortcut.register(shortcuts.contextLauncher, () => {
       this.launcher?.toggle();
     });
 
-    globalShortcut.register('CommandOrControl+Shift+Space', () => {
+    globalShortcut.register(shortcuts.menuToggle, () => {
       this.menu?.toggle();
     });
 
-    globalShortcut.register('CommandOrControl+Shift+F12', () => {
+    globalShortcut.register(shortcuts.devTools, () => {
       const focusedWindow = BrowserWindow.getFocusedWindow();
       if (focusedWindow) {
         focusedWindow.webContents.toggleDevTools();
@@ -99,30 +121,41 @@ class CanvasApp {
 
   // ── IPC ──────────────────────────────────────────────────
 
-  private setupIPC() {
-    ipcMain.handle('auth:get-config', async () => {
-      return await getAuthConfig();
-    });
+  private broadcastToAll(channel: string) {
+    for (const win of BrowserWindow.getAllWindows()) {
+      win.webContents.send(channel);
+    }
+  }
 
+  private setupIPC() {
+    ipcMain.handle('auth:get-config', () => getAuthConfig());
     ipcMain.handle('auth:set-config', async (_, auth) => {
       await setAuthConfig(auth);
+      this.broadcastToAll('auth:changed');
+      await this.connectSocket();
     });
-
     ipcMain.handle('auth:clear-config', async () => {
       await clearAuthConfig();
       await clearContextSelection();
+      this.canvasSocket.disconnect();
+      this.broadcastToAll('auth:changed');
     });
 
-    ipcMain.handle('context:get-selection', async () => {
-      return await getContextSelection();
-    });
+    ipcMain.handle('context:get-selection', () => getContextSelection());
+    ipcMain.handle('context:set-selection', (_, selection) => setContextSelection(selection));
+    ipcMain.handle('context:clear-selection', () => clearContextSelection());
 
-    ipcMain.handle('context:set-selection', async (_, selection) => {
-      await setContextSelection(selection);
-    });
+    ipcMain.handle('state:get-menu', () => getMenuState());
+    ipcMain.handle('state:set-menu', (_, state) => setMenuState(state));
 
-    ipcMain.handle('context:clear-selection', async () => {
-      await clearContextSelection();
+    ipcMain.handle('config:get-grid-offset', () => getGridOffset());
+    ipcMain.handle('config:set-grid-offset', (_, offset) => setGridOffset(offset));
+
+    ipcMain.handle('ws:subscribe', (event, channel) => {
+      this.canvasSocket.subscribe(event.sender.id, channel);
+    });
+    ipcMain.handle('ws:unsubscribe', (event, channel) => {
+      this.canvasSocket.unsubscribe(event.sender.id, channel);
     });
   }
 
@@ -130,6 +163,7 @@ class CanvasApp {
 
   private quit() {
     (app as any).isQuitting = true;
+    this.canvasSocket.disconnect();
     this.tray?.destroy();
     this.tray = null;
 

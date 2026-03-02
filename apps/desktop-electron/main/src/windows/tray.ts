@@ -4,7 +4,9 @@ import { existsSync } from 'fs';
 
 interface TrayOptions {
   onLauncherToggle?: () => void;
+  onMenuToggle?: () => void;
   launcherShortcut?: string;
+  menuShortcut?: string;
   onQuit: () => void;
 }
 
@@ -47,6 +49,13 @@ export class TrayManager {
           label: 'Launcher',
           accelerator: this.options.launcherShortcut,
           click: () => this.options.onLauncherToggle?.(),
+        }]
+        : []),
+      ...(this.options.onMenuToggle
+        ? [{
+          label: 'Menu',
+          accelerator: this.options.menuShortcut,
+          click: () => this.options.onMenuToggle?.(),
         }]
         : []),
       { type: 'separator' },
