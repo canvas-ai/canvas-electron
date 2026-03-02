@@ -73,7 +73,9 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
           generate_release_notes: true
+          overwrite_files: true
           files: |
             dist-assets/**/*.AppImage
             dist-assets/**/*.dmg
