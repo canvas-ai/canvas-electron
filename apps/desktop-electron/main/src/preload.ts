@@ -56,6 +56,15 @@ const api = {
   setGridOffset: (offset: { x: number; y: number }) =>
     ipcRenderer.invoke(IPC.GRID_SET_OFFSET, offset),
 
+  // Toolbox
+  getToolboxMode: () => ipcRenderer.invoke('toolbox:get-mode'),
+  setToolboxMode: (mode: string) => ipcRenderer.invoke('toolbox:set-mode', mode),
+  onToolboxModeChanged: (handler: (mode: string) => void) => {
+    const listener = (_: unknown, mode: string) => handler(mode);
+    ipcRenderer.on('toolbox:mode-changed', listener);
+    return () => ipcRenderer.removeListener('toolbox:mode-changed', listener);
+  },
+
   // WebSocket (centralized in main process)
   wsSubscribe: (channel: string) => ipcRenderer.invoke(IPC.WS_SUBSCRIBE, channel),
   wsUnsubscribe: (channel: string) => ipcRenderer.invoke(IPC.WS_UNSUBSCRIBE, channel),

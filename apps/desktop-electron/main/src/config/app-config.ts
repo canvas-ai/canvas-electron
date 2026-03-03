@@ -6,6 +6,7 @@ type AppConfigSchema = {
   shortcuts?: {
     contextLauncher?: string;
     menuToggle?: string;
+    toolboxToggle?: string;
     devTools?: string;
   };
   grid?: {
@@ -46,6 +47,7 @@ const DEFAULTS = {
   shortcuts: {
     contextLauncher: 'Ctrl+Space',
     menuToggle: 'CommandOrControl+Shift+Space',
+    toolboxToggle: 'CommandOrControl+Shift+T',
     devTools: 'CommandOrControl+Shift+F12',
   },
   grid: {
@@ -85,6 +87,7 @@ export async function getShortcuts() {
   return {
     contextLauncher: shortcuts.contextLauncher || DEFAULTS.shortcuts.contextLauncher,
     menuToggle: shortcuts.menuToggle || DEFAULTS.shortcuts.menuToggle,
+    toolboxToggle: shortcuts.toolboxToggle || DEFAULTS.shortcuts.toolboxToggle,
     devTools: shortcuts.devTools || DEFAULTS.shortcuts.devTools,
   };
 }

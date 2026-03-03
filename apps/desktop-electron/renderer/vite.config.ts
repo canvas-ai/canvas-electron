@@ -13,6 +13,7 @@ export default defineConfig({
       input: {
         launcher: path.resolve(__dirname, 'launcher.html'),
         menu: path.resolve(__dirname, 'menu.html'),
+        toolbox: path.resolve(__dirname, 'toolbox.html'),
       },
     },
   },

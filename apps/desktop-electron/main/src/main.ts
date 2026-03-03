@@ -15,6 +15,7 @@ import {
 } from './config/app-config';
 import { LauncherWindow } from './windows/LauncherWindow';
 import { MenuWindow } from './windows/MenuWindow';
+import { ToolboxWindow } from './windows/ToolboxWindow';
 import { CanvasSocket } from './services/canvas-socket';
 import { fireHook } from './services/hook-runner';
 
@@ -22,6 +23,7 @@ class CanvasApp {
   private tray: TrayManager | null = null;
   private launcher: LauncherWindow | null = null;
   private menu: MenuWindow | null = null;
+  private toolbox: ToolboxWindow | null = null;
   private canvasSocket = new CanvasSocket();
 
   constructor() {
@@ -78,13 +80,16 @@ class CanvasApp {
     this.tray = new TrayManager({
       onLauncherToggle: () => this.launcher?.toggle(),
       onMenuToggle: () => this.menu?.toggle(),
+      onToolboxToggle: () => this.toolbox?.toggle(),
       launcherShortcut: shortcuts.contextLauncher,
       menuShortcut: shortcuts.menuToggle,
+      toolboxShortcut: shortcuts.toolboxToggle,
       onQuit: () => this.quit(),
     });
 
     this.launcher = new LauncherWindow({ show: false });
     this.menu = new MenuWindow();
+    this.toolbox = new ToolboxWindow();
     this.registerGlobalShortcuts(shortcuts);
 
     await this.connectSocket();
@@ -102,13 +107,17 @@ class CanvasApp {
 
   // ── Shortcuts ────────────────────────────────────────────
 
-  private registerGlobalShortcuts(shortcuts: { contextLauncher: string; menuToggle: string; devTools: string }) {
+  private registerGlobalShortcuts(shortcuts: { contextLauncher: string; menuToggle: string; toolboxToggle: string; devTools: string }) {
     globalShortcut.register(shortcuts.contextLauncher, () => {
       this.launcher?.toggle();
     });
 
     globalShortcut.register(shortcuts.menuToggle, () => {
       this.menu?.toggle();
+    });
+
+    globalShortcut.register(shortcuts.toolboxToggle, () => {
+      this.toolbox?.cycleMode();
     });
 
     globalShortcut.register(shortcuts.devTools, () => {
@@ -150,6 +159,9 @@ class CanvasApp {
 
     ipcMain.handle('config:get-grid-offset', () => getGridOffset());
     ipcMain.handle('config:set-grid-offset', (_, offset) => setGridOffset(offset));
+
+    ipcMain.handle('toolbox:get-mode', () => this.toolbox?.mode ?? 'dot');
+    ipcMain.handle('toolbox:set-mode', (_, mode) => this.toolbox?.setMode(mode));
 
     ipcMain.handle('ws:subscribe', (event, channel) => {
       this.canvasSocket.subscribe(event.sender.id, channel);
