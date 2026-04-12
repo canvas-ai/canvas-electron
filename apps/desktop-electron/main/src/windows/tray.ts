@@ -12,6 +12,20 @@ interface TrayOptions {
   onQuit: () => void;
 }
 
+function formatShortcut(accelerator: string | undefined): string {
+  if (!accelerator) return '';
+  const isMac = process.platform === 'darwin';
+  return accelerator
+    .replace(/CommandOrControl/g, isMac ? 'Cmd' : 'Ctrl')
+    .replace(/Command/g, 'Cmd')
+    .replace(/Control/g, 'Ctrl')
+    .replace(/\bLeft\b/g, '←')
+    .replace(/\bRight\b/g, '→')
+    .replace(/\bUp\b/g, '↑')
+    .replace(/\bDown\b/g, '↓')
+    .replace(/\bSpace\b/g, 'Space');
+}
+
 export class TrayManager {
   private tray: Tray;
   private options: TrayOptions;
@@ -48,21 +62,27 @@ export class TrayManager {
       { type: 'separator' },
       ...(this.options.onLauncherToggle
         ? [{
-          label: 'Launcher',
+          label: this.options.launcherShortcut
+            ? `Launcher (${formatShortcut(this.options.launcherShortcut)})`
+            : 'Launcher',
           accelerator: this.options.launcherShortcut,
           click: () => this.options.onLauncherToggle?.(),
         }]
         : []),
       ...(this.options.onMenuToggle
         ? [{
-          label: 'Menu',
+          label: this.options.menuShortcut
+            ? `Menu (${formatShortcut(this.options.menuShortcut)})`
+            : 'Menu',
           accelerator: this.options.menuShortcut,
           click: () => this.options.onMenuToggle?.(),
         }]
         : []),
       ...(this.options.onToolboxToggle
         ? [{
-          label: 'Toolbox',
+          label: this.options.toolboxShortcut
+            ? `Toolbox (${formatShortcut(this.options.toolboxShortcut)})`
+            : 'Toolbox',
           accelerator: this.options.toolboxShortcut,
           click: () => this.options.onToolboxToggle?.(),
         }]

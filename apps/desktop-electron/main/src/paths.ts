@@ -28,8 +28,16 @@ export function getCanvasConfigDir(): string {
   return path.join(getCanvasHome(), 'config');
 }
 
+export function getCanvasUiConfigPath(): string {
+  return path.join(getCanvasConfigDir(), 'canvas-ui.json');
+}
+
 export function getCanvasRemotesPath(): string {
   return path.join(getCanvasConfigDir(), 'remotes.json');
+}
+
+export function getCanvasDevicePath(): string {
+  return path.join(getCanvasConfigDir(), 'device.json');
 }
 
 export function getCanvasSettingsPath(): string {
@@ -42,6 +50,14 @@ export function getCanvasAccountsDir(): string {
 
 export function getCanvasAccountDir(ref: CanvasAccountRef): string {
   return path.join(getCanvasAccountsDir(), `${ref.user}@${ref.remoteId}`);
+}
+
+export function getCanvasAccountDevicesPath(ref: CanvasAccountRef): string {
+  return path.join(getCanvasAccountDir(ref), 'devices.json');
+}
+
+export function getCanvasAccountWorkspacesPath(ref: CanvasAccountRef): string {
+  return path.join(getCanvasAccountDir(ref), 'workspaces.json');
 }
 
 export function getCanvasWorkspacesDir(ref: CanvasAccountRef): string {

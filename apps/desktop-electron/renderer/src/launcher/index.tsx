@@ -12,6 +12,7 @@ import {
 } from '../../../../../packages/ui/src/components/ui/dropdown-menu';
 import { Input } from '../../../../../packages/ui/src/components/ui/input';
 import '../index.css';
+import { SetupWizard } from './SetupWizard';
 
 type AuthConfig = {
   serverUrl: string;
@@ -410,6 +411,7 @@ function buildTreeRows(
 
 function ContextLauncherApp() {
   const [auth, setAuth] = useState<AuthConfig | null>(null);
+  const [setupRequired, setSetupRequired] = useState(false);
   const [contexts, setContexts] = useState<ContextItem[]>([]);
   const [selectedContextId, setSelectedContextId] = useState<string | null>(null);
   const [selectedContextUrl, setSelectedContextUrl] = useState<string>('');
@@ -494,7 +496,13 @@ function ContextLauncherApp() {
 
   useEffect(() => {
     const loadAuth = async () => {
-      if (!window.canvas?.getAuthConfig) {
+      if (!window.canvas?.getAuthConfig || !window.canvas?.getSetupState) {
+        setBootstrapped(true);
+        return;
+      }
+      const setup = await window.canvas.getSetupState();
+      setSetupRequired(setup.required);
+      if (setup.required) {
         setBootstrapped(true);
         return;
       }
@@ -1403,6 +1411,18 @@ function ContextLauncherApp() {
 
   if (!bootstrapped) {
     return <div className="h-screen w-screen overflow-hidden rounded-lg bg-black" />;
+  }
+
+  if (setupRequired) {
+    return (
+      <SetupWizard
+        onComplete={async () => {
+          const stored = await window.canvas?.getAuthConfig?.();
+          setAuth(stored ?? null);
+          setSetupRequired(false);
+        }}
+      />
+    );
   }
 
   // Unauthenticated: show particle + auth panel

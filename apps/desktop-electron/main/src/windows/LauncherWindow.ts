@@ -54,7 +54,7 @@ export class LauncherWindow {
 
   private createWindow() {
     const width = 1280;
-    const height = 800;
+    const height = 860;
     const { x, y } = this.getPositionedBounds(width, height);
 
     const isDev = !app.isPackaged;
@@ -117,7 +117,7 @@ export class LauncherWindow {
     const { workArea } = screen.getPrimaryDisplay();
     const menuRight = workArea.x + 16 + 480;
     const x = menuRight + 16;
-    const y = Math.floor(workArea.y + (workArea.height - height) / 2);
+    const y = Math.floor(workArea.y + (workArea.height - height) / 2) - 24;
     return { x, y };
   }
 }

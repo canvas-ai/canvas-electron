@@ -1,4 +1,6 @@
-import { getCanvasConfigDir } from '../paths';
+import { existsSync } from 'fs';
+import { getCanvasConfigDir, getCanvasUiConfigPath } from '../paths';
+import { clearActiveRemote, getActiveAuthConfig, setActiveAuthConfig } from './setup-store';
 
 // ── Schema ────────────────────────────────────────────────
 
@@ -25,6 +27,9 @@ type AppConfigSchema = {
     selectedUrl?: string;
   };
   state?: MenuState;
+  setup?: {
+    completedAt?: string;
+  };
 };
 
 export type MenuState = {
@@ -46,8 +51,8 @@ type ConfigStore = {
 const DEFAULTS = {
   shortcuts: {
     contextLauncher: 'Ctrl+Space',
-    menuToggle: 'CommandOrControl+Shift+Space',
-    toolboxToggle: 'CommandOrControl+Shift+T',
+    menuToggle: 'CommandOrControl+Alt+Left',
+    toolboxToggle: 'CommandOrControl+Alt+Right',
     devTools: 'CommandOrControl+Shift+F12',
   },
   grid: {
@@ -132,18 +137,25 @@ export type AuthConfig = {
 };
 
 export async function getAuthConfig(): Promise<AuthConfig | null> {
+  const activeAuth = getActiveAuthConfig();
+  if (activeAuth) return activeAuth;
+
   const config = await getConfig();
   const auth = config.get('auth') as AuthConfig | undefined;
   if (!auth?.serverUrl || !auth?.token) return null;
+  setActiveAuthConfig(auth);
+  config.delete('auth');
   return auth;
 }
 
 export async function setAuthConfig(auth: AuthConfig): Promise<void> {
+  setActiveAuthConfig(auth);
   const config = await getConfig();
-  config.set('auth', auth);
+  config.delete('auth');
 }
 
 export async function clearAuthConfig(): Promise<void> {
+  clearActiveRemote();
   const config = await getConfig();
   config.delete('auth');
 }
@@ -184,4 +196,38 @@ export async function getMenuState(): Promise<MenuState | null> {
 export async function setMenuState(state: MenuState): Promise<void> {
   const config = await getConfig();
   config.set('state', state);
+}
+
+// ── Setup ─────────────────────────────────────────────────
+
+export type SetupStatus = {
+  required: boolean;
+  resetRequested: boolean;
+  hasUiConfig: boolean;
+  completedAt?: string;
+};
+
+export function hasCanvasUiConfig(): boolean {
+  return existsSync(getCanvasUiConfigPath());
+}
+
+export async function getSetupStatus(resetRequested = false): Promise<SetupStatus> {
+  const hasUiConfig = hasCanvasUiConfig();
+  if (!hasUiConfig) {
+    return { required: true, resetRequested, hasUiConfig };
+  }
+
+  const config = await getConfig();
+  const setup = config.get('setup') as AppConfigSchema['setup'] | undefined;
+  return {
+    required: resetRequested,
+    resetRequested,
+    hasUiConfig,
+    completedAt: setup?.completedAt,
+  };
+}
+
+export async function markSetupComplete(): Promise<void> {
+  const config = await getConfig();
+  config.set('setup.completedAt', new Date().toISOString());
 }

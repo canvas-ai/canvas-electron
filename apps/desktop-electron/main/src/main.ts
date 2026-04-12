@@ -3,16 +3,26 @@ import { TrayManager } from './windows/tray';
 import {
   clearAuthConfig,
   clearContextSelection,
+  getSetupStatus,
   getAuthConfig,
   getShortcuts,
   getContextSelection,
   getMenuState,
   getGridOffset,
+  markSetupComplete,
   setAuthConfig,
   setContextSelection,
   setMenuState,
   setGridOffset,
 } from './config/app-config';
+import {
+  getActiveRemote,
+  getDeviceConfig,
+  getRemoteList,
+  saveDeviceConfig,
+  saveRemote,
+  setActiveRemote,
+} from './config/setup-store';
 import { LauncherWindow } from './windows/LauncherWindow';
 import { MenuWindow } from './windows/MenuWindow';
 import { ToolboxWindow } from './windows/ToolboxWindow';
@@ -25,6 +35,9 @@ class CanvasApp {
   private menu: MenuWindow | null = null;
   private toolbox: ToolboxWindow | null = null;
   private canvasSocket = new CanvasSocket();
+  private readonly resetConfigRequested = process.argv.includes('--reset-config');
+  private setupMode = false;
+  private normalUiStarted = false;
 
   constructor() {
     this.canvasSocket.onEvent((event, payload) => fireHook(event, payload));
@@ -48,9 +61,14 @@ class CanvasApp {
     }
 
     app.on('second-instance', () => {
-      if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
-      this.launcher.show();
-      this.launcher.focus();
+      if (this.setupMode) {
+        if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
+        this.launcher.show();
+        this.launcher.focus();
+        return;
+      }
+
+      this.menu?.showCollapsed();
     });
 
     app.whenReady().then(() => this.initialize());
@@ -63,8 +81,14 @@ class CanvasApp {
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
-        if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
-        else this.launcher.show();
+        if (this.setupMode) {
+          if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
+          else this.launcher.show();
+          return;
+        }
+
+        if (!this.menu) this.menu = new MenuWindow();
+        this.menu.showCollapsed();
       }
     });
 
@@ -75,25 +99,41 @@ class CanvasApp {
   }
 
   private async initialize() {
+    const setup = await getSetupStatus(this.resetConfigRequested);
+    this.setupMode = setup.required;
+
+    if (this.setupMode) {
+      this.launcher = new LauncherWindow({ show: true });
+      console.log('Canvas app initialized in setup mode');
+      return;
+    }
+
+    await this.startNormalUi();
+    console.log('Canvas app initialized');
+  }
+
+  private async startNormalUi() {
+    if (this.normalUiStarted) return;
+
     const shortcuts = await getShortcuts();
 
     this.tray = new TrayManager({
-      onLauncherToggle: () => this.launcher?.toggle(),
-      onMenuToggle: () => this.menu?.toggle(),
-      onToolboxToggle: () => this.toolbox?.toggle(),
+      onMenuToggle: () => this.menu?.advanceStage(),
+      onToolboxToggle: () => this.revealToolbox(),
       launcherShortcut: shortcuts.contextLauncher,
       menuShortcut: shortcuts.menuToggle,
       toolboxShortcut: shortcuts.toolboxToggle,
       onQuit: () => this.quit(),
     });
 
-    this.launcher = new LauncherWindow({ show: false });
-    this.menu = new MenuWindow();
-    this.toolbox = new ToolboxWindow();
-    this.registerGlobalShortcuts(shortcuts);
+    if (!this.menu) this.menu = new MenuWindow();
+    if (!this.toolbox) this.toolbox = new ToolboxWindow();
+    this.menu.showCollapsed();
 
+    this.registerGlobalShortcuts(shortcuts);
     await this.connectSocket();
-    console.log('Canvas app initialized');
+    this.setupMode = false;
+    this.normalUiStarted = true;
   }
 
   // ── Socket ──────────────────────────────────────────────
@@ -108,16 +148,12 @@ class CanvasApp {
   // ── Shortcuts ────────────────────────────────────────────
 
   private registerGlobalShortcuts(shortcuts: { contextLauncher: string; menuToggle: string; toolboxToggle: string; devTools: string }) {
-    globalShortcut.register(shortcuts.contextLauncher, () => {
-      this.launcher?.toggle();
-    });
-
     globalShortcut.register(shortcuts.menuToggle, () => {
-      this.menu?.toggle();
+      this.menu?.advanceStage();
     });
 
     globalShortcut.register(shortcuts.toolboxToggle, () => {
-      this.toolbox?.cycleMode();
+      this.revealToolbox();
     });
 
     globalShortcut.register(shortcuts.devTools, () => {
@@ -156,6 +192,14 @@ class CanvasApp {
 
     ipcMain.handle('state:get-menu', () => getMenuState());
     ipcMain.handle('state:set-menu', (_, state) => setMenuState(state));
+    ipcMain.handle('menu:get-shell-stage', () => this.menu?.shellStage ?? 'collapsed');
+    ipcMain.handle('menu:set-shell-stage', (_, stage) => {
+      if (!this.menu) return;
+      this.menu.setStage(stage);
+    });
+    ipcMain.handle('menu:advance-shell-stage', () => {
+      this.menu?.advanceStage();
+    });
 
     ipcMain.handle('config:get-grid-offset', () => getGridOffset());
     ipcMain.handle('config:set-grid-offset', (_, offset) => setGridOffset(offset));
@@ -163,12 +207,56 @@ class CanvasApp {
     ipcMain.handle('toolbox:get-mode', () => this.toolbox?.mode ?? 'dot');
     ipcMain.handle('toolbox:set-mode', (_, mode) => this.toolbox?.setMode(mode));
 
+    ipcMain.handle('setup:get-state', async () => {
+      const state = await getSetupStatus(this.resetConfigRequested);
+      return {
+        ...state,
+        required: this.setupMode,
+      };
+    });
+    ipcMain.handle('setup:get-remotes', () => getRemoteList());
+    ipcMain.handle('setup:get-device', () => getDeviceConfig());
+    ipcMain.handle('setup:save-remote', (_, payload) => saveRemote(payload));
+    ipcMain.handle('setup:save-device', (_, payload) => saveDeviceConfig(payload));
+    ipcMain.handle('setup:complete', async (_, remoteId?: string) => {
+      const activeRemote = remoteId ? setActiveRemote(remoteId) : getActiveRemote();
+      if (!activeRemote) {
+        throw new Error('No configured remote available.');
+      }
+
+      await setAuthConfig({
+        serverUrl: activeRemote.serverUrl,
+        token: activeRemote.auth.token,
+        email: activeRemote.email,
+      });
+      await markSetupComplete();
+      await this.startNormalUi();
+      this.broadcastToAll('auth:changed');
+      this.broadcastToAll('setup:changed');
+      this.launcher?.show();
+      return { ok: true };
+    });
+
     ipcMain.handle('ws:subscribe', (event, channel) => {
       this.canvasSocket.subscribe(event.sender.id, channel);
     });
     ipcMain.handle('ws:unsubscribe', (event, channel) => {
       this.canvasSocket.unsubscribe(event.sender.id, channel);
     });
+    ipcMain.handle('app:quit', () => this.quit());
+  }
+
+  private revealToolbox() {
+    if (!this.toolbox) return;
+    if (this.toolbox.isVisible) {
+      this.toolbox.hide();
+      return;
+    }
+
+    if (this.toolbox.mode === 'dot') {
+      this.toolbox.setMode('toolbox');
+    }
+    this.toolbox.show();
   }
 
   // ── Quit ─────────────────────────────────────────────────
@@ -187,8 +275,7 @@ class CanvasApp {
       }
     }
 
-    app.quit();
-    setTimeout(() => app.exit(0), 250);
+    app.exit(0);
   }
 }
 

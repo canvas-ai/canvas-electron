@@ -19,6 +19,8 @@ type AuthPanelProps = {
   busy?: boolean
   error?: string | null
   status?: string | null
+  title?: string
+  subtitle?: string
   onTestConnection: (data: AuthFormData) => Promise<void>
   onLogin: (data: AuthFormData) => Promise<void>
   className?: string
@@ -30,6 +32,8 @@ export function AuthPanel({
   busy = false,
   error,
   status,
+  title = 'Welcome back',
+  subtitle = 'Enter your credentials to access your account',
   onTestConnection,
   onLogin,
   className,
@@ -67,9 +71,9 @@ export function AuthPanel({
       }}
     >
       <div className="space-y-2">
-        <div className="text-3xl font-semibold">Welcome back</div>
+        <div className="text-3xl font-semibold">{title}</div>
         <div className="text-sm text-muted-foreground">
-          Enter your credentials to access your account
+          {subtitle}
         </div>
       </div>
 

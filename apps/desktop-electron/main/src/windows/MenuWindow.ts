@@ -1,8 +1,18 @@
 import { app, BrowserWindow, screen } from 'electron';
 import { join } from 'path';
 
+export type MenuShellStage = 'collapsed' | 'tree' | 'mainMenu';
+
+const COLLAPSED_WIDTH = 420;
+const COLLAPSED_HEIGHT = 84;
+const TREE_WIDTH = COLLAPSED_WIDTH;
+const MAIN_MENU_WIDTH = COLLAPSED_WIDTH * 2;
+const PADDING = 16;
+const TOP_OFFSET = 28;
+
 export class MenuWindow {
   private window: BrowserWindow | null = null;
+  private stage: MenuShellStage = 'collapsed';
 
   constructor() {
     this.createWindow();
@@ -14,17 +24,47 @@ export class MenuWindow {
     return this.window?.isVisible() ?? false;
   }
 
+  get shellStage(): MenuShellStage {
+    return this.stage;
+  }
+
   // ── Public API ───────────────────────────────────────────
 
   toggle() {
-    if (this.isVisible) this.hide();
-    else this.show();
+    this.advanceStage();
   }
 
   show() {
     if (!this.window) return;
     this.updateBounds();
     this.window.show();
+  }
+
+  showCollapsed() {
+    this.setStage('collapsed');
+  }
+
+  showTree() {
+    this.setStage('tree');
+  }
+
+  showMainMenu() {
+    this.setStage('mainMenu');
+  }
+
+  setStage(stage: MenuShellStage) {
+    this.stage = stage;
+    this.updateBounds();
+    this.window?.show();
+    this.window?.webContents.send('menu:shell-stage-changed', stage);
+  }
+
+  advanceStage() {
+    const next: MenuShellStage =
+      this.stage === 'collapsed' ? 'tree' :
+      this.stage === 'tree' ? 'mainMenu' :
+      'collapsed';
+    this.setStage(next);
   }
 
   hide() {
@@ -87,12 +127,20 @@ export class MenuWindow {
 
   private calcBounds() {
     const { workArea } = screen.getPrimaryDisplay();
-    const padding = 16;
+    if (this.stage === 'collapsed') {
+      return {
+        width: COLLAPSED_WIDTH,
+        height: COLLAPSED_HEIGHT,
+        x: workArea.x + PADDING,
+        y: workArea.y + TOP_OFFSET,
+      };
+    }
+
     return {
-      width: 480,
-      height: workArea.height - padding * 2,
-      x: workArea.x + padding,
-      y: workArea.y + padding,
+      width: this.stage === 'mainMenu' ? MAIN_MENU_WIDTH : TREE_WIDTH,
+      height: workArea.height - PADDING * 2,
+      x: workArea.x + PADDING,
+      y: workArea.y + PADDING,
     };
   }
 
