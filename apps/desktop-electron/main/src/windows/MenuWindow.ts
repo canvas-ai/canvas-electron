@@ -90,7 +90,6 @@ export class MenuWindow {
   private createWindow() {
     const isDev = !app.isPackaged;
     const bounds = this.calcBounds();
-
     const iconPath = isDev
       ? join(__dirname, '../../../../public/icons/logo_256x256.png')
       : join(process.resourcesPath, 'public/icons/logo_256x256.png');

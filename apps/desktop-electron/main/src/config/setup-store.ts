@@ -187,13 +187,31 @@ export function clearActiveRemote(): void {
 }
 
 export function getActiveAuthConfig(): ActiveAuthConfig | null {
+  // Try new electron format first
   const remote = getActiveRemote();
-  if (!remote?.auth?.token || !remote.serverUrl) return null;
-  return {
-    serverUrl: remote.serverUrl,
-    token: remote.auth.token,
-    email: remote.email,
-  };
+  if (remote?.auth?.token && remote.serverUrl) {
+    return { serverUrl: remote.serverUrl, token: remote.auth.token, email: remote.email };
+  }
+
+  // Fall back to legacy CLI format: {user@server: {url, auth: {token}}}
+  const raw = readJsonFile<Record<string, unknown>>(getCanvasRemotesPath(), {});
+  const cliEntries = Object.entries(raw)
+    .filter(([k, v]) =>
+      k !== 'activeRemoteId' && k !== 'remotes' &&
+      typeof v === 'object' && v !== null &&
+      typeof (v as Record<string, unknown>).url === 'string' &&
+      typeof ((v as Record<string, unknown>).auth as Record<string, unknown>)?.token === 'string'
+    )
+    .sort((a, b) => {
+      const ta = ((a[1] as Record<string, unknown>).lastSynced as string) ?? '';
+      const tb = ((b[1] as Record<string, unknown>).lastSynced as string) ?? '';
+      return tb.localeCompare(ta); // newest first
+    });
+
+  if (!cliEntries.length) return null;
+  const entry = cliEntries[0][1] as Record<string, unknown>;
+  const auth = entry.auth as Record<string, unknown>;
+  return { serverUrl: entry.url as string, token: auth.token as string };
 }
 
 export function setActiveAuthConfig(auth: ActiveAuthConfig): CanvasRemoteConfig {
@@ -226,13 +244,16 @@ export function setActiveAuthConfig(auth: ActiveAuthConfig): CanvasRemoteConfig 
     updatedAt: now,
   };
 
+  // Preserve any existing keys (e.g. CLI-format entries) alongside the electron format
+  const rawExisting = readJsonFile<Record<string, unknown>>(getCanvasRemotesPath(), {});
   writeJsonFile(getCanvasRemotesPath(), {
+    ...rawExisting,
     activeRemoteId: id,
     remotes: [
       ...config.remotes.filter((entry) => entry.id !== id),
       remote,
     ],
-  } satisfies CanvasRemotesConfig);
+  });
 
   return remote;
 }

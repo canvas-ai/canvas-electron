@@ -137,21 +137,24 @@ export type AuthConfig = {
 };
 
 export async function getAuthConfig(): Promise<AuthConfig | null> {
+  // Primary: electron-specific auth stored in canvas-ui.json
+  const config = await getConfig();
+  const stored = config.get('auth') as AuthConfig | undefined;
+  if (stored?.serverUrl && stored?.token) return stored;
+
+  // Fallback: remotes.json (new electron format or legacy CLI format)
   const activeAuth = getActiveAuthConfig();
   if (activeAuth) return activeAuth;
 
-  const config = await getConfig();
-  const auth = config.get('auth') as AuthConfig | undefined;
-  if (!auth?.serverUrl || !auth?.token) return null;
-  setActiveAuthConfig(auth);
-  config.delete('auth');
-  return auth;
+  return null;
 }
 
 export async function setAuthConfig(auth: AuthConfig): Promise<void> {
-  setActiveAuthConfig(auth);
+  // Write to canvas-ui.json (electron-only, survives remotes.json format conflicts)
   const config = await getConfig();
-  config.delete('auth');
+  config.set('auth', auth);
+  // Also write to remotes.json for full setup compatibility
+  setActiveAuthConfig(auth);
 }
 
 export async function clearAuthConfig(): Promise<void> {

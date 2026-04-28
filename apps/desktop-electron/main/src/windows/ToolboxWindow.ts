@@ -62,7 +62,6 @@ export class ToolboxWindow {
   private createWindow() {
     const isDev = !app.isPackaged;
     const bounds = this.calcBounds();
-
     this.window = new BrowserWindow({
       ...bounds,
       show: false,

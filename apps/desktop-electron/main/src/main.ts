@@ -51,7 +51,14 @@ class CanvasApp {
 
   private setupApp() {
     if (process.platform === 'linux') {
-      app.commandLine.appendSwitch('enable-transparent-visuals');
+      if (process.env.WAYLAND_DISPLAY || process.env.XDG_SESSION_TYPE === 'wayland') {
+        // Native Wayland rendering — required for windows to actually paint
+        app.commandLine.appendSwitch('ozone-platform', 'wayland');
+        app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations');
+      } else {
+        // X11: enable alpha-channel transparency via compositor
+        app.commandLine.appendSwitch('enable-transparent-visuals');
+      }
     }
 
     app.enableSandbox();
@@ -63,17 +70,22 @@ class CanvasApp {
     }
 
     app.on('second-instance', () => {
-      if (this.setupMode) {
+      if (this.setupMode || this.loginMode) {
         if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
         this.launcher.show();
         this.launcher.focus();
         return;
       }
 
-      this.menu?.showCollapsed();
+      this.menu?.advanceStage();
     });
 
-    app.whenReady().then(() => this.initialize());
+    app.whenReady().then(() => this.initialize().catch((err) => {
+      console.error('Canvas init failed:', err);
+      // Show launcher as fallback so user is not left with nothing
+      if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
+      else this.launcher.show();
+    }));
 
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') {
@@ -83,14 +95,13 @@ class CanvasApp {
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
-        if (this.setupMode) {
+        if (this.setupMode || this.loginMode) {
           if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
           else this.launcher.show();
           return;
         }
 
-        if (!this.menu) this.menu = new MenuWindow();
-        this.menu.showCollapsed();
+        this.toolbox?.show();
       }
     });
 
@@ -101,6 +112,18 @@ class CanvasApp {
   }
 
   private async initialize() {
+    try {
+      this.tray = new TrayManager({
+        onLauncherToggle: () => {
+          if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
+          else this.launcher.show();
+        },
+        onQuit: () => this.quit(),
+      });
+    } catch (err) {
+      console.warn('Tray creation failed:', err);
+    }
+
     const setup = await getSetupStatus(this.resetConfigRequested);
     this.setupMode = setup.required;
 
@@ -127,19 +150,18 @@ class CanvasApp {
 
     const shortcuts = await getShortcuts();
 
-    this.tray = new TrayManager({
+    // Tray was created in initialize() — update it with full options
+    this.tray?.update({
       onMenuToggle: () => this.menu?.advanceStage(),
       onToolboxToggle: () => this.revealToolbox(),
-      launcherShortcut: shortcuts.contextLauncher,
       menuShortcut: shortcuts.menuToggle,
       toolboxShortcut: shortcuts.toolboxToggle,
-      onQuit: () => this.quit(),
     });
 
     if (!this.menu) this.menu = new MenuWindow();
     if (!this.toolbox) this.toolbox = new ToolboxWindow();
 
-    // Show only the dot by default — menu stays hidden until shortcut
+    // Show only the dot by default — menu hidden until shortcut (or tray click on Wayland)
     this.toolbox.show();
 
     this.registerGlobalShortcuts(shortcuts);
@@ -161,28 +183,23 @@ class CanvasApp {
   // ── Shortcuts ────────────────────────────────────────────
 
   private registerGlobalShortcuts(shortcuts: { contextLauncher: string; menuToggle: string; toolboxToggle: string; devTools: string }) {
-    globalShortcut.register(shortcuts.menuToggle, () => {
-      this.menu?.advanceStage();
-    });
-
-    globalShortcut.register(shortcuts.toolboxToggle, () => {
-      this.revealToolbox();
-    });
-
-    globalShortcut.register(shortcuts.devTools, () => {
-      const focusedWindow = BrowserWindow.getFocusedWindow();
-      if (focusedWindow) {
-        focusedWindow.webContents.toggleDevTools();
+    // Global shortcuts don't work on Wayland — tray menu is the fallback there
+    const register = (accelerator: string, fn: () => void) => {
+      try {
+        const ok = globalShortcut.register(accelerator, fn);
+        if (!ok) console.warn(`Global shortcut not registered: ${accelerator} (Wayland?)`);
+      } catch (err) {
+        console.warn(`Global shortcut error: ${accelerator}`, err);
       }
-    });
+    };
 
-    // Tree navigation: cycle through workspaces/contexts in M2
-    globalShortcut.register('CommandOrControl+Alt+Up', () => {
-      this.menu?.sendNavTree('up');
+    register(shortcuts.menuToggle, () => this.menu?.advanceStage());
+    register(shortcuts.toolboxToggle, () => this.revealToolbox());
+    register(shortcuts.devTools, () => {
+      BrowserWindow.getFocusedWindow()?.webContents.toggleDevTools();
     });
-    globalShortcut.register('CommandOrControl+Alt+Down', () => {
-      this.menu?.sendNavTree('down');
-    });
+    register('CommandOrControl+Alt+Up', () => this.menu?.sendNavTree('up'));
+    register('CommandOrControl+Alt+Down', () => this.menu?.sendNavTree('down'));
   }
 
   // ── IPC ──────────────────────────────────────────────────
@@ -202,7 +219,13 @@ class CanvasApp {
       // Transition from login/setup screen to normal UI
       if (this.loginMode || this.setupMode) {
         this.launcher?.hide();
-        await this.startNormalUi();
+        if (this.normalUiStarted) {
+          // Normal UI already exists (re-login after logout) — just show the dot
+          this.toolbox?.show();
+          this.loginMode = false;
+        } else {
+          await this.startNormalUi();
+        }
       }
     });
     ipcMain.handle('auth:clear-config', async () => {
@@ -210,11 +233,12 @@ class CanvasApp {
       await clearContextSelection();
       this.canvasSocket.disconnect();
       this.broadcastToAll('auth:changed');
-      // Return to login screen
-      this.menu?.setStage('collapsed'); // hide menu
+      // Return to login screen — keep normalUiStarted so we don't recreate tray/shortcuts
+      this.menu?.setStage('collapsed');
       this.toolbox?.hide();
-      this.normalUiStarted = false;
       this.loginMode = true;
+      // Strip menu/toolbox from tray — only launcher + quit while logged out
+      this.tray?.update({ onMenuToggle: undefined, onToolboxToggle: undefined });
       if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
       else this.launcher.show();
     });

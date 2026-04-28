@@ -42,6 +42,11 @@ export class TrayManager {
     this.updateContextMenu();
   }
 
+  public update(options: Partial<TrayOptions>) {
+    this.options = { ...this.options, ...options };
+    this.updateContextMenu();
+  }
+
   public destroy() {
     this.tray.destroy();
   }
