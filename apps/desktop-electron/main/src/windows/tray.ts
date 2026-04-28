@@ -94,6 +94,14 @@ export class TrayManager {
         : []),
       { type: 'separator' },
       {
+        label: 'DevTools',
+        click: () => {
+          const { BrowserWindow } = require('electron');
+          const wins = BrowserWindow.getAllWindows();
+          if (wins.length) wins[0].webContents.openDevTools({ mode: 'detach' });
+        },
+      },
+      {
         label: 'About',
         click: () => {
           app.showAboutPanel();

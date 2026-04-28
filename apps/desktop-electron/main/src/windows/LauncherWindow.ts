@@ -90,6 +90,7 @@ export class LauncherWindow {
 
     if (isDev) {
       this.window.loadURL('http://localhost:3000/launcher.html');
+      this.window.webContents.openDevTools({ mode: 'detach' });
     } else {
       this.window.loadFile(join(app.getAppPath(), 'dist/renderer/launcher.html'));
     }
