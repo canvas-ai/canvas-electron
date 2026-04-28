@@ -279,8 +279,24 @@ type Props = {
   onBack: () => void;
   onPathSelect: (path: string) => void;
   onRefresh: () => void;
+  onConfirmSelection?: (path: string) => void;
   showHeader?: boolean;
 };
+
+function flattenVisiblePaths(tree: TreeNode, expandedPaths: Set<string>): string[] {
+  const paths: string[] = ['/'];
+  function walk(node: TreeNode, parentPath: string) {
+    const p = parentPath === '/' ? `/${node.name}` : `${parentPath}/${node.name}`;
+    paths.push(p);
+    if (expandedPaths.has(p) && node.children?.length) {
+      for (const child of node.children) walk(child, p);
+    }
+  }
+  if (tree.children) {
+    for (const child of tree.children) walk(child, '/');
+  }
+  return paths;
+}
 
 export function MenuTreeView({
   workspace,
@@ -292,6 +308,7 @@ export function MenuTreeView({
   onBack,
   onPathSelect,
   onRefresh,
+  onConfirmSelection,
   showHeader = true,
 }: Props) {
   const [selectedPath, setSelectedPath] = useState('/');
@@ -434,7 +451,26 @@ export function MenuTreeView({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!rootRef.current?.contains(document.activeElement) && document.activeElement !== rootRef.current) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!tree) return;
+        const flat = flattenVisiblePaths(tree, expandedPaths);
+        const idx = flat.indexOf(selectedPath);
+        const next = e.key === 'ArrowDown'
+          ? Math.min(idx + 1, flat.length - 1)
+          : Math.max(idx - 1, 0);
+        handleSelect(flat[next]);
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onConfirmSelection?.(selectedPath);
+        return;
+      }
+
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
       const key = e.key.toLowerCase();
@@ -444,7 +480,7 @@ export function MenuTreeView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedPath, handleAction]);
+  }, [selectedPath, expandedPaths, tree, handleSelect, handleAction, onConfirmSelection]);
 
   // ── Render ─────────────────────────────────────────────
 
@@ -452,37 +488,39 @@ export function MenuTreeView({
   const modeDotColor = mode === 'bound' ? '#22c55e' : '#3b82f6';
 
   return (
-    <div className="flex h-full flex-col" ref={rootRef} tabIndex={0}>
+    <div className="flex h-full min-w-0 flex-col overflow-hidden" ref={rootRef} tabIndex={0}>
       {showHeader && (
-        <div className="border-b border-border px-4 py-3">
-          <div className="flex items-center gap-2">
-            <button onClick={onBack} className="rounded-md p-1 hover:bg-accent" title="Back">
+        <div className="shrink-0 border-b border-sidebar-border px-2 py-2">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <button type="button" onClick={onBack} className="shrink-0 rounded-md p-1 hover:bg-sidebar-accent" title="Back">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
             </button>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
+              <div className="flex min-w-0 items-center gap-1.5">
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: modeDotColor }} />
-                <span className="truncate text-xs font-medium text-muted-foreground">{modeLabel}</span>
+                <span className="truncate text-[11px] font-medium text-muted-foreground">{modeLabel}</span>
               </div>
-              <div className="truncate text-sm font-semibold">{workspace.label || workspace.name}</div>
+              <div className="truncate text-xs font-semibold">{workspace.label || workspace.name}</div>
             </div>
           </div>
 
-          <div className="mt-3 flex rounded-md border border-border bg-muted p-0.5">
+          <div className="mt-2 flex min-w-0 rounded-md border border-border bg-muted p-0.5">
             <button
+              type="button"
               onClick={() => setActiveTab('context')}
-              className={`flex-1 rounded-sm px-3 py-1 text-xs font-medium transition-colors ${
+              className={`min-w-0 flex-1 truncate rounded-sm px-1.5 py-1 text-[10px] font-medium transition-colors ${
                 activeTab === 'context' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              Context Tree
+              Context
             </button>
             <button
+              type="button"
               disabled
-              className="flex-1 cursor-not-allowed rounded-sm px-3 py-1 text-xs font-medium text-muted-foreground/50"
+              className="min-w-0 flex-1 cursor-not-allowed truncate rounded-sm px-1.5 py-1 text-[10px] font-medium text-muted-foreground/50"
               title="Not available yet"
             >
-              Directory Tree
+              Directory
             </button>
           </div>
 
@@ -495,7 +533,7 @@ export function MenuTreeView({
 
       {/* Tree */}
       <div
-        className="flex-1 overflow-y-auto py-1"
+        className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-auto py-1"
         onDragLeave={() => setDragOverPath(null)}
       >
         {loading && <div className="p-4 text-center text-sm text-muted-foreground">Loading tree...</div>}

@@ -97,6 +97,8 @@ declare global {
       wsUnsubscribe: (channel: string) => Promise<void>
       onWsEvent: (handler: (event: string, payload: unknown) => void) => () => void
       quitApp: () => Promise<void>
+      openCanvas: (canvasPath: string) => Promise<void>
+      onMenuNavTree: (handler: (direction: 'up' | 'down') => void) => () => void
     }
   }
 }

@@ -120,6 +120,16 @@ const api = {
   },
 
   quitApp: () => ipcRenderer.invoke('app:quit'),
+
+  // Canvas window
+  openCanvas: (canvasPath: string) => ipcRenderer.invoke('canvas:open', canvasPath),
+
+  // Tree navigation (sent from main on global shortcut)
+  onMenuNavTree: (handler: (direction: 'up' | 'down') => void) => {
+    const listener = (_: unknown, direction: 'up' | 'down') => handler(direction);
+    ipcRenderer.on('menu:nav-tree', listener);
+    return () => ipcRenderer.removeListener('menu:nav-tree', listener);
+  },
 };
 
 contextBridge.exposeInMainWorld('canvas', api);

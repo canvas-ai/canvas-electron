@@ -4,6 +4,7 @@
 
 # Exclude server mountpoint
 /server
+/canvas-server
 /extensions
 
 # Portable runtimes

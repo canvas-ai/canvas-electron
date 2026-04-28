@@ -57,6 +57,10 @@
     --sidebar-accent-foreground: 0 0% 0%;
     --sidebar-border: 240 5% 90%;
     --sidebar-ring: 0 0% 0%;
+
+    /* Shell layout (menu M0 / M1; keep in sync with MenuWindow.ts) */
+    --m0-width: 48px;
+    --m1-width: 280px;
   }
 }
 

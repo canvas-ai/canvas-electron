@@ -5,8 +5,10 @@ export type MenuShellStage = 'collapsed' | 'tree' | 'mainMenu';
 
 const COLLAPSED_WIDTH = 420;
 const COLLAPSED_HEIGHT = 84;
-const TREE_WIDTH = COLLAPSED_WIDTH;
-const MAIN_MENU_WIDTH = COLLAPSED_WIDTH * 2;
+/** Keep in sync with renderer `index.css` (--m0-width + --m1-width). */
+const M0_WIDTH = 48;
+const M1_WIDTH = 280;
+const EXPANDED_WIDTH = M0_WIDTH + M1_WIDTH;
 const PADDING = 16;
 const TOP_OFFSET = 28;
 
@@ -54,8 +56,12 @@ export class MenuWindow {
 
   setStage(stage: MenuShellStage) {
     this.stage = stage;
-    this.updateBounds();
-    this.window?.show();
+    if (stage === 'collapsed') {
+      this.window?.hide();
+    } else {
+      this.updateBounds();
+      this.window?.show();
+    }
     this.window?.webContents.send('menu:shell-stage-changed', stage);
   }
 
@@ -65,6 +71,10 @@ export class MenuWindow {
       this.stage === 'tree' ? 'mainMenu' :
       'collapsed';
     this.setStage(next);
+  }
+
+  sendNavTree(direction: 'up' | 'down') {
+    this.window?.webContents.send('menu:nav-tree', direction);
   }
 
   hide() {
@@ -137,7 +147,7 @@ export class MenuWindow {
     }
 
     return {
-      width: this.stage === 'mainMenu' ? MAIN_MENU_WIDTH : TREE_WIDTH,
+      width: EXPANDED_WIDTH,
       height: workArea.height - PADDING * 2,
       x: workArea.x + PADDING,
       y: workArea.y + PADDING,

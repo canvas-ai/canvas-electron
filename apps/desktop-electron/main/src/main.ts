@@ -1,5 +1,6 @@
 import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
 import { TrayManager } from './windows/tray';
+import { CanvasWindow } from './windows/CanvasWindow';
 import {
   clearAuthConfig,
   clearContextSelection,
@@ -37,6 +38,7 @@ class CanvasApp {
   private canvasSocket = new CanvasSocket();
   private readonly resetConfigRequested = process.argv.includes('--reset-config');
   private setupMode = false;
+  private loginMode = false;
   private normalUiStarted = false;
 
   constructor() {
@@ -108,6 +110,14 @@ class CanvasApp {
       return;
     }
 
+    const auth = await getAuthConfig();
+    if (!auth?.serverUrl || !auth?.token) {
+      this.loginMode = true;
+      this.launcher = new LauncherWindow({ show: true });
+      console.log('Canvas app initialized in login mode');
+      return;
+    }
+
     await this.startNormalUi();
     console.log('Canvas app initialized');
   }
@@ -128,11 +138,14 @@ class CanvasApp {
 
     if (!this.menu) this.menu = new MenuWindow();
     if (!this.toolbox) this.toolbox = new ToolboxWindow();
-    this.menu.showCollapsed();
+
+    // Show only the dot by default — menu stays hidden until shortcut
+    this.toolbox.show();
 
     this.registerGlobalShortcuts(shortcuts);
     await this.connectSocket();
     this.setupMode = false;
+    this.loginMode = false;
     this.normalUiStarted = true;
   }
 
@@ -162,6 +175,14 @@ class CanvasApp {
         focusedWindow.webContents.toggleDevTools();
       }
     });
+
+    // Tree navigation: cycle through workspaces/contexts in M2
+    globalShortcut.register('CommandOrControl+Alt+Up', () => {
+      this.menu?.sendNavTree('up');
+    });
+    globalShortcut.register('CommandOrControl+Alt+Down', () => {
+      this.menu?.sendNavTree('down');
+    });
   }
 
   // ── IPC ──────────────────────────────────────────────────
@@ -178,12 +199,24 @@ class CanvasApp {
       await setAuthConfig(auth);
       this.broadcastToAll('auth:changed');
       await this.connectSocket();
+      // Transition from login/setup screen to normal UI
+      if (this.loginMode || this.setupMode) {
+        this.launcher?.hide();
+        await this.startNormalUi();
+      }
     });
     ipcMain.handle('auth:clear-config', async () => {
       await clearAuthConfig();
       await clearContextSelection();
       this.canvasSocket.disconnect();
       this.broadcastToAll('auth:changed');
+      // Return to login screen
+      this.menu?.setStage('collapsed'); // hide menu
+      this.toolbox?.hide();
+      this.normalUiStarted = false;
+      this.loginMode = true;
+      if (!this.launcher) this.launcher = new LauncherWindow({ show: true });
+      else this.launcher.show();
     });
 
     ipcMain.handle('context:get-selection', () => getContextSelection());
@@ -233,7 +266,7 @@ class CanvasApp {
       await this.startNormalUi();
       this.broadcastToAll('auth:changed');
       this.broadcastToAll('setup:changed');
-      this.launcher?.show();
+      this.launcher?.hide(); // hide launcher, dot is now visible
       return { ok: true };
     });
 
@@ -244,11 +277,18 @@ class CanvasApp {
       this.canvasSocket.unsubscribe(event.sender.id, channel);
     });
     ipcMain.handle('app:quit', () => this.quit());
+
+    ipcMain.handle('canvas:open', async (_, canvasPath: string) => {
+      const auth = await getAuthConfig();
+      if (!auth?.serverUrl || !auth?.token) return;
+      CanvasWindow.open(auth.serverUrl, auth.token, canvasPath);
+    });
   }
 
   private revealToolbox() {
     if (!this.toolbox) return;
-    if (this.toolbox.isVisible) {
+    // Never hide while in dot mode — dot is the persistent launcher orb
+    if (this.toolbox.isVisible && this.toolbox.mode !== 'dot') {
       this.toolbox.hide();
       return;
     }
