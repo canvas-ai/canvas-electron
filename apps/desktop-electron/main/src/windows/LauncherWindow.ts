@@ -55,8 +55,7 @@ export class LauncherWindow {
   private createWindow() {
     const width = 1280;
     const height = 860;
-    const { x, y } = this.getPositionedBounds(width, height);
-
+    const isLinux = process.platform === 'linux';
     const isDev = !app.isPackaged;
 
     const iconPath = isDev
@@ -66,14 +65,16 @@ export class LauncherWindow {
     this.window = new BrowserWindow({
       width,
       height,
-      x,
-      y,
+      center: true,
       show: false,
-      frame: false,
+      // On Linux/Wayland: use a framed window with solid bg — compositor handles it reliably.
+      // Transparent frameless windows are compositor-dependent and often invisible on Wayland.
+      frame: !isLinux,
       autoHideMenuBar: true,
       alwaysOnTop: false,
-      transparent: true,
-      skipTaskbar: true,
+      transparent: !isLinux,
+      backgroundColor: isLinux ? '#111111' : undefined,
+      skipTaskbar: false,
       icon: iconPath,
       webPreferences: {
         nodeIntegration: false,
@@ -108,16 +109,5 @@ export class LauncherWindow {
         this.window?.show();
       }
     });
-  }
-
-  // ── Positioning ──────────────────────────────────────────
-  // Sits 16px to the right of the menu panel (which is 480px wide at workArea.x + 16)
-
-  private getPositionedBounds(width: number, height: number) {
-    const { workArea } = screen.getPrimaryDisplay();
-    const menuRight = workArea.x + 16 + 480;
-    const x = menuRight + 16;
-    const y = Math.floor(workArea.y + (workArea.height - height) / 2) - 24;
-    return { x, y };
   }
 }
